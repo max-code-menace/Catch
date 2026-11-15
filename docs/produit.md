@@ -55,7 +55,7 @@ Badge « En direct » animé avancé, bouton « je cherche un joueur » avec not
 
 ## Plan de construction
 
-Une fonctionnalité à la fois, testée avant de passer à la suivante. **Étape en cours : 5.** Les étapes 0 à 4 sont faites, avec des sessions fictives et un Catch gardé sur le téléphone. Pour l'étape 5, les écrans de connexion sont écrits (e-mail avec code à 6 chiffres, Apple) mais pas encore branchés : il manque le projet Supabase (`src/constants/supabase.ts`). Google reste à faire.
+Une fonctionnalité à la fois, testée avant de passer à la suivante. **Étape en cours : 5.** Les étapes 0 à 4 sont faites, avec des sessions fictives et un Catch gardé sur le téléphone. L'étape 5 est branchée sur le projet Supabase (`src/constants/supabase.ts`) : connexion par e-mail avec code à 6 chiffres, puis prénom. Reste à faire : tester sur téléphone, Apple (à configurer dans Supabase), Google.
 
 0. Installer les outils (Node.js LTS, Git, VS Code) et créer le projet Expo (à la racine du dépôt)
 1. Squelette, barre de navigation flottante et design system
