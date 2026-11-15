@@ -6,7 +6,7 @@ Lancement prévu en Brabant wallon / Bruxelles, d'abord avec un cercle d'amis, p
 
 ## État du projet
 
-Conception terminée (novembre 2026). Carte, liste, détail, geste Catch, connexion par e-mail et écran « Créer une session » sont faits, en clair et en sombre. Les sessions affichées sont encore fictives : la prochaine étape est de brancher les vraies données (Supabase). L'avancement à jour est dans [CLAUDE.md](CLAUDE.md).
+Conception terminée (novembre 2026). Carte, liste, détail, geste Catch, connexion par e-mail et écran « Créer une session » sont faits, en clair et en sombre. Les sessions viennent de Supabase : il n'y a aucune session d'exemple. L'avancement à jour est dans [CLAUDE.md](CLAUDE.md).
 
 ## Lancer l'app
 

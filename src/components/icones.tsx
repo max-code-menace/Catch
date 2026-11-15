@@ -135,3 +135,13 @@ export function IconeRelancer(props: Props) {
     </Base>
   );
 }
+
+export function IconeSansReseau(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M3 3l18 18" />
+      <Path d="M5 12.5a10 10 0 0 1 4-2.6M2 9a15 15 0 0 1 4.5-3M10.5 5.1A15 15 0 0 1 22 9M14 10a10 10 0 0 1 5 2.5M8.5 16a5 5 0 0 1 7 0" />
+      <Circle cx={12} cy={19.5} r={0.6} />
+    </Base>
+  );
+}

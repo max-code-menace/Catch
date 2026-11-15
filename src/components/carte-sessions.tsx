@@ -13,7 +13,7 @@ export type PropsCarte = {
   idChoisie: string | null;
   onChoisir: (id: string | null) => void;
   /** Change pour recentrer la carte sur un point */
-  cible: (Coordonnees & { cle: number }) | null;
+  cible: (Coordonnees & { cle: number; rayonKm?: number }) | null;
   montrerPosition: boolean;
 };
 
@@ -26,8 +26,10 @@ export function CarteSessions({ sessions, idChoisie, onChoisir, cible, montrerPo
 
   useEffect(() => {
     if (cible) {
+      // Avec un rayon : on recule assez pour voir tout le cercle
+      const delta = cible.rayonKm ? (cible.rayonKm * 3) / 111 : ZOOM.latitudeDelta;
       carte.current?.animateToRegion(
-        { latitude: cible.latitude, longitude: cible.longitude, ...ZOOM },
+        { latitude: cible.latitude, longitude: cible.longitude, latitudeDelta: delta, longitudeDelta: delta },
         400,
       );
     }

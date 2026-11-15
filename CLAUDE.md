@@ -32,11 +32,11 @@ Plan complet dans `docs/produit.md`.
 - [x] 1. Squelette, barre flottante à 4 onglets, thème clair et sombre (réglage Auto / Clair / Sombre et Vibrations dans Profil)
 - [x] 2. Carte des sessions · 3. Liste avec filtres · 4. Détail, geste Catch, « Tu l'as catchée ! », annulation
 - [~] 5. Connexion : e-mail (code à 6 chiffres puis prénom) fait et branché sur Supabase. Apple configuré mais à tester dans un build EAS (bouton masqué dans Expo Go). Google à faire
-- [~] 6. Créer une session : écran fait (tuiles, roulettes, lieu sur la carte). **La session créée reste sur le téléphone**
-- [ ] **Prochaine étape : brancher les vraies données.** Les sessions affichées sont encore **fictives** (`src/donnees/sessions.ts`) et les Catchs ne sont pas enregistrés. Il faut : lire les sessions depuis Supabase, y enregistrer les sessions créées et les Catchs, supprimer les sessions fictives, afficher l'état « Rien à 5 km » quand il n'y a rien. Maxime ne veut **aucune fausse session** sur la carte
+- [x] 6. Créer une session : écran fait (tuiles, roulettes, lieu sur la carte), la session est publiée sur Supabase. Reste « première création en 3 choix » à vérifier
+- [x] Vraies données : plus aucune session d'exemple. Sessions, création, Catch et annulation passent par Supabase ; la carte affiche « Rien à 5 km pour l'instant » quand il n'y a rien, « Pas de réseau » si la lecture échoue. Le Catch n'est fêté qu'après la réponse du serveur
 - [ ] 7. Lien d'invitation · 8. Notifications · 9. Messagerie interne · 10. Signalement, blocage, suppression de compte · 11. Tests
 
-**Supabase** : projet `fwhewavlrbujnwfbgcdf` (eu-central-1). Sert déjà à la connexion. Une table `sessions` existe (lecture publique, vide, personne ne peut encore y écrire) : elle a été créée pour une carte refaite par erreur dans `mobile/`, son schéma est à adapter au type `Session` de l'app quand on branche les données.
+**Supabase** : projet `fwhewavlrbujnwfbgcdf` (eu-central-1). Tables `profils` (prénom, recopié automatiquement depuis le compte), `sessions`, `participations` (un Catch = une ligne) ; vue `sessions_visibles` lue par l'app ; fonction `catcher(p_session)` qui vérifie la place (renvoie `ok`, `complete`, `terminee`, `introuvable`). Lecture ouverte à tous, écriture réservée aux comptes connectés. SQL dans `supabase/migrations/`. **Si la migration `sessions_participations` n'apparaît pas dans la base (`list_migrations`), l'appliquer avant de publier l'app** : elle demande une confirmation à Maxime parce qu'elle remplace l'ancienne table `sessions` vide.
 
 Le 15 novembre, une session avait reconstruit l'app de zéro dans `mobile/` sans voir cette version plus avancée. Tout a été regroupé ici ; de `mobile/` on a repris le mode sombre et les réglages du Profil. Si un jour `main` semble en retard sur ce que Maxime décrit, **regarder les autres branches avant de coder**.
 
@@ -50,7 +50,7 @@ Pas encore fait : icône et écran de démarrage (ceux d'Expo par défaut), clé
 - `components/` : `carte-sessions` (react-native-maps : Apple Plans sur iPhone, Google Maps sur Android), `pastille-session`, `fiche-session`, `liste-sessions`, `bouton-catch`, `choix-lieu`, `roulette`, `barre-haut`, `barre-navigation`… Les fichiers `.web.tsx` remplacent les cartes par un fond uni, pour vérifier dans un navigateur
 - `constants/theme.ts` : palettes `clair` et `sombre`, polices, rayons, ressorts. `constants/carte.ts` : thème du fond de carte
 - `lib/theme.tsx` : `useCouleurs()`, `useTheme()`, `useStyles(creerStyles)`. `lib/sessions.tsx` : sessions et Catchs partagés. `lib/compte.tsx` + `lib/supabase.ts` : connexion. `lib/haptics.ts` : seul endroit qui déclenche une vibration
-- `donnees/` : pictos (générés par `scripts/generer_pictos.py`), sports, sessions fictives (à supprimer)
+- `donnees/` : pictos (générés par `scripts/generer_pictos.py`), sports, forme d'une session
 
 Règles de code :
 - Noms de fichiers, composants et variables en français.
@@ -65,7 +65,7 @@ Règles de code :
   `npx eas-cli@latest update --branch main --message "…" --platform ios --environment development --non-interactive`
   (le canal `preview` contient d'anciennes publications, ne plus l'utiliser)
 - La version d'exécution doit rester `sdkVersion` dans `app.json` (nécessaire pour Expo Go).
-- Vérifier soi-même avant de publier : `npx expo start --web` puis captures de chaque écran en clair et en sombre (Playwright, `colorScheme`). Le bac à sable n'atteint pas Supabase.
+- Vérifier soi-même avant de publier : `npx expo start --web` puis captures de chaque écran en clair et en sombre (Playwright, `colorScheme`). Le bac à sable n'atteint pas Supabase : dans Playwright, simuler la réponse de `**/rest/v1/sessions_visibles**` (`page.route`) pour voir des sessions, sans jamais rien écrire dans la vraie base.
 - Accès Expo : l'environnement cloud « catch » contient le jeton (injecté vers `api.expo.dev`). Si la session tourne sur un autre environnement, basculer dessus (`switch_environment`), puis lancer les commandes EAS avec `EXPO_TOKEN=dummy` devant. Ne jamais faire coller un jeton dans la conversation. La doc `docs.expo.dev` n'est pas joignable : lire les types dans `node_modules/`.
 - Les notifications push ne marchent pas dans Expo Go sur Android : build de développement à partir de l'étape 8.
 

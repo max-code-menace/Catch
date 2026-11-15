@@ -1,7 +1,7 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -21,6 +21,7 @@ import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { ANNULE, useCompte } from '@/lib/compte';
 import { quandPhrase, textePlaces } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
+import { expliquerEchec } from '@/lib/catch';
 import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
@@ -47,6 +48,7 @@ export default function Connexion() {
   const [prenom, setPrenom] = useState('');
   const [erreur, setErreur] = useState<string | null>(null);
   const [occupe, setOccupe] = useState(false);
+  const catchEnCours = useRef(false);
   const [appleDisponible, setAppleDisponible] = useState(false);
 
   useEffect(() => {
@@ -74,13 +76,23 @@ export default function Connexion() {
   }
 
   /** Connecté, prénom connu : on catche la session et on fête ça. */
-  function terminer() {
-    if (session) {
-      catcher(session.id);
+  async function terminer() {
+    if (!session) {
+      router.back();
+      return;
+    }
+    // Une seule demande à la fois, même si l'écran se redessine
+    if (catchEnCours.current) return;
+    catchEnCours.current = true;
+    const resultat = await catcher(session.id);
+    catchEnCours.current = false;
+    if (resultat === 'ok') {
       vibrer.succes();
       router.replace({ pathname: '/catchee/[id]', params: { id: session.id } });
     } else {
+      // Connecté, mais le Catch n'a pas pu se faire : on revient sur la session avec l'explication
       router.back();
+      expliquerEchec(resultat);
     }
   }
 
