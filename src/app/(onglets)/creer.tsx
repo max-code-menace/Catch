@@ -1,20 +1,30 @@
-import * as Location from 'expo-location';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ApercuCarte } from '@/components/apercu-carte';
 import { Bouton } from '@/components/bouton';
-import { IconeLieu, IconeRecentrer, IconeRelancer } from '@/components/icones';
+import { ChoixLieu } from '@/components/choix-lieu';
+import { IconeRelancer } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
 import { Roulette } from '@/components/roulette';
 import { BarreNavigation, Couleurs, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Sport } from '@/donnees/pictos';
-import { WAVRE, type Coordonnees } from '@/donnees/sessions';
 import { SPORTS, ficheSport } from '@/donnees/sports';
 import { useCompte } from '@/lib/compte';
 import { heure, quand } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
+import { LIEU_PAR_DEFAUT, nommer, type Lieu } from '@/lib/lieux';
 import { useSessions } from '@/lib/sessions';
 
 const MINUTE = 60_000;
@@ -55,34 +65,16 @@ function texteCreneau(creneau: Creneau) {
   return creneau === 'maintenant' ? 'Maintenant' : heure(dateDe(0, creneau));
 }
 
-type Lieu = { position: Coordonnees; nom: string; commune: string; estMaPosition: boolean };
-
-const LIEU_PAR_DEFAUT: Lieu = {
-  position: WAVRE,
-  nom: 'Centre de Wavre',
-  commune: 'Wavre',
-  estMaPosition: false,
-};
-
-/** Retrouve le nom de l'endroit (rue ou lieu connu) et la commune d'une position. */
-async function nommer(position: Coordonnees): Promise<Lieu> {
-  try {
-    const [adresse] = await Location.reverseGeocodeAsync(position);
-    return {
-      position,
-      nom: adresse?.name ?? adresse?.street ?? 'Près de toi',
-      commune: adresse?.city ?? adresse?.subregion ?? '',
-      estMaPosition: true,
-    };
-  } catch {
-    return { position, nom: 'Près de toi', commune: '', estMaPosition: true };
-  }
-}
+/** Les raccourcis de « Quand » : un appui suffit dans la plupart des cas */
+type Raccourci = 'maintenant' | 'soir' | 'demain' | 'autre';
 
 export default function Creer() {
   const { top, bottom } = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  // Tous les sports d'un coup d'œil : 5 tuiles par ligne, 8 px entre elles
+  const largeurTuile = Math.floor((width - 2 * Espaces.marge - 4 * 8) / 5);
   const { compte } = useCompte();
-  const { creer, derniereCreee, position, setPosition } = useSessions();
+  const { creer, derniereCreee, position } = useSessions();
 
   const ouverture = useMemo(() => new Date(), []);
   const listeJours = useMemo(() => jours(ouverture), [ouverture]);
@@ -90,6 +82,7 @@ export default function Creer() {
   const encoreCeSoir = ouverture.getHours() * 60 + ouverture.getMinutes() < 18 * 60 + 30;
 
   const [sport, setSport] = useState<Sport>('foot');
+  const [raccourci, setRaccourci] = useState<Raccourci>(encoreCeSoir ? 'soir' : 'demain');
   const [jour, setJour] = useState(encoreCeSoir ? 0 : 1);
   const [creneau, setCreneau] = useState<Creneau>(19 * 60);
   const [lieu, setLieu] = useState<Lieu>(LIEU_PAR_DEFAUT);
@@ -97,6 +90,7 @@ export default function Creer() {
   const [joueurs, setJoueurs] = useState(ficheSport('foot').joueurs);
   const [debutants, setDebutants] = useState(true);
   const [enAttente, setEnAttente] = useState(false);
+  const [carteOuverte, setCarteOuverte] = useState(false);
 
   const listeCreneaux = useMemo(() => creneaux(jour, ouverture), [jour, ouverture]);
   // L'heure choisie n'existe plus ce jour-là (déjà passée) : on prend la première proposée
@@ -105,29 +99,15 @@ export default function Creer() {
 
   // Si la position est déjà connue (bouton « recentrer » de la carte), elle sert de lieu par défaut
   useEffect(() => {
-    if (position && !lieu.estMaPosition) nommer(position).then(setLieu);
+    if (position && !lieu.choisi) nommer(position).then(setLieu);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [position]);
 
   function choisirSport(cle: Sport) {
+    if (cle === sport) return;
+    vibrer.selection();
     setSport(cle);
     setJoueurs(ficheSport(cle).joueurs);
-  }
-
-  // La position n'est demandée que si on appuie sur « Ma position »
-  async function utiliserMaPosition() {
-    vibrer.selection();
-    try {
-      const { granted } = await Location.requestForegroundPermissionsAsync();
-      if (!granted) return;
-      const trouve =
-        (await Location.getLastKnownPositionAsync()) ?? (await Location.getCurrentPositionAsync());
-      const point = { latitude: trouve.coords.latitude, longitude: trouve.coords.longitude };
-      setPosition(point);
-      setLieu(await nommer(point));
-    } catch {
-      // Position indisponible : on garde le lieu affiché
-    }
   }
 
   function relancer() {
@@ -141,18 +121,31 @@ export default function Creer() {
       position: derniereCreee.position,
       nom: derniereCreee.lieu,
       commune: derniereCreee.commune,
-      estMaPosition: true,
+      choisi: true,
     });
   }
 
   const fiche = ficheSport(sport);
   const nomLieu = precision.trim() || lieu.nom;
-  const debutPrevu = dateDe(jour, creneauChoisi);
-  const texteQuand =
-    creneauChoisi === 'maintenant' ? 'maintenant' : quand(debutPrevu, ouverture).toLowerCase();
+  /** Le début de la session, d'après le raccourci ou le jour et l'heure choisis */
+  function debutChoisi() {
+    if (raccourci === 'maintenant') return new Date();
+    if (raccourci === 'soir') return dateDe(0, 19 * 60);
+    if (raccourci === 'demain') return dateDe(1, 19 * 60);
+    return dateDe(jour, creneauChoisi);
+  }
+  const maintenant =
+    raccourci === 'maintenant' || (raccourci === 'autre' && creneauChoisi === 'maintenant');
+  const texteQuand = maintenant ? 'maintenant' : quand(debutChoisi(), ouverture).toLowerCase();
+  const raccourcis: { cle: Raccourci; titre: string }[] = [
+    { cle: 'maintenant', titre: 'Maintenant' },
+    ...(encoreCeSoir ? [{ cle: 'soir' as const, titre: 'Ce soir 19h' }] : []),
+    { cle: 'demain', titre: 'Demain 19h' },
+    { cle: 'autre', titre: 'Autre' },
+  ];
 
   function envoyer(prenom: string) {
-    const debut = dateDe(jour, creneauChoisi);
+    const debut = debutChoisi();
     const id = creer({
       sport,
       nomSport: fiche.nom,
@@ -227,59 +220,95 @@ export default function Creer() {
 
         <View style={styles.section}>
           <Text style={[styles.etiquette, styles.dansMarges]}>Sport</Text>
-          <Roulette
-            elements={SPORTS}
-            index={SPORTS.findIndex((s) => s.cle === sport)}
-            onChange={(i) => choisirSport(SPORTS[i].cle)}
-            largeur={92}
-            hauteur={92}
-            cle={(s) => s.cle}
-            etiquette="Sport"
-            valeur={fiche.nom}
-            rendre={(s, actif) => (
-              <View style={[styles.sport, !actif && styles.efface]}>
-                <PictoSport sport={s.cle} taille={actif ? 44 : 36} />
-                <Text numberOfLines={1} style={[styles.sportNom, actif && styles.sportNomActif]}>
-                  {s.nom}
-                </Text>
-              </View>
-            )}
-          />
+          <View style={[styles.tuiles, styles.dansMarges]}>
+            {SPORTS.map(({ cle, nom }) => {
+              const actif = cle === sport;
+              return (
+                <Pressable
+                  key={cle}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: actif }}
+                  onPress={() => choisirSport(cle)}
+                  style={[styles.tuile, { width: largeurTuile }, actif && styles.tuileActive]}>
+                  <PictoSport sport={cle} taille={32} />
+                  <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.8}
+                    style={[styles.tuileTexte, actif && styles.tuileTexteActif]}>
+                    {nom}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
 
         <View style={styles.section}>
           <Text style={[styles.etiquette, styles.dansMarges]}>Quand</Text>
-          <Roulette
-            elements={listeJours}
-            index={jour}
-            onChange={setJour}
-            largeur={116}
-            hauteur={44}
-            cle={(j) => String(j.ecart)}
-            etiquette="Jour"
-            valeur={listeJours[jour].titre}
-            styleCadre={styles.cadreSombre}
-            rendre={(j, actif) => (
-              <Text style={[styles.choix, actif ? styles.choixSombre : styles.efface]}>{j.titre}</Text>
-            )}
-          />
-          <Roulette
-            // Les heures proposées changent avec le jour : la bande repart au bon endroit
-            key={jour}
-            elements={listeCreneaux}
-            index={indexCreneau}
-            onChange={(i) => setCreneau(listeCreneaux[i])}
-            largeur={creneauChoisi === 'maintenant' ? 124 : 84}
-            hauteur={56}
-            cle={(c) => String(c)}
-            etiquette="Heure"
-            valeur={texteCreneau(creneauChoisi)}
-            rendre={(c, actif) => (
-              <Text style={[styles.heure, actif ? styles.heureActive : styles.efface]}>
-                {texteCreneau(c)}
-              </Text>
-            )}
-          />
+          <View style={[styles.puces, styles.dansMarges]}>
+            {raccourcis.map(({ cle, titre }) => {
+              const actif = cle === raccourci;
+              return (
+                <Pressable
+                  key={cle}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: actif }}
+                  onPress={() => {
+                    if (!actif) vibrer.selection();
+                    setRaccourci(cle);
+                  }}
+                  style={[styles.puce, actif && styles.puceActive]}>
+                  <Text style={[styles.puceTexte, actif && { color: Couleurs.carte }]}>{titre}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          {raccourci === 'autre' && (
+            <>
+              {/* Peu de jours : des pastilles à toucher. Beaucoup d'heures qui se suivent : une bande à glisser. */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.jours}>
+                {listeJours.map((j) => {
+                  const actif = j.ecart === jour;
+                  return (
+                    <Pressable
+                      key={j.ecart}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: actif }}
+                      onPress={() => {
+                        if (!actif) vibrer.selection();
+                        setJour(j.ecart);
+                      }}
+                      style={[styles.jour, actif && styles.jourActif]}>
+                      <Text style={[styles.puceTexte, actif && { color: Couleurs.rougeTexte }]}>
+                        {j.titre}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+              <Roulette
+                // Les heures proposées changent avec le jour : la bande repart au bon endroit
+                key={jour}
+                elements={listeCreneaux}
+                index={indexCreneau}
+                onChange={(i) => setCreneau(listeCreneaux[i])}
+                largeur={creneauChoisi === 'maintenant' ? 124 : 84}
+                hauteur={56}
+                cle={(c) => String(c)}
+                etiquette="Heure"
+                valeur={texteCreneau(creneauChoisi)}
+                rendre={(c, actif) => (
+                  <Text style={[styles.heure, actif ? styles.heureActive : styles.efface]}>
+                    {texteCreneau(c)}
+                  </Text>
+                )}
+              />
+            </>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -304,29 +333,29 @@ export default function Creer() {
 
         <View style={[styles.section, styles.dansMarges]}>
           <Text style={styles.etiquette}>Où</Text>
-          <View style={styles.lieu}>
-            <IconeLieu couleur={Couleurs.rouge} taille={22} />
-            <View style={styles.textes}>
-              <Text style={styles.fort} numberOfLines={1}>
-                {lieu.nom}
-              </Text>
-              <Text style={styles.aide} numberOfLines={1}>
-                {lieu.estMaPosition
-                  ? ['Près de toi', lieu.commune].filter(Boolean).join(' · ')
-                  : 'Lieu par défaut'}
-              </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Lieu : ${lieu.nom}. Choisir sur la carte`}
+            onPress={() => setCarteOuverte(true)}
+            style={({ pressed }) => [styles.lieu, pressed && { opacity: 0.85 }]}>
+            <View style={styles.apercu}>
+              <ApercuCarte
+                key={`${lieu.position.latitude},${lieu.position.longitude}`}
+                position={lieu.position}
+              />
             </View>
-            {!lieu.estMaPosition && (
-              <Pressable
-                accessibilityRole="button"
-                onPress={utiliserMaPosition}
-                hitSlop={6}
-                style={({ pressed }) => [styles.maPosition, pressed && { opacity: 0.7 }]}>
-                <IconeRecentrer couleur={Couleurs.encre} taille={18} />
-                <Text style={styles.maPositionTexte}>Ma position</Text>
-              </Pressable>
-            )}
-          </View>
+            <View style={styles.lieuBas}>
+              <View style={styles.textes}>
+                <Text style={styles.fort} numberOfLines={1}>
+                  {lieu.nom}
+                </Text>
+                <Text style={styles.aide} numberOfLines={1}>
+                  {lieu.choisi ? lieu.commune || 'Lieu choisi' : 'Lieu par défaut'}
+                </Text>
+              </View>
+              <Text style={styles.changer}>{lieu.choisi ? 'Changer' : 'Choisir sur la carte'}</Text>
+            </View>
+          </Pressable>
           <TextInput
             value={precision}
             onChangeText={setPrecision}
@@ -355,6 +384,17 @@ export default function Creer() {
           <Bouton titre="Publier la session" onPress={publier} />
         </View>
       </ScrollView>
+      {carteOuverte && (
+        <ChoixLieu
+          ouvert
+          depart={lieu}
+          onFermer={() => setCarteOuverte(false)}
+          onChoisir={(choisi) => {
+            setLieu(choisi);
+            setCarteOuverte(false);
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -385,12 +425,44 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderColor: '#E9A58F',
   },
-  sport: { alignItems: 'center', gap: 4 },
-  sportNom: { fontFamily: Polices.texteMoyen, fontSize: 13, color: Couleurs.encre },
-  sportNomActif: { fontFamily: Polices.texteDemi, color: Couleurs.rougeTexte },
-  cadreSombre: { backgroundColor: Couleurs.encre, borderColor: Couleurs.encre, borderRadius: 22 },
-  choix: { fontFamily: Polices.texteMoyen, fontSize: 14, color: Couleurs.encre },
-  choixSombre: { fontFamily: Polices.texteDemi, color: Couleurs.carte },
+  tuiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  tuile: {
+    height: 68,
+    paddingHorizontal: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+    backgroundColor: Couleurs.carte,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: Couleurs.trait,
+  },
+  tuileActive: { backgroundColor: Couleurs.rougeDoux, borderColor: Couleurs.rouge },
+  tuileTexte: { fontFamily: Polices.texteMoyen, fontSize: 12, color: Couleurs.encre },
+  tuileTexteActif: { fontFamily: Polices.texteDemi, color: Couleurs.rougeTexte },
+  puces: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  puce: {
+    height: Espaces.cibleTactile,
+    paddingHorizontal: 14,
+    justifyContent: 'center',
+    backgroundColor: Couleurs.carte,
+    borderRadius: Rayons.pilule,
+    borderWidth: 1.5,
+    borderColor: Couleurs.trait,
+  },
+  puceActive: { backgroundColor: Couleurs.encre, borderColor: Couleurs.encre },
+  puceTexte: { fontFamily: Polices.texteMoyen, fontSize: 14, color: Couleurs.encre },
+  jours: { paddingHorizontal: Espaces.marge, gap: 8 },
+  jour: {
+    height: 40,
+    paddingHorizontal: 14,
+    justifyContent: 'center',
+    borderRadius: Rayons.pilule,
+    backgroundColor: Couleurs.beige,
+    borderWidth: 1.5,
+    borderColor: Couleurs.beige,
+  },
+  jourActif: { backgroundColor: Couleurs.rougeDoux, borderColor: Couleurs.rouge },
   heure: {
     fontFamily: Polices.titreDemi,
     fontSize: 20,
@@ -406,27 +478,22 @@ const styles = StyleSheet.create({
   },
   nombreActif: { fontFamily: Polices.titre, fontSize: 30, color: Couleurs.rougeTexte },
   lieu: {
-    minHeight: 60,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    overflow: 'hidden',
     backgroundColor: Couleurs.carte,
-    borderRadius: Rayons.bouton,
+    borderRadius: Rayons.carte,
     borderWidth: 1.5,
     borderColor: Couleurs.trait,
   },
-  maPosition: {
-    height: 40,
-    paddingHorizontal: 12,
+  apercu: { height: 110 },
+  lieuBas: {
+    minHeight: 56,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: Couleurs.fond,
-    borderRadius: Rayons.pilule,
+    gap: 12,
   },
-  maPositionTexte: { fontFamily: Polices.texteDemi, fontSize: 13, color: Couleurs.encre },
+  changer: { fontFamily: Polices.texteDemi, fontSize: 13, color: Couleurs.rougeTexte },
   champ: {
     height: 52,
     paddingHorizontal: 14,
