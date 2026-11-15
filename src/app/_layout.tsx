@@ -13,6 +13,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { ToastAnnulation } from '@/components/toast-annulation';
 import { Couleurs } from '@/constants/theme';
+import { FournisseurCompte } from '@/lib/compte';
 import { FournisseurSessions } from '@/lib/sessions';
 
 SplashScreen.preventAutoHideAsync();
@@ -35,15 +36,21 @@ export default function Racine() {
   return (
     <GestureHandlerRootView style={styles.racine}>
       <StatusBar style="dark" />
-      <FournisseurSessions>
-        {/* Les onglets en dessous ; le détail et la confirmation passent par-dessus, sans la barre */}
-        <Stack screenOptions={{ headerShown: false, contentStyle: styles.racine }}>
-          <Stack.Screen name="(onglets)" />
-          <Stack.Screen name="session/[id]" />
-          <Stack.Screen name="catchee/[id]" options={{ animation: 'fade', gestureEnabled: false }} />
-        </Stack>
-        <ToastAnnulation />
-      </FournisseurSessions>
+      <FournisseurCompte>
+        <FournisseurSessions>
+          {/* Les onglets en dessous ; le détail et la confirmation passent par-dessus, sans la barre */}
+          <Stack screenOptions={{ headerShown: false, contentStyle: styles.racine }}>
+            <Stack.Screen name="(onglets)" />
+            <Stack.Screen name="session/[id]" />
+            <Stack.Screen name="connexion" options={{ presentation: 'modal' }} />
+            <Stack.Screen
+              name="catchee/[id]"
+              options={{ animation: 'fade', gestureEnabled: false }}
+            />
+          </Stack>
+          <ToastAnnulation />
+        </FournisseurSessions>
+      </FournisseurCompte>
     </GestureHandlerRootView>
   );
 }

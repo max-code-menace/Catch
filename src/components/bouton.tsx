@@ -1,4 +1,11 @@
-import { Pressable, StyleSheet, Text, type PressableProps } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  type PressableProps,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { Couleurs, Espaces, Polices, Rayons, Ressorts } from '@/constants/theme';
@@ -12,6 +19,7 @@ type Props = Omit<PressableProps, 'children' | 'style'> & {
   /** « lien » : texte rouge sans fond, pour les actions discrètes comme « Annuler ma participation » */
   variante?: 'principal' | 'secondaire' | 'lien';
   Icone?: Icone;
+  style?: StyleProp<ViewStyle>;
 };
 
 const COULEUR_TEXTE = {
@@ -21,7 +29,7 @@ const COULEUR_TEXTE = {
 } as const;
 
 /** Bouton de Catch : se réduit à 0,96 sous le doigt. */
-export function Bouton({ titre, variante = 'principal', Icone, onPressIn, onPressOut, ...props }: Props) {
+export function Bouton({ titre, variante = 'principal', Icone, style, onPressIn, onPressOut, ...props }: Props) {
   const echelle = useSharedValue(1);
   const styleAnime = useAnimatedStyle(() => ({ transform: [{ scale: echelle.value }] }));
   const couleur = COULEUR_TEXTE[variante];
@@ -37,7 +45,7 @@ export function Bouton({ titre, variante = 'principal', Icone, onPressIn, onPres
         echelle.value = withSpring(1, Ressorts.snappy);
         onPressOut?.(e);
       }}
-      style={[styles.base, styles[variante], styleAnime]}
+      style={[styles.base, styles[variante], style, styleAnime]}
       {...props}>
       {Icone && <Icone couleur={couleur} taille={18} />}
       <Text style={[styles.texte, { color: couleur }]}>{titre}</Text>

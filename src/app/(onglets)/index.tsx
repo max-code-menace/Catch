@@ -9,12 +9,14 @@ import { FicheSession } from '@/components/fiche-session';
 import { ListeSessions } from '@/components/liste-sessions';
 import { Couleurs } from '@/constants/theme';
 import { WAVRE, type Coordonnees, type Session } from '@/donnees/sessions';
+import { useCatch } from '@/lib/catch';
 import { distance, estEnDirect } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { useSessions } from '@/lib/sessions';
 
 export default function Carte() {
-  const { sessions, estCatchee, catcher, annuler, position, setPosition, origine } = useSessions();
+  const { sessions, estCatchee, annuler, position, setPosition, origine } = useSessions();
+  const { autoriser, confirmer } = useCatch();
   const [cible, setCible] = useState<(Coordonnees & { cle: number }) | null>(null);
   const [vue, setVue] = useState<Vue>('carte');
 
@@ -79,10 +81,8 @@ export default function Carte() {
           distance={distance(origine, choisie.position)}
           catchee={estCatchee(choisie.id)}
           onOuvrir={() => ouvrir(choisie)}
-          onCatch={() => {
-            catcher(choisie.id);
-            router.push({ pathname: '/catchee/[id]', params: { id: choisie.id } });
-          }}
+          onDemande={() => autoriser(choisie.id)}
+          onCatch={() => confirmer(choisie.id)}
           onAnnuler={() => annuler(choisie)}
         />
       )}

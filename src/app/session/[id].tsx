@@ -26,6 +26,7 @@ import {
   texteDuree,
   textePlaces,
 } from '@/lib/formats';
+import { useCatch } from '@/lib/catch';
 import { ouvrirItineraire } from '@/lib/itineraire';
 import { useSessions } from '@/lib/sessions';
 
@@ -62,7 +63,8 @@ function Ligne({
 export default function DetailSession() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { top, bottom } = useSafeAreaInsets();
-  const { sessions, estCatchee, catcher, annuler, origine } = useSessions();
+  const { sessions, estCatchee, annuler, origine } = useSessions();
+  const { autoriser, confirmer } = useCatch();
   const session = sessions.find((s) => s.id === id);
 
   if (!session) return <Redirect href="/" />;
@@ -160,10 +162,8 @@ export default function DetailSession() {
           <>
             <BoutonCatch
               complet={libres === 0}
-              onCatch={() => {
-                catcher(session.id);
-                router.push({ pathname: '/catchee/[id]', params: { id: session.id } });
-              }}
+              onDemande={() => autoriser(session.id)}
+              onCatch={() => confirmer(session.id)}
             />
             <Text style={styles.mention}>
               {libres === 0

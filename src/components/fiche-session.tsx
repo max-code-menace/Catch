@@ -19,12 +19,14 @@ type Props = {
   catchee: boolean;
   /** Toucher la fiche ouvre le détail de la session */
   onOuvrir: () => void;
+  /** Renvoie `false` si le Catch ne peut pas partir tout de suite (connexion à faire) */
+  onDemande: () => boolean;
   onCatch: () => void;
   onAnnuler: () => void;
 };
 
 /** Fiche de la session choisie sur la carte, posée au-dessus de la barre de navigation. */
-export function FicheSession({ session, distance, catchee, onOuvrir, onCatch, onAnnuler }: Props) {
+export function FicheSession({ session, distance, catchee, onOuvrir, onDemande, onCatch, onAnnuler }: Props) {
   const { bottom } = useSafeAreaInsets();
   const enDirect = estEnDirect(session);
   const complet = placesLibres(session) === 0;
@@ -79,7 +81,7 @@ export function FicheSession({ session, distance, catchee, onOuvrir, onCatch, on
           <Bouton titre="Annuler ma participation" variante="lien" onPress={onAnnuler} />
         </View>
       ) : (
-        <BoutonCatch complet={complet} onCatch={onCatch} />
+        <BoutonCatch complet={complet} onDemande={onDemande} onCatch={onCatch} />
       )}
     </Animated.View>
   );

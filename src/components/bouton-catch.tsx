@@ -30,6 +30,8 @@ const ARRIVEE_X = -48;
 type Props = {
   /** Plus de place libre : le bouton devient « Complet » */
   complet?: boolean;
+  /** Appelé à l'appui : renvoyer `false` arrête le geste (pas connecté, par exemple) */
+  onDemande?: () => boolean;
   /** Appelé une fois la balle attrapée */
   onCatch: () => void;
 };
@@ -38,7 +40,7 @@ type Props = {
  * Le geste signature : on appuie, la balle arrive en cloche, le bouton l'attrape
  * (rebond, vibration) et devient « Catchée ! ».
  */
-export function BoutonCatch({ complet = false, onCatch }: Props) {
+export function BoutonCatch({ complet = false, onDemande, onCatch }: Props) {
   const reduit = useReducedMotion();
   const [etat, setEtat] = useState<'pret' | 'vol' | 'attrapee'>('pret');
   const minuteurs = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -86,6 +88,7 @@ export function BoutonCatch({ complet = false, onCatch }: Props) {
 
   function lancer() {
     if (etat !== 'pret') return;
+    if (onDemande && !onDemande()) return;
     setEtat('vol');
     vol.value = withTiming(1, { duration: reduit ? Durees.fast : VOL, easing: Easing.linear });
     minuteurs.current.push(setTimeout(attraper, reduit ? Durees.fast : VOL));
