@@ -1,0 +1,12 @@
+<style>
+@keyframes spin{to{transform:rotate(360deg)}}
+.typing{display:flex;gap:4px;align-items:center;padding:12px 14px}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--a-mute);animation:ty 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes ty{0%,60%,100%{transform:none;opacity:.4}30%{transform:translateY(-4px);opacity:1}}
+.phone.dsx{width:auto;height:auto;border-radius:18px;padding:16px;box-shadow:none;background:var(--a-bg);border:1px solid var(--line)}
+.phone.dsx .ph-screen{display:none}
+.lock-s{background:#3b2f4a!important}.lock-s .ph-status{color:#fff}
+.lock{background:linear-gradient(160deg,#3b2f4a,#7a3b4a 60%,#c8643a);min-height:100%}
+.phone.dsx>*{position:relative}
+</style>
