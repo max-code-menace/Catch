@@ -8,6 +8,7 @@ App mobile (Expo + Supabase) pour faire du sport et rencontrer des gens près de
 - `docs/design-system.md` : couleurs clair et sombre, typo, navigation, animations, vibrations
 - `docs/ux-writing.md` : ton, règle du mot « catch », glossaire
 - `docs/recherches.md` : résumé des recherches UX et de l'audit concurrents
+- `design/laboratoire-ux/` : avant de construire ou de retoucher un écran, regarder le pattern correspondant et sa variante recommandée (page Synthèse dans `src/app.js`, fiches dans `src/mod1.js` à `mod7.js`)
 - `AGENTS.md` : règles Expo (ne pas se fier à sa mémoire, lire la doc de la version installée)
 
 ## Où est quoi
@@ -17,7 +18,7 @@ App mobile (Expo + Supabase) pour faire du sport et rencontrer des gens près de
 | racine (`src/`, `app.json`, `package.json`…) | **L'app** (Expo SDK 58, expo-router, TypeScript). Il n'y a qu'une seule app : l'ancien dossier `mobile/` a été supprimé |
 | `docs/` | Décisions et règles |
 | `design/` | **Design de référence** (direction « Chaleur ») : captures dans `apercus/`, pictos SVG dans `pictos/` |
-| `design/laboratoire-ux/` | Analyse de patterns UX (sources dans `src/`). 10 corrections d'audit pas encore appliquées |
+| `design/laboratoire-ux/` | **Laboratoire UX, à garder et à consulter** : 40 patterns, une centaine de variantes jouables, une recommandation par pattern et une page Synthèse. C'est la réserve d'idées pour rendre l'app plus agréable. Sources dans `src/`, version publiée : https://claude.ai/artifact/XnGqqCVsjx5U1CSBRzKAHR. 10 corrections d'audit pas encore appliquées |
 | `emails/` | Modèles d'e-mails de connexion (code à 6 chiffres, bienvenue) |
 | `supabase/migrations/` | SQL appliqué à la base |
 
@@ -39,7 +40,7 @@ Plan complet dans `docs/produit.md`.
 
 Le 15 novembre, une session avait reconstruit l'app de zéro dans `mobile/` sans voir cette version plus avancée. Tout a été regroupé ici ; de `mobile/` on a repris le mode sombre et les réglages du Profil. Si un jour `main` semble en retard sur ce que Maxime décrit, **regarder les autres branches avant de coder**.
 
-**Un seul plan** : celui de `docs/produit.md` (direction Chaleur). L'ancienne piste « liquid glass » (verre gris, étapes A à Z, équipe de trois) a été retirée du dépôt le 15 novembre à la demande de Maxime ; elle reste dans l'historique Git, ne pas la ressortir. Les idées « fun » et celles de l'audit concurrents sont rangées dans « Idées pas encore décidées » de `docs/produit.md` : ne pas les construire sans son accord.
+**Un seul plan** : celui de `docs/produit.md` (direction Chaleur). L'ancienne piste « liquid glass » (verre gris, étapes A à Z, équipe de trois) a été retirée du dépôt le 15 novembre à la demande de Maxime ; elle reste dans l'historique Git, ne pas la ressortir. Le laboratoire UX (`design/laboratoire-ux/`) n'est **pas** un ancien plan : il fait partie du plan Chaleur et ne doit pas être supprimé. Les idées « fun » et celles de l'audit concurrents sont rangées dans « Idées pas encore décidées » de `docs/produit.md` : ne pas les construire sans son accord.
 
 Pas encore fait : icône et écran de démarrage (ceux d'Expo par défaut), clé Google Maps pour Android (nécessaire pour un build hors Expo Go).
 
