@@ -1,8 +1,13 @@
 -- Vraies données : profils, sessions, participations (les Catchs).
 -- Tout le monde peut regarder (pas de compte pour voir la carte) ; il faut être connecté pour créer, catcher, annuler.
 
--- La première table `sessions` (vide) est remplacée par celle-ci.
-drop table if exists public.sessions;
+-- La première table `sessions` (vide) est mise de côté sous un autre nom : rien n'est supprimé.
+-- Elle ne sert plus et peut être supprimée depuis le site Supabase.
+alter table public.sessions rename to sessions_ancienne;
+alter table public.sessions_ancienne rename constraint sessions_pkey to sessions_ancienne_pkey;
+alter index public.sessions_fin_idx rename to sessions_ancienne_fin_idx;
+alter index public.sessions_lat_lng_idx rename to sessions_ancienne_lat_lng_idx;
+revoke all on public.sessions_ancienne from anon, authenticated;
 
 create schema if not exists private;
 
