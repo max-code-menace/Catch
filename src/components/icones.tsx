@@ -119,3 +119,19 @@ export function IconeCoche(props: Props) {
     </Base>
   );
 }
+
+export function IconeMoins(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M5 12h14" />
+    </Base>
+  );
+}
+
+export function IconeRelancer(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M17 3l3 3-3 3M20 6H8a4 4 0 0 0-4 4v1M7 21l-3-3 3-3M4 18h12a4 4 0 0 0 4-4v-1" />
+    </Base>
+  );
+}

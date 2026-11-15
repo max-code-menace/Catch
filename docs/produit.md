@@ -55,7 +55,7 @@ Badge « En direct » animé avancé, bouton « je cherche un joueur » avec not
 
 ## Plan de construction
 
-Une fonctionnalité à la fois, testée avant de passer à la suivante. **Étape en cours : 5.** Les étapes 0 à 4 sont faites, avec des sessions fictives et un Catch gardé sur le téléphone. L'étape 5 est branchée sur le projet Supabase (`src/constants/supabase.ts`) : connexion par e-mail avec code à 6 chiffres, puis prénom. L'e-mail est testé sur téléphone. Reste à faire : Apple (identifiant de l'app `com.maxcodemenace.catch` à déclarer dans Supabase, puis test dans un build EAS car le bouton n'existe pas dans Expo Go), Google.
+Une fonctionnalité à la fois, testée avant de passer à la suivante. **Étape en cours : 6.** Les étapes 0 à 4 sont faites, avec des sessions fictives et un Catch gardé sur le téléphone. Étape 5 : la connexion par e-mail (code à 6 chiffres, puis prénom) marche sur téléphone ; Apple est configuré dans Supabase (identifiant `com.maxcodemenace.catch`) mais reste à tester dans un build EAS, car le bouton n'existe pas dans Expo Go ; Google reste à faire. Étape 6 : l'écran « Créer une session » est fait (sport, quand, où, joueurs, débutants, publication après connexion). La session créée reste sur le téléphone : il reste à enregistrer les sessions et les Catchs dans Supabase, et à ajouter « Autre date » et le choix d'un lieu sur la carte.
 
 0. Installer les outils (Node.js LTS, Git, VS Code) et créer le projet Expo (à la racine du dépôt)
 1. Squelette, barre de navigation flottante et design system

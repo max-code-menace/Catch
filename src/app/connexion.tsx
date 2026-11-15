@@ -30,7 +30,7 @@ type Etape = 'choix' | 'email' | 'code' | 'prenom';
  * l'identifiant de la session : une fois connecté, la session est catchée toute seule.
  */
 export default function Connexion() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, pour } = useLocalSearchParams<{ id?: string; pour?: 'publier' }>();
   const { bottom } = useSafeAreaInsets();
   const { sessions, catcher } = useSessions();
   const { compte, envoyerCode, verifierCode, connecterApple, enregistrerPrenom } = useCompte();
@@ -129,9 +129,13 @@ export default function Connexion() {
         {etape === 'choix' && (
           <>
             <Text accessibilityRole="header" style={styles.titre}>
-              {session ? 'Connecte-toi pour la catcher' : 'Connecte-toi'}
+              {session ? 'Connecte-toi pour la catcher' : pour === 'publier' ? 'Connecte-toi pour publier' : 'Connecte-toi'}
             </Text>
-            <Text style={styles.texte}>Une seule fois. Ensuite, tu catches en un appui.</Text>
+            <Text style={styles.texte}>
+              {pour === 'publier'
+                ? 'Une seule fois. Ta session est publiée juste après.'
+                : 'Une seule fois. Ensuite, tu catches en un appui.'}
+            </Text>
             <View style={styles.actions}>
               {appleDisponible && (
                 <AppleAuthentication.AppleAuthenticationButton

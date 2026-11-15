@@ -1,15 +1,23 @@
 // Les sessions et les Catchs, partagés entre la carte, la liste, le détail et la confirmation.
-// Tout est encore local : les sessions sont fictives et le Catch n'est pas enregistré (Supabase à l'étape 5).
+// Tout est encore local : les sessions sont fictives, et les sessions créées comme les Catchs
+// restent sur le téléphone tant qu'ils ne sont pas enregistrés dans Supabase.
 import { createContext, use, useMemo, useState } from 'react';
 import { Alert, Platform } from 'react-native';
 
 import { sessionsFictives, WAVRE, type Coordonnees, type Session } from '@/donnees/sessions';
 import { annulationLibre, estEnDirect } from '@/lib/formats';
 
+/** Ce que l'écran « Créer une session » fournit ; le reste est rempli ici */
+export type NouvelleSession = Omit<Session, 'id' | 'inscrits'>;
+
 type Valeur = {
   /** Sessions avec les Catchs appliqués : une session catchée compte tout de suite un inscrit de plus */
   sessions: Session[];
   estCatchee: (id: string) => boolean;
+  /** Publie une session : elle apparaît tout de suite sur la carte, l'organisateur est inscrit. Renvoie son identifiant. */
+  creer: (nouvelle: NouvelleSession) => string;
+  /** Dernière session créée, pour « Relancer ta dernière session » */
+  derniereCreee: Session | null;
   catcher: (id: string) => void;
   /** Annule tout de suite, ou demande d'abord si la session commence dans moins de 3h */
   annuler: (session: Session, ensuite?: () => void) => void;
@@ -28,17 +36,25 @@ const Contexte = createContext<Valeur | null>(null);
 
 export function FournisseurSessions({ children }: { children: React.ReactNode }) {
   const sessionsDeBase = useMemo(() => sessionsFictives(), []);
+  const [creees, setCreees] = useState<Session[]>([]);
   const [catchees, setCatchees] = useState<string[]>([]);
   const [annulee, setAnnulee] = useState<string | null>(null);
   const [position, setPosition] = useState<Coordonnees | null>(null);
 
-  const sessions = sessionsDeBase.map((s) =>
+  const sessions = [...creees, ...sessionsDeBase].map((s) =>
     catchees.includes(s.id) ? { ...s, inscrits: ['Toi', ...s.inscrits] } : s,
   );
 
   function catcher(id: string) {
     setCatchees((liste) => (liste.includes(id) ? liste : [...liste, id]));
     setAnnulee(null);
+  }
+
+  function creer(nouvelle: NouvelleSession) {
+    const id = `creee-${Date.now()}`;
+    setCreees((liste) => [{ ...nouvelle, id, inscrits: [] }, ...liste]);
+    catcher(id);
+    return id;
   }
 
   function quitter(id: string, ensuite?: () => void) {
@@ -79,6 +95,8 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
         sessions,
         estCatchee: (id) => catchees.includes(id),
         catcher,
+        creer,
+        derniereCreee: creees[0] ?? null,
         annuler,
         annulee,
         retablir,
