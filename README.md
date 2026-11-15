@@ -6,7 +6,7 @@ Lancement prévu en Brabant wallon / Bruxelles, d'abord avec un cercle d'amis, p
 
 ## État du projet
 
-Conception terminée (novembre 2026). Les étapes 0 à 2 du plan sont faites : squelette, barre de navigation flottante, design system, et la carte des sessions avec ses pastilles et la fiche de la session choisie. Les sessions sont encore fictives (`src/donnees/sessions.ts`). Prochaine étape : la liste des sessions (étape 3).
+Conception terminée (novembre 2026). Les étapes 0 à 3 du plan sont faites : squelette, barre de navigation flottante, design system, carte des sessions avec ses pastilles et la fiche de la session choisie, et liste des sessions avec ses filtres. Les sessions sont encore fictives (`src/donnees/sessions.ts`). Prochaine étape : le détail d'une session et le bouton Catch (étape 4).
 
 ## Lancer l'app
 

@@ -3,8 +3,8 @@ import Animated, { SlideInDown, SlideOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatars } from '@/components/avatars';
+import { BadgeSession } from '@/components/badge-session';
 import { Bouton } from '@/components/bouton';
-import { PointEnDirect } from '@/components/pastille-session';
 import { PictoSport } from '@/components/picto-sport';
 import { BarreNavigation, Couleurs, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
@@ -19,30 +19,12 @@ type Props = {
   onCatch: () => void;
 };
 
-function Badge({ session }: { session: Session }) {
-  if (estEnDirect(session)) {
-    return (
-      <View style={[styles.badge, { backgroundColor: Couleurs.rougeDoux }]}>
-        <PointEnDirect couleur={Couleurs.rouge} />
-        <Text style={[styles.badgeTexte, { color: Couleurs.rougeTexte }]}>En direct</Text>
-      </View>
-    );
-  }
-  if (placesLibres(session) === 1) {
-    return (
-      <View style={[styles.badge, { backgroundColor: Couleurs.orangeDoux }]}>
-        <Text style={[styles.badgeTexte, { color: Couleurs.orangeTexte }]}>Il manque 1 joueur</Text>
-      </View>
-    );
-  }
-  return <Text style={styles.quand}>{quand(session.debut)}</Text>;
-}
-
 /** Fiche de la session choisie sur la carte, posée au-dessus de la barre de navigation. */
 export function FicheSession({ session, distance, catchee, onCatch }: Props) {
   const { bottom } = useSafeAreaInsets();
   const enDirect = estEnDirect(session);
   const complet = placesLibres(session) === 0;
+  const avecBadge = enDirect || placesLibres(session) === 1;
   const bas = Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur + 12;
 
   return (
@@ -51,7 +33,7 @@ export function FicheSession({ session, distance, catchee, onCatch }: Props) {
       exiting={SlideOutDown.duration(Durees.standard)}
       style={[styles.fiche, { bottom: bas }]}>
       <View style={styles.ligne}>
-        <Badge session={session} />
+        {avecBadge ? <BadgeSession session={session} /> : <Text style={styles.quand}>{quand(session.debut)}</Text>}
         <Text style={styles.aide}>
           {enDirect ? `Jusqu'à ${heure(session.fin)} · ` : ''}
           {texteDistance(distance)}
@@ -109,15 +91,6 @@ const styles = StyleSheet.create({
     boxShadow: '0 8px 24px rgba(28, 20, 18, 0.14)',
   },
   ligne: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    height: 26,
-    borderRadius: Rayons.pilule,
-  },
-  badgeTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille },
   quand: { fontFamily: Polices.texteDemi, fontSize: 14, color: Couleurs.encre },
   aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: Couleurs.texteSecondaire },
   titreZone: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },

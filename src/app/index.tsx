@@ -2,11 +2,12 @@ import * as Location from 'expo-location';
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { BarreHaut } from '@/components/barre-haut';
+import { BarreHaut, type Vue } from '@/components/barre-haut';
 import { CarteSessions } from '@/components/carte-sessions';
 import { FicheSession } from '@/components/fiche-session';
+import { ListeSessions } from '@/components/liste-sessions';
 import { Couleurs } from '@/constants/theme';
-import { sessionsFictives, WAVRE, type Coordonnees } from '@/donnees/sessions';
+import { sessionsFictives, WAVRE, type Coordonnees, type Session } from '@/donnees/sessions';
 import { distance, estEnDirect } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 
@@ -16,6 +17,7 @@ export default function Carte() {
   const [position, setPosition] = useState<Coordonnees | null>(null);
   const [cible, setCible] = useState<(Coordonnees & { cle: number }) | null>(null);
   const [catchees, setCatchees] = useState<string[]>([]);
+  const [vue, setVue] = useState<Vue>('carte');
   const origine = position ?? WAVRE;
 
   // Interface optimiste : une session catchée compte tout de suite un inscrit de plus
@@ -54,6 +56,13 @@ export default function Carte() {
     setCible({ ...point, cle: Date.now() });
   }
 
+  // Depuis la liste : on revient sur la carte, centrée sur la session touchée
+  function ouvrir(session: Session) {
+    setIdChoisie(session.id);
+    setCible({ ...session.position, cle: Date.now() });
+    setVue('carte');
+  }
+
   function basculerCatch(id: string) {
     setCatchees((liste) => (liste.includes(id) ? liste.filter((x) => x !== id) : [...liste, id]));
   }
@@ -67,8 +76,17 @@ export default function Carte() {
         cible={cible}
         montrerPosition={position !== null}
       />
-      <BarreHaut zone="Wavre · 5 km" onRecentrer={recentrer} />
-      {choisie && (
+      {vue === 'liste' && <ListeSessions sessions={sessions} origine={origine} onOuvrir={ouvrir} />}
+      <BarreHaut
+        zone="Wavre · 5 km"
+        vue={vue}
+        onBasculer={() => setVue(vue === 'carte' ? 'liste' : 'carte')}
+        onRecentrer={() => {
+          setVue('carte');
+          recentrer();
+        }}
+      />
+      {vue === 'carte' && choisie && (
         <FicheSession
           key={choisie.id}
           session={choisie}
