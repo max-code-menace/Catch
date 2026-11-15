@@ -8,12 +8,14 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { PictoSport } from '@/components/picto-sport';
-import { Couleurs, Polices, Rayons, Tailles } from '@/constants/theme';
+import { Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
 import { estEnDirect, placesLibres, textePastille } from '@/lib/formats';
+import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 /** Point rouge qui pulse sur les sessions en direct. */
 export function PointEnDirect({ couleur }: { couleur: string }) {
+  const styles = useStyles(creerStyles);
   const pulsation = useSharedValue(0);
 
   useEffect(() => {
@@ -35,51 +37,54 @@ export function PointEnDirect({ couleur }: { couleur: string }) {
 
 /** Pastille d'une session sur la carte. */
 export function PastilleSession({ session, choisie }: { session: Session; choisie: boolean }) {
+  const c = useCouleurs();
+  const styles = useStyles(creerStyles);
   const enDirect = estEnDirect(session);
   const manqueUn = !enDirect && placesLibres(session) === 1;
 
-  const fond = enDirect ? Couleurs.rouge : manqueUn ? Couleurs.orangeDoux : Couleurs.carte;
-  const texte = enDirect ? Couleurs.carte : manqueUn ? Couleurs.orangeTexte : Couleurs.encre;
-  const bordure = enDirect ? Couleurs.rouge : manqueUn ? Couleurs.orange : Couleurs.trait;
+  const fond = enDirect ? c.rouge : manqueUn ? c.orangeDoux : c.carte;
+  const texte = enDirect ? c.surRouge : manqueUn ? c.orangeTexte : c.encre;
+  const bordure = enDirect ? c.rouge : manqueUn ? c.orange : c.trait;
 
   return (
     <View
       style={[
         styles.pastille,
-        { backgroundColor: fond, borderColor: choisie ? Couleurs.encre : bordure },
+        { backgroundColor: fond, borderColor: choisie ? c.encre : bordure },
         choisie && styles.choisie,
       ]}>
       <View style={styles.picto}>
         <PictoSport sport={session.sport} taille={20} />
       </View>
-      {enDirect && <PointEnDirect couleur={Couleurs.carte} />}
+      {enDirect && <PointEnDirect couleur={c.surRouge} />}
       <Text style={[styles.texte, { color: texte }]}>{textePastille(session)}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  pastille: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingLeft: 4,
-    paddingRight: 12,
-    height: 34,
-    borderRadius: Rayons.pilule,
-    borderWidth: 1,
-    boxShadow: '0 2px 6px rgba(28, 20, 18, 0.16)',
-  },
-  choisie: { borderWidth: 2 },
-  picto: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: Couleurs.carte,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille },
-  point: { width: 8, height: 8 },
-  rond: { position: 'absolute', width: 8, height: 8, borderRadius: 4 },
-});
+const creerStyles = (c: Palette) =>
+  StyleSheet.create({
+    pastille: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingLeft: 4,
+      paddingRight: 12,
+      height: 34,
+      borderRadius: Rayons.pilule,
+      borderWidth: 1,
+      boxShadow: '0 2px 6px rgba(28, 20, 18, 0.16)',
+    },
+    choisie: { borderWidth: 2 },
+    picto: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      backgroundColor: c.rondPicto,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille },
+    point: { width: 8, height: 8 },
+    rond: { position: 'absolute', width: 8, height: 8, borderRadius: 4 },
+  });

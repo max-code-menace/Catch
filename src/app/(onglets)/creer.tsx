@@ -18,7 +18,7 @@ import { ChoixLieu } from '@/components/choix-lieu';
 import { IconeRelancer } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
 import { Roulette } from '@/components/roulette';
-import { BarreNavigation, Couleurs, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
+import { BarreNavigation, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Sport } from '@/donnees/pictos';
 import { SPORTS, ficheSport } from '@/donnees/sports';
 import { useCompte } from '@/lib/compte';
@@ -26,6 +26,7 @@ import { heure, quand } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { LIEU_PAR_DEFAUT, nommer, type Lieu } from '@/lib/lieux';
 import { useSessions } from '@/lib/sessions';
+import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 const MINUTE = 60_000;
 const DUREE = 90;
@@ -69,6 +70,8 @@ function texteCreneau(creneau: Creneau) {
 type Raccourci = 'maintenant' | 'soir' | 'demain' | 'autre';
 
 export default function Creer() {
+  const c = useCouleurs();
+  const styles = useStyles(creerStyles);
   const { top, bottom } = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   // Tous les sports d'un coup d'œil : 5 tuiles par ligne, 8 px entre elles
@@ -208,10 +211,10 @@ export default function Creer() {
             accessibilityRole="button"
             onPress={relancer}
             style={({ pressed }) => [styles.relancer, styles.dansMarges, pressed && { opacity: 0.7 }]}>
-            <IconeRelancer couleur={Couleurs.rouge} taille={22} />
+            <IconeRelancer couleur={c.rouge} taille={22} />
             <View style={styles.textes}>
-              <Text style={[styles.fort, { color: Couleurs.rougeTexte }]}>Relancer ta dernière session</Text>
-              <Text style={[styles.aide, { color: Couleurs.rougeTexte }]} numberOfLines={1}>
+              <Text style={[styles.fort, { color: c.rougeTexte }]}>Relancer ta dernière session</Text>
+              <Text style={[styles.aide, { color: c.rougeTexte }]} numberOfLines={1}>
                 {derniereCreee.titre} · {derniereCreee.lieu}
               </Text>
             </View>
@@ -259,7 +262,7 @@ export default function Creer() {
                     setRaccourci(cle);
                   }}
                   style={[styles.puce, actif && styles.puceActive]}>
-                  <Text style={[styles.puceTexte, actif && { color: Couleurs.carte }]}>{titre}</Text>
+                  <Text style={[styles.puceTexte, actif && { color: c.surEncre }]}>{titre}</Text>
                 </Pressable>
               );
             })}
@@ -283,7 +286,7 @@ export default function Creer() {
                         setJour(j.ecart);
                       }}
                       style={[styles.jour, actif && styles.jourActif]}>
-                      <Text style={[styles.puceTexte, actif && { color: Couleurs.rougeTexte }]}>
+                      <Text style={[styles.puceTexte, actif && { color: c.rougeTexte }]}>
                         {j.titre}
                       </Text>
                     </Pressable>
@@ -360,7 +363,7 @@ export default function Creer() {
             value={precision}
             onChangeText={setPrecision}
             placeholder="Nom du lieu (facultatif) : terrain, salle, parc"
-            placeholderTextColor={Couleurs.texteSecondaire}
+            placeholderTextColor={c.texteSecondaire}
             maxLength={40}
             returnKeyType="done"
             style={styles.champ}
@@ -375,8 +378,8 @@ export default function Creer() {
               vibrer.selection();
               setDebutants(valeur);
             }}
-            trackColor={{ true: Couleurs.rouge, false: Couleurs.trait }}
-            thumbColor={Couleurs.carte}
+            trackColor={{ true: c.rouge, false: c.trait }}
+            thumbColor={c.rondPicto}
           />
         </View>
 
@@ -399,110 +402,111 @@ export default function Creer() {
   );
 }
 
-const styles = StyleSheet.create({
-  fond: { flex: 1, backgroundColor: Couleurs.fond },
-  marges: { paddingHorizontal: Espaces.marge, gap: 4 },
-  dansMarges: { marginHorizontal: Espaces.marge },
-  titre: { fontFamily: Polices.titre, fontSize: Tailles.titreEcran, color: Couleurs.encre },
-  phrase: { fontFamily: Polices.texteMoyen, fontSize: 15, color: Couleurs.texteSecondaire },
-  section: { gap: 10 },
-  etiquette: { fontFamily: Polices.texteDemi, fontSize: 15, color: Couleurs.encre },
-  textes: { flex: 1, gap: 2 },
-  fort: { fontFamily: Polices.texteDemi, fontSize: 15, color: Couleurs.encre },
-  aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: Couleurs.texteSecondaire },
-  ligne: { flexDirection: 'row', alignItems: 'baseline', gap: 8, minHeight: 24 },
-  efface: { opacity: 0.45 },
-  relancer: {
-    minHeight: 56,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: Couleurs.rougeDoux,
-    borderRadius: 18,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: '#E9A58F',
-  },
-  tuiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  tuile: {
-    height: 68,
-    paddingHorizontal: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 3,
-    backgroundColor: Couleurs.carte,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: Couleurs.trait,
-  },
-  tuileActive: { backgroundColor: Couleurs.rougeDoux, borderColor: Couleurs.rouge },
-  tuileTexte: { fontFamily: Polices.texteMoyen, fontSize: 12, color: Couleurs.encre },
-  tuileTexteActif: { fontFamily: Polices.texteDemi, color: Couleurs.rougeTexte },
-  puces: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  puce: {
-    height: Espaces.cibleTactile,
-    paddingHorizontal: 14,
-    justifyContent: 'center',
-    backgroundColor: Couleurs.carte,
-    borderRadius: Rayons.pilule,
-    borderWidth: 1.5,
-    borderColor: Couleurs.trait,
-  },
-  puceActive: { backgroundColor: Couleurs.encre, borderColor: Couleurs.encre },
-  puceTexte: { fontFamily: Polices.texteMoyen, fontSize: 14, color: Couleurs.encre },
-  jours: { paddingHorizontal: Espaces.marge, gap: 8 },
-  jour: {
-    height: 40,
-    paddingHorizontal: 14,
-    justifyContent: 'center',
-    borderRadius: Rayons.pilule,
-    backgroundColor: Couleurs.beige,
-    borderWidth: 1.5,
-    borderColor: Couleurs.beige,
-  },
-  jourActif: { backgroundColor: Couleurs.rougeDoux, borderColor: Couleurs.rouge },
-  heure: {
-    fontFamily: Polices.titreDemi,
-    fontSize: 20,
-    color: Couleurs.encre,
-    fontVariant: ['tabular-nums'],
-  },
-  heureActive: { fontFamily: Polices.titre, color: Couleurs.rougeTexte },
-  nombre: {
-    fontFamily: Polices.titreDemi,
-    fontSize: 24,
-    color: Couleurs.encre,
-    fontVariant: ['tabular-nums'],
-  },
-  nombreActif: { fontFamily: Polices.titre, fontSize: 30, color: Couleurs.rougeTexte },
-  lieu: {
-    overflow: 'hidden',
-    backgroundColor: Couleurs.carte,
-    borderRadius: Rayons.carte,
-    borderWidth: 1.5,
-    borderColor: Couleurs.trait,
-  },
-  apercu: { height: 110 },
-  lieuBas: {
-    minHeight: 56,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  changer: { fontFamily: Polices.texteDemi, fontSize: 13, color: Couleurs.rougeTexte },
-  champ: {
-    height: 52,
-    paddingHorizontal: 14,
-    backgroundColor: Couleurs.carte,
-    borderRadius: Rayons.bouton,
-    borderWidth: 1.5,
-    borderColor: Couleurs.trait,
-    fontFamily: Polices.texte,
-    fontSize: 15,
-    color: Couleurs.encre,
-  },
-});
+const creerStyles = (c: Palette) =>
+  StyleSheet.create({
+    fond: { flex: 1, backgroundColor: c.fond },
+    marges: { paddingHorizontal: Espaces.marge, gap: 4 },
+    dansMarges: { marginHorizontal: Espaces.marge },
+    titre: { fontFamily: Polices.titre, fontSize: Tailles.titreEcran, color: c.encre },
+    phrase: { fontFamily: Polices.texteMoyen, fontSize: 15, color: c.texteSecondaire },
+    section: { gap: 10 },
+    etiquette: { fontFamily: Polices.texteDemi, fontSize: 15, color: c.encre },
+    textes: { flex: 1, gap: 2 },
+    fort: { fontFamily: Polices.texteDemi, fontSize: 15, color: c.encre },
+    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+    ligne: { flexDirection: 'row', alignItems: 'baseline', gap: 8, minHeight: 24 },
+    efface: { opacity: 0.45 },
+    relancer: {
+      minHeight: 56,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      backgroundColor: c.rougeDoux,
+      borderRadius: 18,
+      borderWidth: 1.5,
+      borderStyle: 'dashed',
+      borderColor: c.rougeBordure,
+    },
+    tuiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    tuile: {
+      height: 68,
+      paddingHorizontal: 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 3,
+      backgroundColor: c.carte,
+      borderRadius: 14,
+      borderWidth: 1.5,
+      borderColor: c.trait,
+    },
+    tuileActive: { backgroundColor: c.rougeDoux, borderColor: c.rouge },
+    tuileTexte: { fontFamily: Polices.texteMoyen, fontSize: 12, color: c.encre },
+    tuileTexteActif: { fontFamily: Polices.texteDemi, color: c.rougeTexte },
+    puces: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    puce: {
+      height: Espaces.cibleTactile,
+      paddingHorizontal: 14,
+      justifyContent: 'center',
+      backgroundColor: c.carte,
+      borderRadius: Rayons.pilule,
+      borderWidth: 1.5,
+      borderColor: c.trait,
+    },
+    puceActive: { backgroundColor: c.encre, borderColor: c.encre },
+    puceTexte: { fontFamily: Polices.texteMoyen, fontSize: 14, color: c.encre },
+    jours: { paddingHorizontal: Espaces.marge, gap: 8 },
+    jour: {
+      height: 40,
+      paddingHorizontal: 14,
+      justifyContent: 'center',
+      borderRadius: Rayons.pilule,
+      backgroundColor: c.beige,
+      borderWidth: 1.5,
+      borderColor: c.beige,
+    },
+    jourActif: { backgroundColor: c.rougeDoux, borderColor: c.rouge },
+    heure: {
+      fontFamily: Polices.titreDemi,
+      fontSize: 20,
+      color: c.encre,
+      fontVariant: ['tabular-nums'],
+    },
+    heureActive: { fontFamily: Polices.titre, color: c.rougeTexte },
+    nombre: {
+      fontFamily: Polices.titreDemi,
+      fontSize: 24,
+      color: c.encre,
+      fontVariant: ['tabular-nums'],
+    },
+    nombreActif: { fontFamily: Polices.titre, fontSize: 30, color: c.rougeTexte },
+    lieu: {
+      overflow: 'hidden',
+      backgroundColor: c.carte,
+      borderRadius: Rayons.carte,
+      borderWidth: 1.5,
+      borderColor: c.trait,
+    },
+    apercu: { height: 110 },
+    lieuBas: {
+      minHeight: 56,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    changer: { fontFamily: Polices.texteDemi, fontSize: 13, color: c.rougeTexte },
+    champ: {
+      height: 52,
+      paddingHorizontal: 14,
+      backgroundColor: c.carte,
+      borderRadius: Rayons.bouton,
+      borderWidth: 1.5,
+      borderColor: c.trait,
+      fontFamily: Polices.texte,
+      fontSize: 15,
+      color: c.encre,
+    },
+  });

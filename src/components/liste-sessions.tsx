@@ -14,7 +14,6 @@ import { HAUTEUR_BARRE_HAUT } from '@/components/barre-haut';
 import { PictoSport } from '@/components/picto-sport';
 import {
   BarreNavigation,
-  Couleurs,
   Durees,
   Espaces,
   Polices,
@@ -33,6 +32,7 @@ import {
   textePlaces,
 } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
+import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 type Filtre = 'toutes' | 'direct' | 'manque';
 
@@ -66,6 +66,7 @@ function CarteSession({
   origine: Coordonnees;
   onPress: () => void;
 }) {
+  const styles = useStyles(creerStyles);
   const echelle = useSharedValue(1);
   const styleAnime = useAnimatedStyle(() => ({ transform: [{ scale: echelle.get() }] }));
   const enDirect = estEnDirect(session);
@@ -110,6 +111,8 @@ type Props = {
 
 /** Liste des sessions, posée par-dessus la carte : en direct d'abord, puis par date. */
 export function ListeSessions({ sessions, origine, onOuvrir }: Props) {
+  const c = useCouleurs();
+  const styles = useStyles(creerStyles);
   const { top, bottom } = useSafeAreaInsets();
   const [filtre, setFiltre] = useState<Filtre>('toutes');
 
@@ -149,7 +152,7 @@ export function ListeSessions({ sessions, origine, onOuvrir }: Props) {
                     setFiltre(cle);
                   }}
                   style={[styles.filtre, actif && styles.filtreActif]}>
-                  <Text style={[styles.filtreTexte, actif && { color: Couleurs.carte }]}>
+                  <Text style={[styles.filtreTexte, actif && { color: c.surEncre }]}>
                     {titre}
                   </Text>
                 </Pressable>
@@ -166,58 +169,59 @@ export function ListeSessions({ sessions, origine, onOuvrir }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  fond: { backgroundColor: Couleurs.fond },
-  filtres: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingBottom: 4 },
-  filtre: {
-    height: 40,
-    paddingHorizontal: 14,
-    justifyContent: 'center',
-    borderRadius: Rayons.pilule,
-    backgroundColor: Couleurs.carte,
-    borderWidth: 1,
-    borderColor: Couleurs.trait,
-  },
-  filtreActif: { backgroundColor: Couleurs.encre, borderColor: Couleurs.encre },
-  filtreTexte: { fontFamily: Polices.texteDemi, fontSize: 13, color: Couleurs.encre },
-  carte: {
-    padding: 16,
-    gap: 10,
-    backgroundColor: Couleurs.carte,
-    borderRadius: Rayons.carte,
-    borderWidth: 1,
-    borderColor: Couleurs.trait,
-  },
-  entete: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: 26,
-  },
-  moment: {
-    marginLeft: 'auto',
-    fontFamily: Polices.texteMoyen,
-    fontSize: Tailles.aide,
-    color: Couleurs.texteSecondaire,
-  },
-  corps: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  picto: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: Couleurs.beige,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  textes: { flex: 1, gap: 2 },
-  titre: { fontFamily: Polices.titreDemi, fontSize: 19, color: Couleurs.encre },
-  aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: Couleurs.texteSecondaire },
-  resume: { fontFamily: Polices.texteMoyen, fontSize: Tailles.aide, color: Couleurs.encre },
-  vide: {
-    paddingTop: 48,
-    textAlign: 'center',
-    fontFamily: Polices.texte,
-    fontSize: Tailles.texte,
-    color: Couleurs.texteSecondaire,
-  },
-});
+const creerStyles = (c: Palette) =>
+  StyleSheet.create({
+    fond: { backgroundColor: c.fond },
+    filtres: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingBottom: 4 },
+    filtre: {
+      height: 40,
+      paddingHorizontal: 14,
+      justifyContent: 'center',
+      borderRadius: Rayons.pilule,
+      backgroundColor: c.carte,
+      borderWidth: 1,
+      borderColor: c.trait,
+    },
+    filtreActif: { backgroundColor: c.encre, borderColor: c.encre },
+    filtreTexte: { fontFamily: Polices.texteDemi, fontSize: 13, color: c.encre },
+    carte: {
+      padding: 16,
+      gap: 10,
+      backgroundColor: c.carte,
+      borderRadius: Rayons.carte,
+      borderWidth: 1,
+      borderColor: c.trait,
+    },
+    entete: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      minHeight: 26,
+    },
+    moment: {
+      marginLeft: 'auto',
+      fontFamily: Polices.texteMoyen,
+      fontSize: Tailles.aide,
+      color: c.texteSecondaire,
+    },
+    corps: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    picto: {
+      width: 48,
+      height: 48,
+      borderRadius: 14,
+      backgroundColor: c.beige,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    textes: { flex: 1, gap: 2 },
+    titre: { fontFamily: Polices.titreDemi, fontSize: 19, color: c.encre },
+    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+    resume: { fontFamily: Polices.texteMoyen, fontSize: Tailles.aide, color: c.encre },
+    vide: {
+      paddingTop: 48,
+      textAlign: 'center',
+      fontFamily: Polices.texte,
+      fontSize: Tailles.texte,
+      color: c.texteSecondaire,
+    },
+  });

@@ -6,7 +6,7 @@ Lancement prévu en Brabant wallon / Bruxelles, d'abord avec un cercle d'amis, p
 
 ## État du projet
 
-Conception terminée (novembre 2026). Les étapes 0 à 4 du plan sont faites : squelette, barre de navigation flottante, design system, carte des sessions, liste avec filtres, détail d'une session, geste Catch (la balle attrapée dans le bouton), écran « Tu l'as catchée ! » et annulation de participation. Les sessions sont encore fictives (`src/donnees/sessions.ts`) et le Catch n'est pas enregistré : il disparaît quand on ferme l'app. Rien n'a encore été testé sur un vrai téléphone. Prochaine étape : la connexion au moment du Catch (étape 5).
+Conception terminée (novembre 2026). Carte, liste, détail, geste Catch, connexion par e-mail et écran « Créer une session » sont faits, en clair et en sombre. Les sessions affichées sont encore fictives : la prochaine étape est de brancher les vraies données (Supabase). L'avancement à jour est dans [CLAUDE.md](CLAUDE.md).
 
 ## Lancer l'app
 
@@ -21,10 +21,10 @@ Puis scanner le QR code avec l'app **Expo Go** (iPhone : avec l'appareil photo ;
 
 ## Voir l'app sur son téléphone sans PC
 
-L'app est publiée sur le compte Expo `max-code-menace` ([projet catch](https://expo.dev/accounts/max-code-menace/projects/catch)). Dans **Expo Go**, connecté à ce compte, elle apparaît dans la liste des projets, branche `preview`. Pour republier après un changement :
+L'app est publiée sur le compte Expo `max-code-menace` ([projet catch](https://expo.dev/accounts/max-code-menace/projects/catch)). Dans **Expo Go**, connecté à ce compte, elle apparaît dans la liste des projets, branche `main`. Pour republier après un changement :
 
 ```
-npx eas-cli@latest update --branch preview --environment preview --platform ios --message "Ce qui a changé"
+npx eas-cli@latest update --branch main --environment development --platform ios --message "Ce qui a changé"
 ```
 
 ## Où trouver quoi

@@ -9,7 +9,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BarreNavigation as Mesures, Couleurs, Durees, Polices, Rayons, Ressorts } from '@/constants/theme';
+import { BarreNavigation as Mesures, Durees, Polices, Rayons, Ressorts } from '@/constants/theme';
+import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 const PressableAnime = Animated.createAnimatedComponent(Pressable);
 
@@ -22,6 +23,8 @@ type OngletProps = Omit<TabTriggerSlotProps, 'ref'> & {
 };
 
 export function Onglet({ titre, Icone, isFocused, onPressIn, onPressOut, style, ...props }: OngletProps) {
+  const c = useCouleurs();
+  const styles = useStyles(creerStyles);
   const echelle = useSharedValue(1);
   const actif = useSharedValue(isFocused ? 1 : 0);
 
@@ -31,7 +34,7 @@ export function Onglet({ titre, Icone, isFocused, onPressIn, onPressOut, style, 
 
   const styleOnglet = useAnimatedStyle(() => ({ transform: [{ scale: echelle.get() }] }));
   const styleFond = useAnimatedStyle(() => ({ opacity: actif.get() }));
-  const couleur = isFocused ? Couleurs.carte : Couleurs.texteSecondaire;
+  const couleur = isFocused ? c.surRouge : c.texteSecondaire;
 
   return (
     <PressableAnime
@@ -58,40 +61,42 @@ export function Onglet({ titre, Icone, isFocused, onPressIn, onPressOut, style, 
 
 /** Style de la pilule blanche flottante, à poser sur <TabList> dans src/app/_layout.tsx. */
 export function useStyleBarre() {
+  const styles = useStyles(creerStyles);
   const { bottom } = useSafeAreaInsets();
   return [styles.barre, { bottom: Math.max(bottom, Mesures.margeBas) }];
 }
 
-const styles = StyleSheet.create({
-  barre: {
-    position: 'absolute',
-    left: Mesures.margeCotes,
-    right: Mesures.margeCotes,
-    height: Mesures.hauteur,
-    padding: 6,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: Couleurs.carte,
-    borderRadius: Rayons.pilule,
-    borderWidth: 1,
-    borderColor: Couleurs.trait,
-    boxShadow: '0 8px 24px rgba(28, 20, 18, 0.12)',
-  },
-  onglet: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-    borderRadius: Rayons.pilule,
-  },
-  fondActif: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    backgroundColor: Couleurs.rouge,
-    borderRadius: Rayons.pilule,
-  },
-  titre: { fontFamily: Polices.texteMoyen, fontSize: 11 },
-});
+const creerStyles = (c: Palette) =>
+  StyleSheet.create({
+    barre: {
+      position: 'absolute',
+      left: Mesures.margeCotes,
+      right: Mesures.margeCotes,
+      height: Mesures.hauteur,
+      padding: 6,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      backgroundColor: c.carte,
+      borderRadius: Rayons.pilule,
+      borderWidth: 1,
+      borderColor: c.trait,
+      boxShadow: '0 8px 24px rgba(28, 20, 18, 0.12)',
+    },
+    onglet: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 2,
+      borderRadius: Rayons.pilule,
+    },
+    fondActif: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      backgroundColor: c.rouge,
+      borderRadius: Rayons.pilule,
+    },
+    titre: { fontFamily: Polices.texteMoyen, fontSize: 11 },
+  });

@@ -12,8 +12,9 @@ import Animated, {
 
 import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
-import { Couleurs, Durees, Polices, Rayons, Ressorts } from '@/constants/theme';
+import { Durees, Polices, Rayons, Ressorts } from '@/constants/theme';
 import { vibrer } from '@/lib/haptics';
+import { useStyles, type Palette } from '@/lib/theme';
 
 const PressableAnime = Animated.createAnimatedComponent(Pressable);
 
@@ -41,6 +42,7 @@ type Props = {
  * (rebond, vibration) et devient « Catchée ! ».
  */
 export function BoutonCatch({ complet = false, onDemande, onCatch }: Props) {
+  const styles = useStyles(creerStyles);
   const reduit = useReducedMotion();
   const [etat, setEtat] = useState<'pret' | 'vol' | 'attrapee'>('pret');
   const minuteurs = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -122,24 +124,25 @@ export function BoutonCatch({ complet = false, onDemande, onCatch }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  bouton: {
-    minHeight: 52,
-    borderRadius: Rayons.bouton,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Couleurs.rouge,
-    overflow: 'hidden',
-  },
-  fondAttrape: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: Couleurs.encre },
-  texte: { fontFamily: Polices.texteDemi, fontSize: 16, color: Couleurs.carte },
-  // Décalé pour laisser la place de la balle à gauche du mot
-  texteAttrape: { paddingLeft: TAILLE_BALLE + 8 },
-  balle: {
-    position: 'absolute',
-    left: '50%',
-    top: '50%',
-    marginLeft: -TAILLE_BALLE / 2,
-    marginTop: -TAILLE_BALLE / 2,
-  },
-});
+const creerStyles = (c: Palette) =>
+  StyleSheet.create({
+    bouton: {
+      minHeight: 52,
+      borderRadius: Rayons.bouton,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.rouge,
+      overflow: 'hidden',
+    },
+    fondAttrape: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: c.encre },
+    texte: { fontFamily: Polices.texteDemi, fontSize: 16, color: c.surRouge },
+    // Décalé pour laisser la place de la balle à gauche du mot
+    texteAttrape: { paddingLeft: TAILLE_BALLE + 8 },
+    balle: {
+      position: 'absolute',
+      left: '50%',
+      top: '50%',
+      marginLeft: -TAILLE_BALLE / 2,
+      marginTop: -TAILLE_BALLE / 2,
+    },
+  });

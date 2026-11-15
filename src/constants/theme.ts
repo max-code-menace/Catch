@@ -1,19 +1,59 @@
 // Design system de Catch. Référence : docs/design-system.md
 
-export const Couleurs = {
-  rouge: '#C8361C',
-  rougeTexte: '#A12A14',
-  rougeDoux: '#FCE6E0',
-  orange: '#E35A0C',
-  orangeTexte: '#863404',
-  orangeDoux: '#FDE6D2',
-  encre: '#1C1412',
-  texteSecondaire: '#6E625C',
-  fond: '#FBF8F5',
-  carte: '#FFFFFF',
-  trait: '#E8DFD7',
-  beige: '#F3EDE8',
+// Deux palettes : claire et sombre. Aucune couleur n'est écrite en dur dans un écran,
+// tout passe par useCouleurs() ou useStyles() (src/lib/theme.tsx).
+export const Palettes = {
+  clair: {
+    rouge: '#C8361C',
+    /** Texte et icônes posés sur le rouge */
+    surRouge: '#FFFFFF',
+    rougeTexte: '#A12A14',
+    rougeDoux: '#FCE6E0',
+    rougeBordure: '#E9A58F',
+    orange: '#E35A0C',
+    orangeTexte: '#863404',
+    orangeDoux: '#FDE6D2',
+    encre: '#1C1412',
+    /** Texte posé sur un fond couleur encre (filtre actif, toast) */
+    surEncre: '#FFFFFF',
+    surEncreDoux: 'rgba(255, 255, 255, 0.14)',
+    texteSecondaire: '#6E625C',
+    fond: '#FBF8F5',
+    carte: '#FFFFFF',
+    trait: '#E8DFD7',
+    beige: '#F3EDE8',
+    /** Rond blanc derrière les pictos : blanc dans les deux thèmes */
+    rondPicto: '#FFFFFF',
+    /** Texte des avatars, posés sur des teintes claires dans les deux thèmes */
+    surAvatar: '#1C1412',
+    /** Fond de secours quand il n'y a pas de vraie carte (navigateur) */
+    fondCarte: '#EFE9E2',
+  },
+  sombre: {
+    rouge: '#E8553A',
+    surRouge: '#1C1412',
+    rougeTexte: '#FFB4A3',
+    rougeDoux: '#3A1D16',
+    rougeBordure: '#7A3A2A',
+    orange: '#FF8A3D',
+    orangeTexte: '#FFC08F',
+    orangeDoux: '#3B2410',
+    encre: '#F5EEE9',
+    surEncre: '#1C1412',
+    surEncreDoux: 'rgba(28, 20, 18, 0.10)',
+    texteSecondaire: '#A99C94',
+    fond: '#14100E',
+    carte: '#211B18',
+    trait: '#3A312C',
+    beige: '#2A2320',
+    rondPicto: '#FFFFFF',
+    surAvatar: '#1C1412',
+    fondCarte: '#1B1614',
+  },
 } as const;
+
+export type Theme = keyof typeof Palettes;
+export type Palette = { [K in keyof typeof Palettes.clair]: string };
 
 // Les noms correspondent aux polices chargées dans src/app/_layout.tsx
 export const Polices = {

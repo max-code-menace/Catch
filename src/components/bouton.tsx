@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
-import { Couleurs, Espaces, Polices, Rayons, Ressorts } from '@/constants/theme';
+import { Espaces, Polices, Rayons, Ressorts } from '@/constants/theme';
+import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 const PressableAnime = Animated.createAnimatedComponent(Pressable);
 
@@ -22,17 +23,13 @@ type Props = Omit<PressableProps, 'children' | 'style'> & {
   style?: StyleProp<ViewStyle>;
 };
 
-const COULEUR_TEXTE = {
-  principal: Couleurs.carte,
-  secondaire: Couleurs.encre,
-  lien: Couleurs.rougeTexte,
-} as const;
-
 /** Bouton de Catch : se réduit à 0,96 sous le doigt. */
 export function Bouton({ titre, variante = 'principal', Icone, style, onPressIn, onPressOut, ...props }: Props) {
+  const styles = useStyles(creerStyles);
   const echelle = useSharedValue(1);
   const styleAnime = useAnimatedStyle(() => ({ transform: [{ scale: echelle.get() }] }));
-  const couleur = COULEUR_TEXTE[variante];
+  const c = useCouleurs();
+  const couleur = { principal: c.surRouge, secondaire: c.encre, lien: c.rougeTexte }[variante];
 
   return (
     <PressableAnime
@@ -53,19 +50,20 @@ export function Bouton({ titre, variante = 'principal', Icone, style, onPressIn,
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    minHeight: 52,
-    minWidth: Espaces.cibleTactile,
-    paddingHorizontal: 24,
-    borderRadius: Rayons.bouton,
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  principal: { backgroundColor: Couleurs.rouge },
-  secondaire: { backgroundColor: Couleurs.carte, borderWidth: 1, borderColor: Couleurs.trait },
-  lien: { minHeight: Espaces.cibleTactile },
-  texte: { fontFamily: Polices.texteDemi, fontSize: 16 },
-});
+const creerStyles = (c: Palette) =>
+  StyleSheet.create({
+    base: {
+      minHeight: 52,
+      minWidth: Espaces.cibleTactile,
+      paddingHorizontal: 24,
+      borderRadius: Rayons.bouton,
+      flexDirection: 'row',
+      gap: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    principal: { backgroundColor: c.rouge },
+    secondaire: { backgroundColor: c.carte, borderWidth: 1, borderColor: c.trait },
+    lien: { minHeight: Espaces.cibleTactile },
+    texte: { fontFamily: Polices.texteDemi, fontSize: 16 },
+  });

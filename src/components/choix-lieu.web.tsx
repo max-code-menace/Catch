@@ -3,9 +3,11 @@ import { Modal, StyleSheet, Text, View } from 'react-native';
 
 import { Bouton } from '@/components/bouton';
 import type { PropsChoixLieu } from '@/components/choix-lieu';
-import { Couleurs, Espaces, Polices } from '@/constants/theme';
+import { Espaces, Polices } from '@/constants/theme';
+import { useStyles, type Palette } from '@/lib/theme';
 
 export function ChoixLieu({ ouvert, depart, onFermer, onChoisir }: PropsChoixLieu) {
+  const styles = useStyles(creerStyles);
   return (
     <Modal visible={ouvert} animationType="slide" onRequestClose={onFermer}>
       <View style={styles.ecran}>
@@ -17,13 +19,14 @@ export function ChoixLieu({ ouvert, depart, onFermer, onChoisir }: PropsChoixLie
   );
 }
 
-const styles = StyleSheet.create({
-  ecran: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: 12,
-    padding: Espaces.marge,
-    backgroundColor: Couleurs.fond,
-  },
-  texte: { fontFamily: Polices.texte, fontSize: 16, color: Couleurs.encre, textAlign: 'center' },
-});
+const creerStyles = (c: Palette) =>
+  StyleSheet.create({
+    ecran: {
+      flex: 1,
+      justifyContent: 'center',
+      gap: 12,
+      padding: Espaces.marge,
+      backgroundColor: c.fond,
+    },
+    texte: { fontFamily: Polices.texte, fontSize: 16, color: c.encre, textAlign: 'center' },
+  });

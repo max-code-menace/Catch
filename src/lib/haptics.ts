@@ -1,12 +1,26 @@
 // Toutes les vibrations de l'app passent par ici (voir docs/design-system.md).
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { Platform } from 'react-native';
 
+const CLE = 'catch.vibrations';
 let actives = true;
 
-/** Réglage « Vibrations » du profil. */
+// On relit le réglage enregistré au démarrage
+AsyncStorage.getItem(CLE)
+  .then((v) => {
+    if (v === '0') actives = false;
+  })
+  .catch(() => {});
+
+export function vibrationsActives() {
+  return actives;
+}
+
+/** Réglage « Vibrations » du profil, gardé sur le téléphone. */
 export function reglerVibrations(valeur: boolean) {
   actives = valeur;
+  AsyncStorage.setItem(CLE, valeur ? '1' : '0').catch(() => {});
 }
 
 function jouer(ios: () => Promise<void>, android: Haptics.AndroidHaptics) {

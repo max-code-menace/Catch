@@ -16,16 +16,18 @@ import { Avatars } from '@/components/avatars';
 import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
 import { IconeItineraire } from '@/components/icones';
-import { Couleurs, Durees, Espaces, Polices, Rayons, Ressorts, Tailles } from '@/constants/theme';
+import { Durees, Espaces, Polices, Rayons, Ressorts, Tailles } from '@/constants/theme';
 import { annulationLibre, quandPhrase, texteAttente } from '@/lib/formats';
 import { ouvrirItineraire } from '@/lib/itineraire';
 import { useSessions } from '@/lib/sessions';
+import { useStyles, type Palette } from '@/lib/theme';
 
 const TAILLE_BALLE = 64;
 const CHUTE = -260;
 
 /** La balle tombe du haut de l'écran et rebondit au-dessus du titre. */
 function BalleQuiRebondit() {
+  const styles = useStyles(creerStyles);
   const reduit = useReducedMotion();
   const chute = useSharedValue(reduit ? 0 : CHUTE);
   const apparition = useSharedValue(0);
@@ -56,6 +58,7 @@ function BalleQuiRebondit() {
 }
 
 export default function Catchee() {
+  const styles = useStyles(creerStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { sessions, estCatchee, annuler } = useSessions();
   const session = sessions.find((s) => s.id === id);
@@ -121,41 +124,42 @@ export default function Catchee() {
   );
 }
 
-const styles = StyleSheet.create({
-  ecran: { flex: 1, backgroundColor: Couleurs.fond, paddingHorizontal: Espaces.marge },
-  haut: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
-  balle: { alignItems: 'center', gap: 6 },
-  ombre: { width: 44, height: 8, borderRadius: 4, backgroundColor: Couleurs.encre },
-  titre: {
-    fontFamily: Polices.titre,
-    fontSize: 36,
-    lineHeight: 42,
-    color: Couleurs.encre,
-    textAlign: 'center',
-  },
-  resume: { alignItems: 'center', gap: 4 },
-  texte: {
-    fontFamily: Polices.texte,
-    fontSize: Tailles.texte,
-    lineHeight: 24,
-    color: Couleurs.texteSecondaire,
-    textAlign: 'center',
-  },
-  attente: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 16,
-    paddingVertical: 6,
-    paddingLeft: 8,
-    paddingRight: 16,
-    backgroundColor: Couleurs.carte,
-    borderRadius: Rayons.pilule,
-    borderWidth: 1,
-    borderColor: Couleurs.trait,
-  },
-  attenteTexte: { fontFamily: Polices.texteMoyen, fontSize: 14, color: Couleurs.encre },
-  actions: { gap: 10, paddingBottom: 16 },
-  annulation: { alignItems: 'center', paddingTop: 4 },
-  aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: Couleurs.texteSecondaire },
-});
+const creerStyles = (c: Palette) =>
+  StyleSheet.create({
+    ecran: { flex: 1, backgroundColor: c.fond, paddingHorizontal: Espaces.marge },
+    haut: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
+    balle: { alignItems: 'center', gap: 6 },
+    ombre: { width: 44, height: 8, borderRadius: 4, backgroundColor: c.encre },
+    titre: {
+      fontFamily: Polices.titre,
+      fontSize: 36,
+      lineHeight: 42,
+      color: c.encre,
+      textAlign: 'center',
+    },
+    resume: { alignItems: 'center', gap: 4 },
+    texte: {
+      fontFamily: Polices.texte,
+      fontSize: Tailles.texte,
+      lineHeight: 24,
+      color: c.texteSecondaire,
+      textAlign: 'center',
+    },
+    attente: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginTop: 16,
+      paddingVertical: 6,
+      paddingLeft: 8,
+      paddingRight: 16,
+      backgroundColor: c.carte,
+      borderRadius: Rayons.pilule,
+      borderWidth: 1,
+      borderColor: c.trait,
+    },
+    attenteTexte: { fontFamily: Polices.texteMoyen, fontSize: 14, color: c.encre },
+    actions: { gap: 10, paddingBottom: 16 },
+    annulation: { alignItems: 'center', paddingTop: 4 },
+    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+  });

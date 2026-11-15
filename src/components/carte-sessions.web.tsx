@@ -5,10 +5,12 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import type { PropsCarte } from '@/components/carte-sessions';
 import { PastilleSession } from '@/components/pastille-session';
 import { WAVRE } from '@/donnees/sessions';
+import { useStyles, type Palette } from '@/lib/theme';
 
 const ETENDUE = 0.13;
 
 export function CarteSessions({ sessions, idChoisie, onChoisir }: PropsCarte) {
+  const styles = useStyles(creerStyles);
   return (
     <Pressable style={[StyleSheet.absoluteFill, styles.fond]} onPress={() => onChoisir(null)}>
       {sessions.map((session) => {
@@ -26,7 +28,8 @@ export function CarteSessions({ sessions, idChoisie, onChoisir }: PropsCarte) {
   );
 }
 
-const styles = StyleSheet.create({
-  fond: { backgroundColor: '#EFE9E2' },
-  marqueur: { position: 'absolute', transform: [{ translateX: '-50%' }, { translateY: '-50%' }] },
-});
+const creerStyles = (c: Palette) =>
+  StyleSheet.create({
+    fond: { backgroundColor: c.fondCarte },
+    marqueur: { position: 'absolute', transform: [{ translateX: '-50%' }, { translateY: '-50%' }] },
+  });

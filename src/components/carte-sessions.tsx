@@ -2,9 +2,11 @@ import { useEffect, useRef } from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
+import { themeCarte } from '@/constants/carte';
 import { PastilleSession } from '@/components/pastille-session';
 import { WAVRE, type Coordonnees, type Session } from '@/donnees/sessions';
 import { estEnDirect } from '@/lib/formats';
+import { useTheme } from '@/lib/theme';
 
 export type PropsCarte = {
   sessions: Session[];
@@ -20,6 +22,7 @@ const ZOOM = { latitudeDelta: 0.11, longitudeDelta: 0.11 };
 /** Carte plein écran avec une pastille par session. */
 export function CarteSessions({ sessions, idChoisie, onChoisir, cible, montrerPosition }: PropsCarte) {
   const carte = useRef<MapView>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (cible) {
@@ -34,6 +37,7 @@ export function CarteSessions({ sessions, idChoisie, onChoisir, cible, montrerPo
     <MapView
       ref={carte}
       style={StyleSheet.absoluteFill}
+      {...themeCarte(theme)}
       initialRegion={{ ...WAVRE, ...ZOOM }}
       mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
       showsUserLocation={montrerPosition}
@@ -48,7 +52,7 @@ export function CarteSessions({ sessions, idChoisie, onChoisir, cible, montrerPo
         const choisie = session.id === idChoisie;
         return (
           <Marker
-            key={session.id}
+            key={`${session.id}-${theme}`}
             coordinate={session.position}
             anchor={{ x: 0.5, y: 0.5 }}
             // Android fige les marqueurs en image : on ne les redessine que s'ils bougent

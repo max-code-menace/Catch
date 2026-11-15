@@ -10,8 +10,8 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { Couleurs } from '@/constants/theme';
 import { vibrer } from '@/lib/haptics';
+import { useStyles, type Palette } from '@/lib/theme';
 
 type Props<T> = {
   elements: T[];
@@ -47,6 +47,7 @@ export function Roulette<T>({
   valeur,
   styleCadre,
 }: Props<T>) {
+  const styles = useStyles(creerStyles);
   const defilement = useRef<ComponentRef<typeof ScrollView>>(null);
   const [largeurTotale, setLargeurTotale] = useState(0);
   // Dernier cran connu du défilement, pour ne prévenir qu'au changement
@@ -117,14 +118,15 @@ export function Roulette<T>({
   );
 }
 
-const styles = StyleSheet.create({
-  cadre: {
-    position: 'absolute',
-    top: 0,
-    borderRadius: 18,
-    backgroundColor: Couleurs.rougeDoux,
-    borderWidth: 1.5,
-    borderColor: Couleurs.rouge,
-  },
-  element: { alignItems: 'center', justifyContent: 'center' },
-});
+const creerStyles = (c: Palette) =>
+  StyleSheet.create({
+    cadre: {
+      position: 'absolute',
+      top: 0,
+      borderRadius: 18,
+      backgroundColor: c.rougeDoux,
+      borderWidth: 1.5,
+      borderColor: c.rouge,
+    },
+    element: { alignItems: 'center', justifyContent: 'center' },
+  });

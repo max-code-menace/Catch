@@ -7,14 +7,15 @@ import { BarreHaut, type Vue } from '@/components/barre-haut';
 import { CarteSessions } from '@/components/carte-sessions';
 import { FicheSession } from '@/components/fiche-session';
 import { ListeSessions } from '@/components/liste-sessions';
-import { Couleurs } from '@/constants/theme';
 import { WAVRE, type Coordonnees, type Session } from '@/donnees/sessions';
 import { useCatch } from '@/lib/catch';
 import { distance, estEnDirect } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { useSessions } from '@/lib/sessions';
+import { useStyles, type Palette } from '@/lib/theme';
 
 export default function Carte() {
+  const styles = useStyles(creerStyles);
   const { sessions, estCatchee, annuler, position, setPosition, origine } = useSessions();
   const { autoriser, confirmer } = useCatch();
   const [cible, setCible] = useState<(Coordonnees & { cle: number }) | null>(null);
@@ -90,6 +91,7 @@ export default function Carte() {
   );
 }
 
-const styles = StyleSheet.create({
-  ecran: { flex: 1, backgroundColor: Couleurs.fond },
-});
+const creerStyles = (c: Palette) =>
+  StyleSheet.create({
+    ecran: { flex: 1, backgroundColor: c.fond },
+  });

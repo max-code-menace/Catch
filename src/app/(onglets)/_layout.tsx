@@ -3,9 +3,10 @@ import { StyleSheet } from 'react-native';
 
 import { Onglet, useStyleBarre } from '@/components/barre-navigation';
 import { IconeCarte, IconeCreer, IconeMessages, IconeProfil } from '@/components/icones';
-import { Couleurs } from '@/constants/theme';
+import { useStyles, type Palette } from '@/lib/theme';
 
 export default function Onglets() {
+  const styles = useStyles(creerStyles);
   const styleBarre = useStyleBarre();
 
   return (
@@ -30,6 +31,7 @@ export default function Onglets() {
   );
 }
 
-const styles = StyleSheet.create({
-  racine: { flex: 1, backgroundColor: Couleurs.fond },
-});
+const creerStyles = (c: Palette) =>
+  StyleSheet.create({
+    racine: { flex: 1, backgroundColor: c.fond },
+  });
