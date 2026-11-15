@@ -29,6 +29,8 @@ const DEPART = { x: 130, y: -230 };
 const ARRIVEE_X = -48;
 
 type Props = {
+  /** Texte du bouton : « Catch » dans l'app, « Rejoindre la session » sur la page web d'invitation */
+  titre?: string;
   /** Plus de place libre : le bouton devient « Complet » */
   complet?: boolean;
   /** Appelé à l'appui : renvoyer `false` arrête le geste (pas connecté, par exemple) */
@@ -43,7 +45,7 @@ type Props = {
  * Le geste signature : on appuie, la balle arrive en cloche, le bouton l'attrape
  * (rebond, vibration) et devient « Catchée ! ».
  */
-export function BoutonCatch({ complet = false, onDemande, onEnvoi, onCatch }: Props) {
+export function BoutonCatch({ titre = 'Catch', complet = false, onDemande, onEnvoi, onCatch }: Props) {
   const styles = useStyles(creerStyles);
   const reduit = useReducedMotion();
   const [etat, setEtat] = useState<'pret' | 'vol' | 'attrapee'>('pret');
@@ -116,7 +118,7 @@ export function BoutonCatch({ complet = false, onDemande, onEnvoi, onCatch }: Pr
     <View>
       <PressableAnime
         accessibilityRole="button"
-        accessibilityLabel={etat === 'attrapee' ? 'Catchée !' : 'Catch'}
+        accessibilityLabel={etat === 'attrapee' ? 'Catchée !' : titre}
         accessibilityState={{ busy: etat !== 'pret' }}
         onPressIn={() => {
           if (etat !== 'pret') return;
@@ -130,7 +132,7 @@ export function BoutonCatch({ complet = false, onDemande, onEnvoi, onCatch }: Pr
         style={[styles.bouton, styleBouton]}>
         <Animated.View style={[styles.fondAttrape, styleFondAttrape]} />
         <Text style={[styles.texte, etat === 'attrapee' && styles.texteAttrape]}>
-          {etat === 'attrapee' ? 'Catchée !' : 'Catch'}
+          {etat === 'attrapee' ? 'Catchée !' : titre}
         </Text>
       </PressableAnime>
       {/* La balle vole par-dessus l'écran : elle ne doit pas gêner le doigt */}

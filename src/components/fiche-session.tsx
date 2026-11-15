@@ -7,11 +7,13 @@ import { BadgeSession } from '@/components/badge-session';
 import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
 import { BoutonCatch } from '@/components/bouton-catch';
+import { IconeInviter } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
 import { BarreNavigation, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
 import { estEnDirect, heure, placesLibres, quand, texteDistance, textePlaces } from '@/lib/formats';
-import { useStyles, type Palette } from '@/lib/theme';
+import { inviter } from '@/lib/invitation';
+import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 type Props = {
   session: Session;
@@ -29,6 +31,7 @@ type Props = {
 
 /** Fiche de la session choisie sur la carte, posée au-dessus de la barre de navigation. */
 export function FicheSession({ session, distance, catchee, onOuvrir, onDemande, onEnvoi, onCatch, onAnnuler }: Props) {
+  const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const { bottom } = useSafeAreaInsets();
   const enDirect = estEnDirect(session);
@@ -75,17 +78,28 @@ export function FicheSession({ session, distance, catchee, onOuvrir, onDemande, 
         </Text>
       </Pressable>
 
-      {catchee ? (
-        <View>
-          <View style={styles.confirmation}>
-            <Balle taille={18} />
-            <Text style={styles.confirmationTexte}>Tu l’as catchée !</Text>
-          </View>
-          <Bouton titre="Annuler ma participation" variante="lien" onPress={onAnnuler} />
+      {catchee && (
+        <View style={styles.confirmation}>
+          <Balle taille={18} />
+          <Text style={styles.confirmationTexte}>Tu l’as catchée !</Text>
         </View>
-      ) : (
-        <BoutonCatch complet={complet} onDemande={onDemande} onEnvoi={onEnvoi} onCatch={onCatch} />
       )}
+      <View style={styles.actions}>
+        <View style={styles.action}>
+          {catchee ? (
+            <Bouton titre="Annuler ma participation" variante="lien" onPress={onAnnuler} />
+          ) : (
+            <BoutonCatch complet={complet} onDemande={onDemande} onEnvoi={onEnvoi} onCatch={onCatch} />
+          )}
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Inviter"
+          onPress={() => inviter(session)}
+          style={({ pressed }) => [styles.inviter, pressed && styles.inviterPresse]}>
+          <IconeInviter couleur={c.encre} taille={22} />
+        </Pressable>
+      </View>
     </Animated.View>
   );
 }
@@ -130,5 +144,18 @@ const creerStyles = (c: Palette) =>
       gap: 8,
       paddingTop: 4,
     },
+    actions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    action: { flex: 1 },
+    inviter: {
+      width: 52,
+      height: 52,
+      borderRadius: Rayons.bouton,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.carte,
+      borderWidth: 1.5,
+      borderColor: c.trait,
+    },
+    inviterPresse: { backgroundColor: c.beige },
     confirmationTexte: { fontFamily: Polices.titre, fontSize: 20, color: c.encre },
   });
