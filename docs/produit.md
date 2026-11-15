@@ -55,9 +55,9 @@ Badge « En direct » animé avancé, bouton « je cherche un joueur » avec not
 
 ## Plan de construction
 
-Une fonctionnalité à la fois, testée avant de passer à la suivante.
+Une fonctionnalité à la fois, testée avant de passer à la suivante. **Étape en cours : 2.** Les étapes 0 et 1 sont faites.
 
-0. Installer les outils (Node.js LTS, Git, VS Code) et créer le projet : `npx create-expo-app@latest catch`
+0. Installer les outils (Node.js LTS, Git, VS Code) et créer le projet Expo (à la racine du dépôt)
 1. Squelette, barre de navigation flottante et design system
 2. Carte des sessions
 3. Liste des sessions

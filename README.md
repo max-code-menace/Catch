@@ -6,7 +6,18 @@ Lancement prévu en Brabant wallon / Bruxelles, d'abord avec un cercle d'amis, p
 
 ## État du projet
 
-Phase de conception terminée (novembre 2026) : idée challengée, parcours, wireframes, design haute fidélité des 11 écrans, système d'animation, audit des textes et pictos des sports. **Aucune ligne de code de l'app n'est écrite.** La prochaine étape est l'étape 0 du plan : installer les outils et créer le projet Expo.
+Conception terminée (novembre 2026). Le projet Expo est créé et les étapes 0 et 1 du plan sont faites : squelette, barre de navigation flottante, couleurs, polices, ressorts et vibrations. Les quatre écrans sont encore vides. Prochaine étape : la carte des sessions (étape 2).
+
+## Lancer l'app
+
+Dans un terminal ouvert dans le dossier du projet :
+
+```
+npm install
+npx expo start
+```
+
+Puis scanner le QR code avec l'app **Expo Go** (iPhone : avec l'appareil photo ; Android : depuis Expo Go). Le téléphone et le PC doivent être sur le même Wi-Fi.
 
 ## Où trouver quoi
 
@@ -16,6 +27,7 @@ Phase de conception terminée (novembre 2026) : idée challengée, parcours, wir
 | [docs/design-system.md](docs/design-system.md) | Couleurs, typo, navigation, composants, animations, vibrations |
 | [docs/ux-writing.md](docs/ux-writing.md) | Règles de rédaction, glossaire, textes manquants à écrire |
 | [docs/recherches.md](docs/recherches.md) | Résumé des recherches UX et animation qui ont guidé le design |
+| [src/](src/) | Le code de l'app : écrans dans `src/app/`, composants, design system dans `src/constants/theme.ts` |
 | [design/apercus/](design/apercus/) | Captures des écrans, des pictos et du système |
 | [design/pictos/](design/pictos/) | Les 10 pictos de sport en SVG, prêts pour l'app |
 | [design/canvas/](design/canvas/) | Sources du canvas de design et script qui les génère |
