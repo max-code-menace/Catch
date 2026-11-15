@@ -19,6 +19,14 @@ npx expo start
 
 Puis scanner le QR code avec l'app **Expo Go** (iPhone : avec l'appareil photo ; Android : depuis Expo Go). Le téléphone et le PC doivent être sur le même Wi-Fi.
 
+## Voir l'app sur son téléphone sans PC
+
+L'app est publiée sur le compte Expo `max-code-menace` ([projet catch](https://expo.dev/accounts/max-code-menace/projects/catch)). Dans **Expo Go**, connecté à ce compte, elle apparaît dans la liste des projets, branche `preview`. Pour republier après un changement :
+
+```
+npx eas-cli@latest update --branch preview --environment preview --platform ios --message "Ce qui a changé"
+```
+
 ## Où trouver quoi
 
 | Dossier / lien | Contenu |
