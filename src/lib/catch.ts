@@ -1,9 +1,21 @@
 import { router } from 'expo-router';
+import { Alert } from 'react-native';
 
 import { useCompte } from '@/lib/compte';
-import { useSessions } from '@/lib/sessions';
+import { useSessions, type ResultatCatch } from '@/lib/sessions';
 
-/** Ce qui se passe autour du bouton Catch : connexion si besoin, puis Catch et confirmation. */
+/** Dit pourquoi un Catch n'a pas pu se faire : un titre, une phrase, pas de reproche. */
+export function expliquerEchec(resultat: Exclude<ResultatCatch, 'ok'>) {
+  if (resultat === 'complete') {
+    Alert.alert('Session complète', 'La dernière place vient d’être prise.');
+  } else if (resultat === 'terminee') {
+    Alert.alert('Session terminée', 'Cette session n’est plus disponible.');
+  } else {
+    Alert.alert('Ça n’a pas marché', 'Vérifie ta connexion et réessaie.');
+  }
+}
+
+/** Ce qui se passe autour du bouton Catch : connexion si besoin, demande au serveur, puis confirmation. */
 export function useCatch() {
   const { compte } = useCompte();
   const { catcher } = useSessions();
@@ -15,8 +27,15 @@ export function useCatch() {
       router.push({ pathname: '/connexion', params: { id } });
       return false;
     },
+    /** Demande la place : `true` si elle est prise. Sinon on explique pourquoi. */
+    async envoyer(id: string) {
+      const resultat = await catcher(id);
+      if (resultat === 'ok') return true;
+      expliquerEchec(resultat);
+      return false;
+    },
+    /** La place est prise : on fête ça */
     confirmer(id: string) {
-      catcher(id);
       router.push({ pathname: '/catchee/[id]', params: { id } });
     },
   };

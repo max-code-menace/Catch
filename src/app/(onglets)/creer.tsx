@@ -1,6 +1,7 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -93,6 +94,7 @@ export default function Creer() {
   const [joueurs, setJoueurs] = useState(ficheSport('foot').joueurs);
   const [debutants, setDebutants] = useState(true);
   const [enAttente, setEnAttente] = useState(false);
+  const [envoi, setEnvoi] = useState(false);
   const [carteOuverte, setCarteOuverte] = useState(false);
 
   const listeCreneaux = useMemo(() => creneaux(jour, ouverture), [jour, ouverture]);
@@ -147,11 +149,12 @@ export default function Creer() {
     { cle: 'autre', titre: 'Autre' },
   ];
 
-  function envoyer(prenom: string) {
+  async function envoyer() {
+    if (envoi) return;
+    setEnvoi(true);
     const debut = debutChoisi();
-    const id = creer({
+    const id = await creer({
       sport,
-      nomSport: fiche.nom,
       titre: fiche.nom,
       lieu: nomLieu,
       commune: lieu.commune,
@@ -159,16 +162,21 @@ export default function Creer() {
       debut,
       fin: new Date(debut.getTime() + DUREE * MINUTE),
       joueurs,
-      organisateur: prenom,
       debutantsBienvenus: debutants,
     });
+    setEnvoi(false);
+    if (!id) {
+      vibrer.erreur();
+      Alert.alert('Session pas publiée', 'Ça n’a pas marché. Vérifie ta connexion et réessaie.');
+      return;
+    }
     vibrer.succes();
     router.push({ pathname: '/session/[id]', params: { id } });
   }
 
   function publier() {
     if (compte?.prenom) {
-      envoyer(compte.prenom);
+      envoyer();
       return;
     }
     // Pas encore connecté : on passe par la connexion, la session est publiée au retour
@@ -181,7 +189,7 @@ export default function Creer() {
     useCallback(() => {
       if (!enAttente) return;
       setEnAttente(false);
-      if (compte?.prenom) envoyer(compte.prenom);
+      if (compte?.prenom) envoyer();
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [enAttente, compte?.prenom]),
   );
@@ -384,7 +392,7 @@ export default function Creer() {
         </View>
 
         <View style={styles.dansMarges}>
-          <Bouton titre="Publier la session" onPress={publier} />
+          <Bouton titre={envoi ? 'Publication…' : 'Publier la session'} disabled={envoi} onPress={publier} />
         </View>
       </ScrollView>
       {carteOuverte && (

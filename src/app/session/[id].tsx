@@ -69,7 +69,7 @@ export default function DetailSession() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { top, bottom } = useSafeAreaInsets();
   const { sessions, estCatchee, annuler, origine } = useSessions();
-  const { autoriser, confirmer } = useCatch();
+  const { autoriser, envoyer, confirmer } = useCatch();
   const session = sessions.find((s) => s.id === id);
 
   if (!session) return <Redirect href="/" />;
@@ -168,6 +168,7 @@ export default function DetailSession() {
             <BoutonCatch
               complet={libres === 0}
               onDemande={() => autoriser(session.id)}
+              onEnvoi={() => envoyer(session.id)}
               onCatch={() => confirmer(session.id)}
             />
             <Text style={styles.mention}>

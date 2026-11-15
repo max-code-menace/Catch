@@ -1,24 +1,45 @@
 import * as Location from 'expo-location';
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BarreHaut, type Vue } from '@/components/barre-haut';
+import { Balle } from '@/components/balle';
+import { BarreHaut, HAUTEUR_BARRE_HAUT, type Vue } from '@/components/barre-haut';
+import { Bouton } from '@/components/bouton';
 import { CarteSessions } from '@/components/carte-sessions';
 import { FicheSession } from '@/components/fiche-session';
+import { IconeCreer, IconeSansReseau } from '@/components/icones';
 import { ListeSessions } from '@/components/liste-sessions';
+import { PanneauCarte } from '@/components/panneau-carte';
 import { WAVRE, type Coordonnees, type Session } from '@/donnees/sessions';
 import { useCatch } from '@/lib/catch';
 import { distance, estEnDirect } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { useSessions } from '@/lib/sessions';
-import { useStyles, type Palette } from '@/lib/theme';
+import { Polices, Rayons, Tailles } from '@/constants/theme';
+import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
+
+/** Rayon affiché par défaut, et distance au-delà de laquelle on ne propose plus d'aller voir */
+const RAYON_KM = 5;
+const RAYON_MAX_KM = 30;
 
 export default function Carte() {
   const styles = useStyles(creerStyles);
-  const { sessions, estCatchee, annuler, position, setPosition, origine } = useSessions();
-  const { autoriser, confirmer } = useCatch();
-  const [cible, setCible] = useState<(Coordonnees & { cle: number }) | null>(null);
+  const { sessions, etat, recharger, estCatchee, annuler, position, setPosition, origine } = useSessions();
+  const { autoriser, envoyer, confirmer } = useCatch();
+  const c = useCouleurs();
+  const [cible, setCible] = useState<(Coordonnees & { cle: number; rayonKm?: number }) | null>(null);
+  const [rayon, setRayon] = useState(RAYON_KM);
+  const { top } = useSafeAreaInsets();
+
+  // « Recherche des sessions » n'apparaît que si ça dure, pour ne pas clignoter
+  const [attenteLongue, setAttenteLongue] = useState(false);
+  useEffect(() => {
+    if (etat !== 'chargement') return;
+    const minuteur = setTimeout(() => setAttenteLongue(true), 400);
+    return () => clearTimeout(minuteur);
+  }, [etat]);
   const [vue, setVue] = useState<Vue>('carte');
 
   // À l'ouverture : la session en direct la plus proche est déjà choisie
@@ -29,6 +50,19 @@ export default function Carte() {
     return enDirect[0]?.id ?? null;
   });
   const choisie = sessions.find((s) => s.id === idChoisie);
+
+  // Les sessions sont relues chaque fois qu'on revient sur l'onglet
+  useFocusEffect(
+    useCallback(() => {
+      recharger();
+    }, [recharger]),
+  );
+
+  // Rien dans le rayon : on propose de créer, ou de voir un peu plus loin s'il y a des sessions
+  const distancesKm = sessions.map((s) => distance(origine, s.position) / 1000);
+  const rienIci = etat === 'pretes' && !distancesKm.some((d) => d <= rayon);
+  const plusLoin = distancesKm.filter((d) => d > rayon && d <= RAYON_MAX_KM);
+  const rayonElargi = plusLoin.length ? Math.ceil(Math.max(...plusLoin)) : null;
 
   function choisir(id: string | null) {
     if (id && id !== idChoisie) vibrer.selection();
@@ -49,6 +83,7 @@ export default function Carte() {
     } catch {
       // Position indisponible : on recentre sur la zone
     }
+    setRayon(RAYON_KM);
     setCible({ ...point, cle: Date.now() });
   }
 
@@ -66,8 +101,44 @@ export default function Carte() {
         montrerPosition={position !== null}
       />
       {vue === 'liste' && <ListeSessions sessions={sessions} origine={origine} onOuvrir={ouvrir} />}
+      {etat === 'erreur' && (
+        <PanneauCarte
+          entete={<IconeSansReseau couleur={c.encre} taille={32} />}
+          titre="Pas de réseau"
+          texte="Impossible de charger les sessions. Vérifie ta connexion.">
+          <Bouton titre="Réessayer" onPress={recharger} />
+        </PanneauCarte>
+      )}
+      {vue === 'carte' && rienIci && !choisie && (
+        <PanneauCarte
+          entete={<Balle taille={32} />}
+          titre={`Rien à ${rayon} km pour l’instant`}
+          texte="Crée la première session ici, pour toi et les joueurs du coin.">
+          <Bouton titre="Créer une session" Icone={IconeCreer} onPress={() => router.navigate('/creer')} />
+          {rayonElargi && (
+            <Bouton
+              variante="secondaire"
+              titre={
+                plusLoin.length > 1
+                  ? `Voir les ${plusLoin.length} sessions à ${rayonElargi} km`
+                  : `Voir la session à ${rayonElargi} km`
+              }
+              onPress={() => {
+                vibrer.selection();
+                setRayon(rayonElargi);
+                setCible({ ...origine, cle: Date.now(), rayonKm: rayonElargi });
+              }}
+            />
+          )}
+        </PanneauCarte>
+      )}
+      {etat === 'chargement' && attenteLongue && (
+        <View pointerEvents="none" style={[styles.attente, { top: top + HAUTEUR_BARRE_HAUT + 12 }]}>
+          <Text style={styles.attenteTexte}>Recherche des sessions…</Text>
+        </View>
+      )}
       <BarreHaut
-        zone="Wavre · 5 km"
+        zone={`Wavre · ${rayon} km`}
         vue={vue}
         onBasculer={() => setVue(vue === 'carte' ? 'liste' : 'carte')}
         onRecentrer={() => {
@@ -83,6 +154,7 @@ export default function Carte() {
           catchee={estCatchee(choisie.id)}
           onOuvrir={() => ouvrir(choisie)}
           onDemande={() => autoriser(choisie.id)}
+          onEnvoi={() => envoyer(choisie.id)}
           onCatch={() => confirmer(choisie.id)}
           onAnnuler={() => annuler(choisie)}
         />
@@ -94,4 +166,15 @@ export default function Carte() {
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
     ecran: { flex: 1, backgroundColor: c.fond },
+    attente: {
+      position: 'absolute',
+      alignSelf: 'center',
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      backgroundColor: c.carte,
+      borderRadius: Rayons.pilule,
+      borderWidth: 1,
+      borderColor: c.trait,
+    },
+    attenteTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.aide, color: c.texteSecondaire },
   });

@@ -33,7 +33,9 @@ type Props = {
   complet?: boolean;
   /** Appelé à l'appui : renvoyer `false` arrête le geste (pas connecté, par exemple) */
   onDemande?: () => boolean;
-  /** Appelé une fois la balle attrapée */
+  /** Demande la place au serveur pendant que la balle vole : `false` si le Catch n'a pas pu se faire */
+  onEnvoi: () => Promise<boolean>;
+  /** Appelé une fois la balle attrapée, donc seulement si le serveur a dit oui */
   onCatch: () => void;
 };
 
@@ -41,7 +43,7 @@ type Props = {
  * Le geste signature : on appuie, la balle arrive en cloche, le bouton l'attrape
  * (rebond, vibration) et devient « Catchée ! ».
  */
-export function BoutonCatch({ complet = false, onDemande, onCatch }: Props) {
+export function BoutonCatch({ complet = false, onDemande, onEnvoi, onCatch }: Props) {
   const styles = useStyles(creerStyles);
   const reduit = useReducedMotion();
   const [etat, setEtat] = useState<'pret' | 'vol' | 'attrapee'>('pret');
@@ -87,12 +89,27 @@ export function BoutonCatch({ complet = false, onDemande, onCatch }: Props) {
     minuteurs.current.push(setTimeout(onCatch, POSE));
   }
 
-  function lancer() {
+  /** Le serveur a refusé ou n'a pas répondu : la balle disparaît, le bouton redevient « Catch » */
+  function rater() {
+    vibrer.erreur();
+    vol.set(withTiming(0, { duration: Durees.fast }));
+    echelle.set(withSpring(1, Ressorts.snappy));
+    setEtat('pret');
+  }
+
+  async function lancer() {
     if (etat !== 'pret') return;
     if (onDemande && !onDemande()) return;
     setEtat('vol');
-    vol.set(withTiming(1, { duration: reduit ? Durees.fast : VOL, easing: Easing.linear }));
-    minuteurs.current.push(setTimeout(attraper, reduit ? Durees.fast : VOL));
+    const duree = reduit ? Durees.fast : VOL;
+    vol.set(withTiming(1, { duration: duree, easing: Easing.linear }));
+    // La balle vole pendant que le serveur répond : on ne fête que s'il a dit oui
+    const [reussi] = await Promise.all([
+      onEnvoi().catch(() => false),
+      new Promise((fini) => minuteurs.current.push(setTimeout(fini, duree))),
+    ]);
+    if (reussi) attraper();
+    else rater();
   }
 
   return (
