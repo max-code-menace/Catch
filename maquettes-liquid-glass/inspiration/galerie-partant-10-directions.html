@@ -1,0 +1,1599 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Galerie Partant</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,500;0,700;1,900&family=Barlow:wght@500;600;700&family=Bebas+Neue&family=Fraunces:opsz,wght@9..144,600;9..144,800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600&family=Manrope:wght@500;700;800&family=Newsreader:ital,wght@0,400;0,600;1,400&family=Nunito:wght@600;800;900&family=Outfit:wght@400;600;700&family=Sora:wght@400;600;800&family=Space+Grotesk:wght@500;700&family=Space+Mono:wght@400;700&family=Unbounded:wght@600;800&display=swap">
+<style>
+/* Mise en page : un outil de comparaison. Bandeau de commandes en haut, grille de téléphones au centre,
+   barre « Mon choix » collée en bas. Le fond reste neutre et froid pour que seules les maquettes portent de la couleur. */
+:root {
+  --bg: #ECEEF2; --panel: #FFFFFF; --fg: #14171C; --mute: #555D6B; --line: #D3D8E0; --chip: #DFE3EA;
+  --accent: #2447D6; --accent-fg: #FFFFFF; --shadow: 0 10px 30px rgba(20, 23, 28, .16);
+  --display: "Space Grotesk", system-ui, sans-serif; --text: Inter, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #111318; --panel: #1B1E25; --fg: #F1F3F6; --mute: #A6AEBB; --line: #2F343E; --chip: #272B34; --accent: #9DB2FF; --accent-fg: #0F1320; --shadow: 0 10px 30px rgba(0, 0, 0, .5); color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #111318; --panel: #1B1E25; --fg: #F1F3F6; --mute: #A6AEBB; --line: #2F343E; --chip: #272B34; --accent: #9DB2FF; --accent-fg: #0F1320; --shadow: 0 10px 30px rgba(0, 0, 0, .5); color-scheme: dark; }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--text); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 120px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 20px; }
+.head h1 { margin: 0; font-family: var(--display); font-size: clamp(26px, 4vw, 36px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; text-wrap: balance; }
+.head p { margin: 8px 0 0; color: var(--mute); max-width: 62ch; }
+
+.ui { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; box-sizing: border-box; }
+.ui:focus-visible, .zoom:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.controls { display: flex; flex-direction: column; gap: 12px; }
+.seg { display: inline-flex; align-self: flex-start; padding: 4px; border-radius: 12px; background: var(--chip); gap: 4px; }
+.seg .ui { min-height: 40px; padding: 0 16px; border-radius: 9px; font-weight: 600; color: var(--mute); }
+.seg .ui[aria-pressed="true"] { background: var(--panel); color: var(--fg); box-shadow: 0 1px 3px rgba(20, 23, 28, .18); }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tabs .ui { min-height: 44px; padding: 0 14px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.tabs .ui b { font-family: var(--display); font-weight: 700; }
+.tabs .ui[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+.pitch { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.pitch h2 { margin: 0; font-family: var(--display); font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
+.pitch p { margin: 2px 0 0; color: var(--mute); max-width: 70ch; }
+.pitch .txt { min-width: 0; flex: 1 1 320px; }
+.nav { display: flex; gap: 6px; }
+.nav .ui { min-height: 44px; padding: 0 16px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); font-weight: 600; }
+
+.grid { display: grid; gap: 24px 20px; }
+.grid.dir { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); max-width: 1000px; }
+.grid.screen { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.phone { margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.frame { position: relative; aspect-ratio: 390 / 844; max-width: 100%; border-radius: 22px; overflow: hidden; background: var(--panel); box-shadow: var(--shadow); outline: 1px solid var(--line); }
+.mock { position: absolute; top: 0; left: 0; width: 390px; height: 844px; transform-origin: 0 0; transform: scale(var(--s, .5)); font-size: 16px; line-height: normal; text-align: left; pointer-events: none; }
+.mock button { font: inherit; border: 0; }
+.zoom { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: none; cursor: zoom-in; border-radius: 22px; }
+.cap { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cap span { font-weight: 600; min-width: 0; }
+.cap span b { font-family: var(--display); }
+.pick { min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--panel); font-weight: 600; white-space: nowrap; }
+.pick[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+
+.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--panel); border-top: 1px solid var(--line); padding-top: 12px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); box-sizing: border-box; }
+.bar-in { max-width: 1240px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.bar strong { font-family: var(--display); }
+.slots { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 260px; min-width: 0; }
+.slot { padding: 6px 10px; border-radius: 8px; background: var(--chip); font-size: 13px; font-weight: 600; }
+.slot.empty { color: var(--mute); font-weight: 500; }
+.copy { min-height: 44px; padding: 0 18px; border-radius: 10px; background: var(--accent); color: var(--accent-fg); font-weight: 600; }
+.copy:disabled { opacity: .45; cursor: default; }
+#choice-text { position: absolute; left: -9999px; }
+
+dialog { border: 0; padding: 16px; border-radius: 26px; background: var(--panel); color: var(--fg); box-shadow: var(--shadow); max-width: calc(100vw - 16px); box-sizing: border-box; }
+dialog::backdrop { background: rgba(10, 12, 16, .6); }
+.dlg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.dlg-head h2 { margin: 0; font-family: var(--display); font-size: 18px; }
+.dlg-head .ui { min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line); font-weight: 600; }
+.dlg-frame { width: min(390px, calc(100vw - 48px), calc((100vh - 190px) * .462)); }
+.dlg-foot { display: flex; justify-content: center; margin-top: 12px; }
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <h1>Partant : dix directions de design</h1>
+    <p>Trois écrans par direction : la carte, le swipe, la partie avec son chat. Compare, agrandis d’un clic, puis choisis une direction pour chaque écran. Tu peux mélanger.</p>
+  </header>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Façon de comparer">
+      <button class="ui" id="mode-dir" type="button">Par direction</button>
+      <button class="ui" id="mode-screen" type="button">Par écran</button>
+    </div>
+    <div class="tabs" id="tabs" role="group" aria-label="Sélection"></div>
+  </div>
+
+  <section class="pitch" id="pitch" aria-live="polite"></section>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="bar">
+  <div class="bar-in">
+    <strong>Mon choix</strong>
+    <div class="slots" id="slots"></div>
+    <label for="choice-text" style="position:absolute;left:-9999px">Texte de mon choix</label>
+    <input id="choice-text" readonly>
+    <button class="ui copy" id="copy" type="button">Copier mon choix</button>
+  </div>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <div class="dlg-head">
+    <h2 id="dlg-title"></h2>
+    <button class="ui" id="dlg-close" type="button">Fermer</button>
+  </div>
+  <div class="frame dlg-frame" id="dlg-frame"></div>
+  <div class="dlg-foot"><button class="ui pick" id="dlg-pick" type="button"></button></div>
+</dialog>
+
+<template id="t-A-Carte"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#F2F3F5;color:#111318;font-family:Archivo,sans-serif">
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzOTAgODQ0IiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSI+CjxyZWN0IHdpZHRoPSIzOTAiIGhlaWdodD0iODQ0IiBmaWxsPSIjRTlFQUVDIi8+CjxwYXRoIGQ9Ik0tMTAgNzAgMTIwIDQwIDE1MiAxNjggNDQgMjE0LTEwIDE5NloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTIzNiAyODYgMzcyIDI2MiA0MDAgNDEwIDI2MiA0NDJaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0zNiA1NTYgMTY4IDUyOCAxOTggNjc2IDcwIDcxNloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTI4NCA2MzYgNDAwIDYxNiA0MDAgNzU2IDMwMCA3NzhaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0xNTAgMzcycTMyLTIyIDUyIDEwIDIwIDQyLTEyIDcyLTQwIDIwLTUwLTIyLTEwLTQwIDEwLTYwWiIgZmlsbD0iI0JBRDdFQSIvPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxnIHN0cm9rZS13aWR0aD0iNSI+CjxwYXRoIGQ9Ik02MC0xMCA4NCAyNTBNMTMwLTEwIDE1MCAyNDBNMjkwLTEwIDMwMCAyMDBNMzUwLTEwIDM1NiAxOTAiLz4KPHBhdGggZD0iTS0xMCAxMjAgMjAwIDk2IDQwMCA2ME0tMTAgMzMwIDIyMCAyOTBNLTEwIDQyMCAxNTAgNDAwIi8+CjxwYXRoIGQ9Ik0yMCAyNTAgNDAgNTAwTTEwMCAyNDUgMTE4IDUwOE0zMDAgMTk2IDMyMCA0ODRNMjUwIDMwMCAyNDQgNDcwIi8+CjxwYXRoIGQ9Ik0tMTAgNjEwIDE5MCA1OTAgNDAwIDU0ME0tMTAgNjkwIDYwIDcwME0yMDAgNjkwIDQwMCA2NjAiLz4KPHBhdGggZD0iTTYwIDUyMCA5MCA4NjBNMTQwIDUyNCAxNzAgODYwTTI0MCA1NjAgMjUwIDg2ME0zMzAgNTAwIDM1MCA4NjAiLz4KPHBhdGggZD0iTS0xMCA4MjAgNDAwIDgwMCIvPgo8L2c+CjxwYXRoIGQ9Ik0tMTAgMjUwIDQwMCAxODAiIHN0cm9rZS13aWR0aD0iMTQiLz4KPHBhdGggZD0iTTIwMC0xMCAyMzAgMzAwIDE4MCA1MjAgMjYwIDg2MCIgc3Ryb2tlLXdpZHRoPSIxNCIvPgo8cGF0aCBkPSJNLTEwIDUwMCAxODAgNTIwIDQwMCA0ODAiIHN0cm9rZS13aWR0aD0iMTIiLz4KPHBhdGggZD0iTS0xMCA3NjAgNDAwIDYwMCIgc3Ryb2tlLXdpZHRoPSIxMCIvPgo8L2c+Cjwvc3ZnPgo=" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+
+<div style="position:absolute;top:16px;left:16px;right:0;display:flex;gap:8px">
+<button style="height:44px;padding:0 18px;border-radius:22px;background:#111318;color:#fff;font-weight:700;font-size:15px">Tout</button>
+<button style="height:44px;padding:0 18px;border-radius:22px;background:#fff;color:#111318;font-weight:700;font-size:15px">Spikeball</button>
+<button style="height:44px;padding:0 18px;border-radius:22px;background:#fff;color:#111318;font-weight:700;font-size:15px">Basket</button>
+<button style="height:44px;padding:0 18px;border-radius:22px;background:#fff;color:#111318;font-weight:700;font-size:15px">Volley</button>
+</div>
+
+<button aria-label="Spikeball, Parc du Cinquantenaire, 2 joueurs sur 4" style="position:absolute;left:236px;top:296px;height:44px;padding:0 14px;border-radius:22px 22px 22px 4px;background:#FF5A36;color:#111318;font-weight:700;font-size:14px;box-shadow:0 6px 14px rgba(17,19,24,.25)">Spikeball · 2/4</button>
+<button aria-label="Course à pied, Parc Royal, 1 joueur sur 4" style="position:absolute;left:28px;top:118px;height:44px;padding:0 14px;border-radius:22px 22px 22px 4px;background:#fff;color:#111318;font-weight:700;font-size:14px;box-shadow:0 6px 14px rgba(17,19,24,.2)">Course · 1/4</button>
+<button aria-label="Ping-pong, Place Flagey, 1 joueur sur 2" style="position:absolute;left:60px;top:392px;height:44px;padding:0 14px;border-radius:22px 22px 22px 4px;background:#fff;color:#111318;font-weight:700;font-size:14px;box-shadow:0 6px 14px rgba(17,19,24,.2)">Ping-pong · 1/2</button>
+<div aria-hidden="true" style="position:absolute;left:186px;top:232px;width:18px;height:18px;border-radius:50%;background:#2563EB;border:3px solid #fff;box-shadow:0 0 0 8px rgba(37,99,235,.2)"></div>
+
+<div style="position:absolute;left:0;right:0;bottom:72px;background:#fff;border-radius:28px 28px 0 0;padding:10px 20px 16px;box-shadow:0 -10px 30px rgba(17,19,24,.14);display:flex;flex-direction:column;gap:14px">
+<div aria-hidden="true" style="width:44px;height:5px;border-radius:3px;background:#D5D8DD;align-self:center"></div>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+<h1 style="margin:0;font-size:26px;font-weight:900;font-style:italic;letter-spacing:-.02em;line-height:1">5 parties<br>près de toi</h1>
+<button style="height:48px;padding:0 20px;border-radius:24px;background:#FF5A36;color:#111318;font-weight:700;font-size:15px">+ Proposer</button>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+
+<button style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:18px;background:#F2F3F5;text-align:left;color:#111318">
+<span style="flex:none;width:58px;height:58px;border-radius:14px;background:#111318;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:17px;line-height:1.05">17:45<span style="font-size:10px;font-weight:500;opacity:.8">auj.</span></span>
+<span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+<span style="font-weight:700;font-size:17px">Spikeball</span>
+<span style="font-size:13px;color:#4B5160">Parc du Cinquantenaire · 1,3 km</span>
+</span>
+<span style="flex:none;font-weight:700;font-size:13px;color:#8A2A12;background:#FFE1D9;padding:6px 10px;border-radius:10px">2 places</span>
+</button>
+
+<button style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:18px;background:#F2F3F5;text-align:left;color:#111318">
+<span style="flex:none;width:58px;height:58px;border-radius:14px;background:#111318;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:17px;line-height:1.05">18:30<span style="font-size:10px;font-weight:500;opacity:.8">auj.</span></span>
+<span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+<span style="font-weight:700;font-size:17px">Basket</span>
+<span style="font-size:13px;color:#4B5160">Parc Élisabeth · 4,4 km</span>
+</span>
+<span style="flex:none;font-weight:700;font-size:13px;color:#8A2A12;background:#FFE1D9;padding:6px 10px;border-radius:10px">3 places</span>
+</button>
+
+</div>
+</div>
+
+<nav style="position:absolute;left:0;right:0;bottom:0;height:72px;background:#fff;border-top:1px solid #E3E5E9;display:flex">
+<button style="flex:1;background:none;color:#111318;font-weight:700;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.800 7 11 7 11z"/><circle cx="12" cy="10" r="2.500"/></svg>Carte</button>
+<button style="flex:1;background:none;color:#6B7180;font-weight:500;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="13" height="17" rx="2"/><path d="M20 7v13a1 1 0 0 1-1 1H9"/></svg>Swipe</button>
+<button style="flex:1;background:none;color:#6B7180;font-weight:500;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>Parties</button>
+<button style="flex:1;background:none;color:#6B7180;font-weight:500;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profil</button>
+</nav>
+</div></template>
+<template id="t-A-Swipe"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#F2F3F5;color:#111318;font-family:Archivo,sans-serif;display:flex;flex-direction:column">
+<header style="padding:22px 20px 12px;display:flex;align-items:baseline;justify-content:space-between">
+<h1 style="margin:0;font-size:30px;font-weight:900;font-style:italic;letter-spacing:-.02em">À toi de jouer</h1>
+<span style="font-size:13px;color:#4B5160;font-weight:500">9 parties · 15 km</span>
+</header>
+
+<div style="flex:1;position:relative;margin:0 16px">
+<div aria-hidden="true" style="position:absolute;inset:18px 14px -10px;border-radius:28px;background:#DDE0E5"></div>
+<article style="position:absolute;inset:0;border-radius:28px;background:#fff;box-shadow:0 14px 34px rgba(17,19,24,.16);overflow:hidden;display:flex;flex-direction:column">
+<div style="flex:1;background:#FF5A36;position:relative;padding:20px;display:flex;flex-direction:column;justify-content:flex-end">
+<span style="position:absolute;top:16px;left:16px;height:32px;padding:0 12px;border-radius:16px;background:#111318;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center">à 1,3 km</span>
+<span style="position:absolute;top:16px;right:16px;height:32px;padding:0 12px;border-radius:16px;background:#fff;color:#111318;font-size:13px;font-weight:700;display:flex;align-items:center">Dans tes sports</span>
+<div style="font-size:64px;font-weight:900;font-style:italic;letter-spacing:-.04em;line-height:.9;color:#111318">SPIKE<br>BALL</div>
+</div>
+<div style="padding:18px 20px 20px;display:flex;flex-direction:column;gap:12px">
+<div>
+<h2 style="margin:0;font-size:22px;font-weight:700">Parc du Cinquantenaire</h2>
+<p style="margin:4px 0 0;font-size:14px;color:#4B5160">Proposé par Léa</p>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<span style="padding:8px 12px;border-radius:12px;background:#F2F3F5;font-size:14px;font-weight:700">Dans 45 min</span>
+<span style="padding:8px 12px;border-radius:12px;background:#FFE1D9;color:#8A2A12;font-size:14px;font-weight:700">2/4 · 2 places</span>
+<span style="padding:8px 12px;border-radius:12px;background:#F2F3F5;font-size:14px;font-weight:700">Tous niveaux</span>
+</div>
+<p style="margin:0;font-size:15px;line-height:1.4;color:#2C303A">On a le filet, ramène juste de l’eau.</p>
+</div>
+</article>
+</div>
+
+<div style="display:flex;justify-content:center;gap:40px;padding:18px 0 16px">
+<button aria-label="Passer" style="width:68px;height:68px;border-radius:50%;background:#fff;color:#C4281C;box-shadow:0 8px 20px rgba(17,19,24,.14);display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+<button aria-label="Je suis partant" style="width:68px;height:68px;border-radius:50%;background:#111318;color:#fff;box-shadow:0 8px 20px rgba(17,19,24,.25);display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></button>
+</div>
+
+<nav style="height:72px;background:#fff;border-top:1px solid #E3E5E9;display:flex">
+<button style="flex:1;background:none;color:#6B7180;font-weight:500;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.800 7 11 7 11z"/><circle cx="12" cy="10" r="2.500"/></svg>Carte</button>
+<button style="flex:1;background:none;color:#111318;font-weight:700;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="13" height="17" rx="2"/><path d="M20 7v13a1 1 0 0 1-1 1H9"/></svg>Swipe</button>
+<button style="flex:1;background:none;color:#6B7180;font-weight:500;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>Parties</button>
+<button style="flex:1;background:none;color:#6B7180;font-weight:500;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profil</button>
+</nav>
+</div></template>
+<template id="t-A-Partie"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#F2F3F5;color:#111318;font-family:Archivo,sans-serif;display:flex;flex-direction:column">
+<header style="background:#111318;color:#fff;padding:14px 16px 20px;border-radius:0 0 28px 28px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:8px">
+<button aria-label="Retour" style="width:44px;height:44px;border-radius:50%;background:#2A2E38;color:#fff;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+<span style="flex:1;font-size:13px;font-weight:500;color:#C9CDD6">Aujourd’hui · 17:45</span>
+<button style="height:44px;padding:0 16px;border-radius:22px;background:#2A2E38;color:#fff;font-size:14px;font-weight:700">Itinéraire</button>
+</div>
+<div>
+<h1 style="margin:0;font-size:34px;font-weight:900;font-style:italic;letter-spacing:-.03em;line-height:1">SPIKEBALL</h1>
+<p style="margin:6px 0 0;font-size:16px;font-weight:500;color:#C9CDD6">Parc du Cinquantenaire · à 1,3 km</p>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<span style="height:36px;padding:0 12px;border-radius:18px;background:#FF5A36;color:#111318;font-size:14px;font-weight:700;display:flex;align-items:center">Léa · orga</span>
+<span style="height:36px;padding:0 12px;border-radius:18px;background:#fff;color:#111318;font-size:14px;font-weight:700;display:flex;align-items:center">Sam</span>
+<span style="height:36px;padding:0 12px;border-radius:18px;background:#fff;color:#111318;font-size:14px;font-weight:700;display:flex;align-items:center">Toi</span>
+<span style="height:36px;padding:0 12px;border-radius:18px;border:1.5px dashed #8E94A3;color:#C9CDD6;font-size:14px;font-weight:500;display:flex;align-items:center;box-sizing:border-box">1 place libre</span>
+</div>
+</header>
+
+<div style="flex:1;padding:18px 16px;display:flex;flex-direction:column;gap:10px;justify-content:flex-end">
+<div style="align-self:flex-start;max-width:78%;padding:10px 14px;border-radius:18px 18px 18px 6px;background:#fff;font-size:15px;line-height:1.35"><span style="display:block;font-size:12px;font-weight:700;color:#B5391A">Léa</span>On a le filet, rendez-vous près des arcades.</div>
+<div style="align-self:flex-start;max-width:78%;padding:10px 14px;border-radius:18px 18px 18px 6px;background:#fff;font-size:15px;line-height:1.35"><span style="display:block;font-size:12px;font-weight:700;color:#B5391A">Sam</span>J’amène de l’eau pour tout le monde.</div>
+<div style="align-self:flex-end;max-width:78%;padding:10px 14px;border-radius:18px 18px 6px 18px;background:#111318;color:#fff;font-size:15px;line-height:1.35">Parfait, j’arrive à 17h40 !</div>
+<div style="align-self:center;font-size:12px;font-weight:500;color:#4B5160;padding:6px 0">Sam est en route</div>
+</div>
+
+<form style="display:flex;gap:8px;padding:10px 12px 16px;background:#fff;border-top:1px solid #E3E5E9">
+<label style="flex:1;display:flex"><span style="position:absolute;left:-9999px">Message au groupe</span><input placeholder="Message au groupe…" style="flex:1;min-width:0;height:48px;padding:0 16px;border-radius:24px;border:1.5px solid #D5D8DD;background:#F2F3F5;font:inherit;font-size:15px;color:#111318;box-sizing:border-box"></label>
+<button type="button" style="height:48px;padding:0 20px;border-radius:24px;background:#FF5A36;color:#111318;font-weight:700;font-size:15px">Envoyer</button>
+</form>
+</div></template>
+<template id="t-B-Carte"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#0B0D10;color:#F3F5F7;font-family:Sora,sans-serif">
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzOTAgODQ0IiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSI+CjxyZWN0IHdpZHRoPSIzOTAiIGhlaWdodD0iODQ0IiBmaWxsPSIjMTAxMzE3Ii8+CjxwYXRoIGQ9Ik0tMTAgNzAgMTIwIDQwIDE1MiAxNjggNDQgMjE0LTEwIDE5NloiIGZpbGw9IiMxNzI1MUQiLz4KPHBhdGggZD0iTTIzNiAyODYgMzcyIDI2MiA0MDAgNDEwIDI2MiA0NDJaIiBmaWxsPSIjMTcyNTFEIi8+CjxwYXRoIGQ9Ik0zNiA1NTYgMTY4IDUyOCAxOTggNjc2IDcwIDcxNloiIGZpbGw9IiMxNzI1MUQiLz4KPHBhdGggZD0iTTI4NCA2MzYgNDAwIDYxNiA0MDAgNzU2IDMwMCA3NzhaIiBmaWxsPSIjMTcyNTFEIi8+CjxwYXRoIGQ9Ik0xNTAgMzcycTMyLTIyIDUyIDEwIDIwIDQyLTEyIDcyLTQwIDIwLTUwLTIyLTEwLTQwIDEwLTYwWiIgZmlsbD0iIzEyMjIyRiIvPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxRTIzMkEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxnIHN0cm9rZS13aWR0aD0iNSI+CjxwYXRoIGQ9Ik02MC0xMCA4NCAyNTBNMTMwLTEwIDE1MCAyNDBNMjkwLTEwIDMwMCAyMDBNMzUwLTEwIDM1NiAxOTAiLz4KPHBhdGggZD0iTS0xMCAxMjAgMjAwIDk2IDQwMCA2ME0tMTAgMzMwIDIyMCAyOTBNLTEwIDQyMCAxNTAgNDAwIi8+CjxwYXRoIGQ9Ik0yMCAyNTAgNDAgNTAwTTEwMCAyNDUgMTE4IDUwOE0zMDAgMTk2IDMyMCA0ODRNMjUwIDMwMCAyNDQgNDcwIi8+CjxwYXRoIGQ9Ik0tMTAgNjEwIDE5MCA1OTAgNDAwIDU0ME0tMTAgNjkwIDYwIDcwME0yMDAgNjkwIDQwMCA2NjAiLz4KPHBhdGggZD0iTTYwIDUyMCA5MCA4NjBNMTQwIDUyNCAxNzAgODYwTTI0MCA1NjAgMjUwIDg2ME0zMzAgNTAwIDM1MCA4NjAiLz4KPHBhdGggZD0iTS0xMCA4MjAgNDAwIDgwMCIvPgo8L2c+CjxnIHN0cm9rZT0iIzJBMzAzOCI+CjxwYXRoIGQ9Ik0tMTAgMjUwIDQwMCAxODAiIHN0cm9rZS13aWR0aD0iMTQiLz4KPHBhdGggZD0iTTIwMC0xMCAyMzAgMzAwIDE4MCA1MjAgMjYwIDg2MCIgc3Ryb2tlLXdpZHRoPSIxNCIvPgo8cGF0aCBkPSJNLTEwIDUwMCAxODAgNTIwIDQwMCA0ODAiIHN0cm9rZS13aWR0aD0iMTIiLz4KPHBhdGggZD0iTS0xMCA3NjAgNDAwIDYwMCIgc3Ryb2tlLXdpZHRoPSIxMCIvPgo8L2c+CjwvZz4KPC9zdmc+Cg==" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+
+<div style="position:absolute;top:16px;left:16px;right:16px;display:flex;gap:10px">
+<button style="flex:1;height:52px;padding:0 18px;border-radius:26px;background:#1A1E24;border:1px solid #2E343D;color:#F3F5F7;text-align:left;font-size:15px;font-weight:600;display:flex;align-items:center;gap:10px"><span aria-hidden="true" style="width:10px;height:10px;border-radius:50%;background:#C8FF3D"></span>Ixelles · ce soir</button>
+<button aria-label="Filtres" style="width:52px;height:52px;border-radius:26px;background:#1A1E24;border:1px solid #2E343D;color:#F3F5F7;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M7 12h10M10 17h4"/></svg></button>
+</div>
+
+<button aria-label="Spikeball dans 45 minutes" style="position:absolute;left:230px;top:300px;height:44px;padding:0 14px;border-radius:22px;background:#C8FF3D;color:#0B0D10;font-weight:800;font-size:14px;box-shadow:0 0 0 8px rgba(200,255,61,.18)">45 min</button>
+<button aria-label="Course à pied dans 30 minutes" style="position:absolute;left:34px;top:128px;height:44px;padding:0 14px;border-radius:22px;background:#1A1E24;border:1.5px solid #C8FF3D;color:#C8FF3D;font-weight:800;font-size:14px">30 min</button>
+<button aria-label="Ping-pong à 19 heures" style="position:absolute;left:70px;top:398px;height:44px;padding:0 14px;border-radius:22px;background:#1A1E24;border:1.5px solid #5B6370;color:#F3F5F7;font-weight:600;font-size:14px">19:00</button>
+<button aria-label="Basket à 18 heures 30" style="position:absolute;left:286px;top:168px;height:44px;padding:0 14px;border-radius:22px;background:#1A1E24;border:1.5px solid #5B6370;color:#F3F5F7;font-weight:600;font-size:14px">18:30</button>
+<div aria-hidden="true" style="position:absolute;left:186px;top:236px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 0 8px rgba(255,255,255,.16)"></div>
+
+<div style="position:absolute;left:0;right:0;bottom:104px;display:flex;gap:12px;padding:0 16px">
+<article style="flex:none;width:280px;box-sizing:border-box;padding:16px;border-radius:24px;background:#1A1E24;border:1px solid #2E343D;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+<div>
+<h2 style="margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em">Spikeball</h2>
+<p style="margin:4px 0 0;font-size:13px;color:#AEB5C0">Parc du Cinquantenaire · 1,3 km</p>
+</div>
+<span style="font-size:13px;font-weight:800;color:#C8FF3D">2/4</span>
+</div>
+<div aria-hidden="true" style="display:flex;gap:6px">
+<span style="flex:1;height:6px;border-radius:3px;background:#C8FF3D"></span><span style="flex:1;height:6px;border-radius:3px;background:#C8FF3D"></span><span style="flex:1;height:6px;border-radius:3px;background:#3A414C"></span><span style="flex:1;height:6px;border-radius:3px;background:#3A414C"></span>
+</div>
+<button style="height:48px;border-radius:24px;background:#C8FF3D;color:#0B0D10;font-weight:800;font-size:15px">Je suis partant</button>
+</article>
+<article style="flex:none;width:280px;box-sizing:border-box;padding:16px;border-radius:24px;background:#1A1E24;border:1px solid #2E343D">
+<h2 style="margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em">Basket</h2>
+<p style="margin:4px 0 0;font-size:13px;color:#AEB5C0">Parc Élisabeth</p>
+</article>
+</div>
+
+<nav style="position:absolute;left:50%;bottom:24px;transform:translateX(-50%);height:64px;padding:0 10px;border-radius:32px;background:#1A1E24;border:1px solid #2E343D;display:flex;align-items:center;gap:6px">
+<button aria-label="Carte" style="width:56px;height:48px;border-radius:24px;background:#C8FF3D;color:#0B0D10;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.800 7 11 7 11z"/><circle cx="12" cy="10" r="2.500"/></svg></button>
+<button aria-label="Swipe" style="width:56px;height:48px;border-radius:24px;background:none;color:#AEB5C0;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="13" height="17" rx="2"/><path d="M20 7v13a1 1 0 0 1-1 1H9"/></svg></button>
+<button aria-label="Proposer une partie" style="width:56px;height:48px;border-radius:24px;background:#F3F5F7;color:#0B0D10;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+<button aria-label="Mes parties" style="width:56px;height:48px;border-radius:24px;background:none;color:#AEB5C0;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg></button>
+<button aria-label="Profil" style="width:56px;height:48px;border-radius:24px;background:none;color:#AEB5C0;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></button>
+</nav>
+</div></template>
+<template id="t-B-Swipe"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#0B0D10;color:#F3F5F7;font-family:Sora,sans-serif;display:flex;flex-direction:column;box-sizing:border-box;padding:16px 20px 24px">
+<div aria-hidden="true" style="display:flex;gap:6px">
+<span style="flex:1;height:4px;border-radius:2px;background:#F3F5F7"></span><span style="flex:1;height:4px;border-radius:2px;background:#C8FF3D"></span><span style="flex:1;height:4px;border-radius:2px;background:#2E343D"></span><span style="flex:1;height:4px;border-radius:2px;background:#2E343D"></span><span style="flex:1;height:4px;border-radius:2px;background:#2E343D"></span>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 0 0">
+<span style="font-size:13px;font-weight:600;color:#AEB5C0">2 sur 9 · rayon 15 km</span>
+<button style="height:44px;padding:0 16px;border-radius:22px;background:#1A1E24;border:1px solid #2E343D;color:#F3F5F7;font-size:13px;font-weight:600">Voir sur la carte</button>
+</div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px">
+<span style="font-size:14px;font-weight:600;color:#C8FF3D;letter-spacing:.08em">COUP D’ENVOI DANS</span>
+<div style="font-size:124px;font-weight:800;letter-spacing:-.06em;line-height:.85">45<span style="font-size:36px;letter-spacing:0;margin-left:8px">min</span></div>
+<h1 style="margin:22px 0 0;font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.05">Spikeball au Cinquantenaire</h1>
+<p style="margin:10px 0 0;font-size:16px;line-height:1.45;color:#AEB5C0">À 1,3 km de toi · tous niveaux. Léa a le filet, ramène juste de l’eau.</p>
+</div>
+
+<div style="padding:16px;border-radius:24px;background:#1A1E24;border:1px solid #2E343D;display:flex;align-items:center;gap:14px">
+<div aria-hidden="true" style="display:flex">
+<span style="width:40px;height:40px;border-radius:50%;background:#C8FF3D;color:#0B0D10;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;border:2px solid #1A1E24">L</span>
+<span style="width:40px;height:40px;border-radius:50%;background:#F3F5F7;color:#0B0D10;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;border:2px solid #1A1E24;margin-left:-10px">S</span>
+<span style="width:40px;height:40px;border-radius:50%;border:2px dashed #5B6370;box-sizing:border-box;margin-left:-10px;background:#1A1E24"></span>
+<span style="width:40px;height:40px;border-radius:50%;border:2px dashed #5B6370;box-sizing:border-box;margin-left:-10px;background:#1A1E24"></span>
+</div>
+<p style="margin:0;font-size:14px;line-height:1.35"><strong style="font-weight:800">Léa et Sam</strong> y sont déjà.<br><span style="color:#C8FF3D;font-weight:600">Il manque 2 joueurs.</span></p>
+</div>
+
+<div style="display:flex;gap:12px;padding-top:16px">
+<button style="flex:1;height:60px;border-radius:30px;background:none;border:2px solid #5B6370;color:#F3F5F7;font-weight:600;font-size:16px">Passer</button>
+<button style="flex:2;height:60px;border-radius:30px;background:#C8FF3D;color:#0B0D10;font-weight:800;font-size:17px;box-shadow:0 0 0 8px rgba(200,255,61,.14)">Je suis partant</button>
+</div>
+</div></template>
+<template id="t-B-Partie"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#0B0D10;color:#F3F5F7;font-family:Sora,sans-serif;display:flex;flex-direction:column">
+<header style="padding:14px 16px;display:flex;align-items:center;gap:10px">
+<button aria-label="Retour" style="width:44px;height:44px;border-radius:50%;background:#1A1E24;border:1px solid #2E343D;color:#F3F5F7;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+<div style="flex:1;min-width:0">
+<h1 style="margin:0;font-size:18px;font-weight:800;letter-spacing:-.01em">Spikeball</h1>
+<p style="margin:2px 0 0;font-size:12px;color:#AEB5C0">Parc du Cinquantenaire</p>
+</div>
+<div aria-hidden="true" style="display:flex">
+<span style="width:34px;height:34px;border-radius:50%;background:#C8FF3D;color:#0B0D10;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;border:2px solid #0B0D10">L</span>
+<span style="width:34px;height:34px;border-radius:50%;background:#F3F5F7;color:#0B0D10;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;border:2px solid #0B0D10;margin-left:-8px">S</span>
+<span style="width:34px;height:34px;border-radius:50%;background:#5B6370;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;border:2px solid #0B0D10;margin-left:-8px">M</span>
+</div>
+</header>
+
+<section style="margin:0 16px;padding:16px;border-radius:24px;background:#C8FF3D;color:#0B0D10;display:flex;align-items:center;justify-content:space-between;gap:12px">
+<div>
+<span style="font-size:12px;font-weight:800;letter-spacing:.08em">DÉBUT DANS</span>
+<div style="font-size:44px;font-weight:800;letter-spacing:-.04em;line-height:1">45 min</div>
+<span style="font-size:13px;font-weight:600">17:45 · 3/4 joueurs · 1 place libre</span>
+</div>
+<button style="height:48px;padding:0 18px;border-radius:24px;background:#0B0D10;color:#F3F5F7;font-weight:600;font-size:14px">Y aller</button>
+</section>
+
+<div style="flex:1;padding:18px 16px;display:flex;flex-direction:column;gap:10px;justify-content:flex-end">
+<div style="align-self:flex-start;max-width:78%;padding:11px 14px;border-radius:20px 20px 20px 6px;background:#1A1E24;border:1px solid #2E343D;font-size:15px;line-height:1.4"><span style="display:block;font-size:12px;font-weight:800;color:#C8FF3D">Léa</span>On a le filet, rendez-vous près des arcades.</div>
+<div style="align-self:flex-start;max-width:78%;padding:11px 14px;border-radius:20px 20px 20px 6px;background:#1A1E24;border:1px solid #2E343D;font-size:15px;line-height:1.4"><span style="display:block;font-size:12px;font-weight:800;color:#C8FF3D">Sam</span>J’amène de l’eau pour tout le monde.</div>
+<div style="align-self:flex-end;max-width:78%;padding:11px 14px;border-radius:20px 20px 6px 20px;background:#F3F5F7;color:#0B0D10;font-size:15px;line-height:1.4">Parfait, j’arrive à 17h40 !</div>
+</div>
+
+<div style="display:flex;gap:8px;padding:0 16px 10px">
+<button style="height:44px;padding:0 14px;border-radius:22px;background:none;border:1.5px solid #5B6370;color:#F3F5F7;font-size:13px;font-weight:600">Je suis en route</button>
+<button style="height:44px;padding:0 14px;border-radius:22px;background:none;border:1.5px solid #5B6370;color:#F3F5F7;font-size:13px;font-weight:600">5 min de retard</button>
+</div>
+<form style="display:flex;gap:8px;padding:6px 16px 20px">
+<label style="flex:1;display:flex"><span style="position:absolute;left:-9999px">Message au groupe</span><input placeholder="Message…" style="flex:1;min-width:0;height:52px;padding:0 18px;border-radius:26px;border:1px solid #2E343D;background:#1A1E24;font:inherit;font-size:15px;color:#F3F5F7;box-sizing:border-box"></label>
+<button type="button" aria-label="Envoyer" style="width:52px;height:52px;border-radius:26px;background:#C8FF3D;color:#0B0D10;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+</form>
+</div></template>
+<template id="t-C-Carte"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#fff;color:#000;font-family:'Space Grotesk',sans-serif;display:flex;flex-direction:column">
+<header style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #000">
+<h1 style="margin:0;font-size:28px;font-weight:700;letter-spacing:-.03em">PARTANT?</h1>
+<button style="height:44px;padding:0 14px;background:#FFD60A;color:#000;border:3px solid #000;box-shadow:4px 4px 0 #000;font-weight:700;font-size:14px;font-family:'Space Mono',monospace">+ PROPOSER</button>
+</header>
+
+<div style="position:relative;height:340px;border-bottom:3px solid #000;overflow:hidden">
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzOTAgODQ0IiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSI+CjxyZWN0IHdpZHRoPSIzOTAiIGhlaWdodD0iODQ0IiBmaWxsPSIjRTlFQUVDIi8+CjxwYXRoIGQ9Ik0tMTAgNzAgMTIwIDQwIDE1MiAxNjggNDQgMjE0LTEwIDE5NloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTIzNiAyODYgMzcyIDI2MiA0MDAgNDEwIDI2MiA0NDJaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0zNiA1NTYgMTY4IDUyOCAxOTggNjc2IDcwIDcxNloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTI4NCA2MzYgNDAwIDYxNiA0MDAgNzU2IDMwMCA3NzhaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0xNTAgMzcycTMyLTIyIDUyIDEwIDIwIDQyLTEyIDcyLTQwIDIwLTUwLTIyLTEwLTQwIDEwLTYwWiIgZmlsbD0iI0JBRDdFQSIvPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxnIHN0cm9rZS13aWR0aD0iNSI+CjxwYXRoIGQ9Ik02MC0xMCA4NCAyNTBNMTMwLTEwIDE1MCAyNDBNMjkwLTEwIDMwMCAyMDBNMzUwLTEwIDM1NiAxOTAiLz4KPHBhdGggZD0iTS0xMCAxMjAgMjAwIDk2IDQwMCA2ME0tMTAgMzMwIDIyMCAyOTBNLTEwIDQyMCAxNTAgNDAwIi8+CjxwYXRoIGQ9Ik0yMCAyNTAgNDAgNTAwTTEwMCAyNDUgMTE4IDUwOE0zMDAgMTk2IDMyMCA0ODRNMjUwIDMwMCAyNDQgNDcwIi8+CjxwYXRoIGQ9Ik0tMTAgNjEwIDE5MCA1OTAgNDAwIDU0ME0tMTAgNjkwIDYwIDcwME0yMDAgNjkwIDQwMCA2NjAiLz4KPHBhdGggZD0iTTYwIDUyMCA5MCA4NjBNMTQwIDUyNCAxNzAgODYwTTI0MCA1NjAgMjUwIDg2ME0zMzAgNTAwIDM1MCA4NjAiLz4KPHBhdGggZD0iTS0xMCA4MjAgNDAwIDgwMCIvPgo8L2c+CjxwYXRoIGQ9Ik0tMTAgMjUwIDQwMCAxODAiIHN0cm9rZS13aWR0aD0iMTQiLz4KPHBhdGggZD0iTTIwMC0xMCAyMzAgMzAwIDE4MCA1MjAgMjYwIDg2MCIgc3Ryb2tlLXdpZHRoPSIxNCIvPgo8cGF0aCBkPSJNLTEwIDUwMCAxODAgNTIwIDQwMCA0ODAiIHN0cm9rZS13aWR0aD0iMTIiLz4KPHBhdGggZD0iTS0xMCA3NjAgNDAwIDYwMCIgc3Ryb2tlLXdpZHRoPSIxMCIvPgo8L2c+Cjwvc3ZnPgo=" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.25)">
+<button aria-label="Partie 1, Spikeball" style="position:absolute;left:250px;top:150px;width:44px;height:44px;background:#FFD60A;color:#000;border:3px solid #000;box-shadow:4px 4px 0 #000;font-weight:700;font-size:18px;font-family:'Space Mono',monospace">1</button>
+<button aria-label="Partie 2, Course à pied" style="position:absolute;left:40px;top:60px;width:44px;height:44px;background:#fff;color:#000;border:3px solid #000;box-shadow:4px 4px 0 #000;font-weight:700;font-size:18px;font-family:'Space Mono',monospace">2</button>
+<button aria-label="Partie 3, Ping-pong" style="position:absolute;left:84px;top:232px;width:44px;height:44px;background:#fff;color:#000;border:3px solid #000;box-shadow:4px 4px 0 #000;font-weight:700;font-size:18px;font-family:'Space Mono',monospace">3</button>
+<div aria-hidden="true" style="position:absolute;left:184px;top:112px;width:18px;height:18px;background:#000;transform:rotate(45deg)"></div>
+<span style="position:absolute;left:12px;bottom:12px;padding:6px 10px;background:#000;color:#fff;font-size:12px;font-family:'Space Mono',monospace">IXELLES · RAYON 15 KM</span>
+</div>
+
+<div style="display:flex;border-bottom:3px solid #000;font-family:'Space Mono',monospace;font-size:13px;font-weight:700">
+<button style="flex:1;height:44px;background:#000;color:#fff">TOUT</button>
+<button style="flex:1;height:44px;background:#fff;color:#000;border-left:3px solid #000">SPIKE</button>
+<button style="flex:1;height:44px;background:#fff;color:#000;border-left:3px solid #000">BASKET</button>
+<button style="flex:1;height:44px;background:#fff;color:#000;border-left:3px solid #000">VOLLEY</button>
+</div>
+
+<div style="flex:1;display:flex;flex-direction:column">
+
+<button style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:#fff;color:#000;text-align:left;border-bottom:3px solid #000">
+<span style="flex:none;width:36px;font-family:'Space Mono',monospace;font-weight:700;font-size:26px">1</span>
+<span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+<span style="font-weight:700;font-size:19px;letter-spacing:-.01em">Spikeball</span>
+<span style="font-size:13px;font-family:'Space Mono',monospace">Cinquantenaire · 1,3 km</span>
+</span>
+<span style="flex:none;text-align:right;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;line-height:1.35">17:45<br>2/4</span>
+</button>
+
+<button style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:#fff;color:#000;text-align:left;border-bottom:3px solid #000">
+<span style="flex:none;width:36px;font-family:'Space Mono',monospace;font-weight:700;font-size:26px">2</span>
+<span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+<span style="font-weight:700;font-size:19px;letter-spacing:-.01em">Course à pied</span>
+<span style="font-size:13px;font-family:'Space Mono',monospace">Parc Royal · 1,0 km</span>
+</span>
+<span style="flex:none;text-align:right;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;line-height:1.35">17:30<br>1/4</span>
+</button>
+
+<button style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:#fff;color:#000;text-align:left;border-bottom:3px solid #000">
+<span style="flex:none;width:36px;font-family:'Space Mono',monospace;font-weight:700;font-size:26px">3</span>
+<span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+<span style="font-weight:700;font-size:19px;letter-spacing:-.01em">Ping-pong</span>
+<span style="font-size:13px;font-family:'Space Mono',monospace">Place Flagey · 600 m</span>
+</span>
+<span style="flex:none;text-align:right;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;line-height:1.35">19:00<br>1/2</span>
+</button>
+
+</div>
+
+<nav style="height:68px;display:flex;border-top:3px solid #000;font-family:'Space Mono',monospace;font-size:13px;font-weight:700">
+<button style="flex:1;background:#FFD60A;color:#000">CARTE</button>
+<button style="flex:1;background:#fff;color:#000;border-left:3px solid #000">SWIPE</button>
+<button style="flex:1;background:#fff;color:#000;border-left:3px solid #000">PARTIES</button>
+<button style="flex:1;background:#fff;color:#000;border-left:3px solid #000">MOI</button>
+</nav>
+</div></template>
+<template id="t-C-Swipe"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#FFD60A;color:#000;font-family:'Space Grotesk',sans-serif;display:flex;flex-direction:column">
+<header style="padding:16px 16px 0;display:flex;align-items:center;justify-content:space-between;font-family:'Space Mono',monospace;font-size:13px;font-weight:700">
+<span>PARTIE 02/09</span>
+<span>RAYON 15 KM</span>
+</header>
+
+<div style="flex:1;position:relative;margin:16px 22px 22px 16px">
+<article style="position:absolute;inset:0;background:#fff;border:3px solid #000;box-shadow:8px 8px 0 #000;display:flex;flex-direction:column;transform:rotate(-1.500deg)">
+<div style="padding:18px 18px 14px;border-bottom:3px solid #000;position:relative">
+<span style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700">À 1,3 KM · DANS 45 MIN</span>
+<h1 style="margin:8px 0 0;font-size:54px;font-weight:700;letter-spacing:-.05em;line-height:.9">SPIKE-<br>BALL</h1>
+<span aria-hidden="true" style="position:absolute;right:14px;top:58px;padding:4px 10px;border:3px solid #000;font-family:'Space Mono',monospace;font-size:16px;font-weight:700;transform:rotate(12deg);background:#FFD60A">PARTANT?</span>
+</div>
+<dl style="margin:0;font-family:'Space Mono',monospace;font-size:14px">
+<div style="display:flex;justify-content:space-between;padding:12px 18px;border-bottom:3px solid #000"><dt>LIEU</dt><dd style="margin:0;font-weight:700">Cinquantenaire</dd></div>
+<div style="display:flex;justify-content:space-between;padding:12px 18px;border-bottom:3px solid #000"><dt>HEURE</dt><dd style="margin:0;font-weight:700">17:45</dd></div>
+<div style="display:flex;justify-content:space-between;padding:12px 18px;border-bottom:3px solid #000"><dt>NIVEAU</dt><dd style="margin:0;font-weight:700">Tous niveaux</dd></div>
+<div style="display:flex;justify-content:space-between;padding:12px 18px;border-bottom:3px solid #000"><dt>ORGA</dt><dd style="margin:0;font-weight:700">Léa</dd></div>
+</dl>
+<div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px;flex:1">
+<span style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700">JOUEURS 2/4</span>
+<div aria-hidden="true" style="display:flex;gap:8px">
+<span style="flex:1;height:44px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700">LÉA</span>
+<span style="flex:1;height:44px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700">SAM</span>
+<span style="flex:1;height:44px;border:3px dashed #000;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-weight:700">?</span>
+<span style="flex:1;height:44px;border:3px dashed #000;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-weight:700">?</span>
+</div>
+<p style="margin:0;font-size:16px;font-weight:500;line-height:1.35">« On a le filet, ramène juste de l’eau. »</p>
+</div>
+</article>
+</div>
+
+<div style="display:flex;gap:14px;padding:0 20px 18px 16px">
+<button style="flex:1;height:64px;background:#fff;color:#000;border:3px solid #000;box-shadow:5px 5px 0 #000;font-size:22px;font-weight:700">NON</button>
+<button style="flex:1.600;height:64px;background:#000;color:#FFD60A;border:3px solid #000;box-shadow:5px 5px 0 #fff;font-size:22px;font-weight:700">OUI, J’Y VAIS</button>
+</div>
+
+<nav style="height:68px;display:flex;border-top:3px solid #000;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;background:#fff">
+<button style="flex:1;background:#fff;color:#000">CARTE</button>
+<button style="flex:1;background:#000;color:#fff;border-left:3px solid #000">SWIPE</button>
+<button style="flex:1;background:#fff;color:#000;border-left:3px solid #000">PARTIES</button>
+<button style="flex:1;background:#fff;color:#000;border-left:3px solid #000">MOI</button>
+</nav>
+</div></template>
+<template id="t-C-Partie"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#fff;color:#000;font-family:'Space Grotesk',sans-serif;display:flex;flex-direction:column">
+<header style="background:#FFD60A;border-bottom:3px solid #000;padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<button style="height:44px;padding:0 14px;background:#fff;color:#000;border:3px solid #000;font-family:'Space Mono',monospace;font-size:13px;font-weight:700">← RETOUR</button>
+<button style="height:44px;padding:0 14px;background:#000;color:#fff;border:3px solid #000;font-family:'Space Mono',monospace;font-size:13px;font-weight:700">ITINÉRAIRE</button>
+</div>
+<div>
+<h1 style="margin:0;font-size:40px;font-weight:700;letter-spacing:-.04em;line-height:.95">SPIKEBALL</h1>
+<p style="margin:6px 0 0;font-family:'Space Mono',monospace;font-size:13px;font-weight:700">CINQUANTENAIRE · AUJ. 17:45 · 1,3 KM</p>
+</div>
+<div style="display:flex;gap:8px">
+<span style="flex:1;height:44px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">LÉA ★</span>
+<span style="flex:1;height:44px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">SAM</span>
+<span style="flex:1;height:44px;background:#fff;border:3px solid #000;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">TOI</span>
+<span style="flex:1;height:44px;border:3px dashed #000;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">LIBRE</span>
+</div>
+</header>
+
+<div style="flex:1;padding:18px 16px;display:flex;flex-direction:column;gap:14px;justify-content:flex-end">
+<div style="align-self:flex-start;max-width:80%;padding:10px 12px;border:3px solid #000;box-shadow:4px 4px 0 #000;font-size:15px;line-height:1.35"><span style="display:block;font-family:'Space Mono',monospace;font-size:12px;font-weight:700">LÉA 16:52</span>On a le filet, rendez-vous près des arcades.</div>
+<div style="align-self:flex-start;max-width:80%;padding:10px 12px;border:3px solid #000;box-shadow:4px 4px 0 #000;font-size:15px;line-height:1.35"><span style="display:block;font-family:'Space Mono',monospace;font-size:12px;font-weight:700">SAM 16:55</span>J’amène de l’eau pour tout le monde.</div>
+<div style="align-self:flex-end;max-width:80%;padding:10px 12px;border:3px solid #000;background:#000;color:#fff;box-shadow:4px 4px 0 #FFD60A;font-size:15px;line-height:1.35"><span style="display:block;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:#FFD60A">TOI 16:58</span>Parfait, j’arrive à 17h40 !</div>
+</div>
+
+<form style="display:flex;border-top:3px solid #000">
+<label style="flex:1;display:flex"><span style="position:absolute;left:-9999px">Message au groupe</span><input placeholder="Écris au groupe…" style="flex:1;min-width:0;height:60px;padding:0 16px;border:0;background:#fff;font:inherit;font-size:16px;color:#000;box-sizing:border-box"></label>
+<button type="button" style="height:60px;padding:0 20px;background:#FFD60A;color:#000;border-left:3px solid #000;font-family:'Space Mono',monospace;font-size:14px;font-weight:700">ENVOYER</button>
+</form>
+<button style="height:56px;background:#fff;color:#000;border-top:3px solid #000;font-family:'Space Mono',monospace;font-size:13px;font-weight:700">QUITTER LA PARTIE</button>
+</div></template>
+<template id="t-D-Carte"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#fff;color:#16181D;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+<header style="padding:20px 20px 14px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<div>
+<p style="margin:0;font-size:13px;color:#5C6370">Samedi 14 novembre</p>
+<h1 style="margin:2px 0 0;font-size:22px;font-weight:600;letter-spacing:-.02em">Autour d’Ixelles</h1>
+</div>
+<button style="height:44px;padding:0 16px;border-radius:10px;background:#2F5BEA;color:#fff;font-size:14px;font-weight:600">Proposer</button>
+</div>
+<div style="display:flex;padding:3px;border-radius:10px;background:#F1F2F4">
+<button style="flex:1;height:38px;border-radius:8px;background:#fff;color:#16181D;font-size:14px;font-weight:600;box-shadow:0 1px 2px rgba(22,24,29,.12)">Carte</button>
+<button style="flex:1;height:38px;border-radius:8px;background:none;color:#5C6370;font-size:14px;font-weight:500">Liste</button>
+</div>
+</header>
+
+<div style="flex:1;position:relative;overflow:hidden;border-top:1px solid #E6E8EB;border-bottom:1px solid #E6E8EB">
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzOTAgODQ0IiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSI+CjxyZWN0IHdpZHRoPSIzOTAiIGhlaWdodD0iODQ0IiBmaWxsPSIjRTlFQUVDIi8+CjxwYXRoIGQ9Ik0tMTAgNzAgMTIwIDQwIDE1MiAxNjggNDQgMjE0LTEwIDE5NloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTIzNiAyODYgMzcyIDI2MiA0MDAgNDEwIDI2MiA0NDJaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0zNiA1NTYgMTY4IDUyOCAxOTggNjc2IDcwIDcxNloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTI4NCA2MzYgNDAwIDYxNiA0MDAgNzU2IDMwMCA3NzhaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0xNTAgMzcycTMyLTIyIDUyIDEwIDIwIDQyLTEyIDcyLTQwIDIwLTUwLTIyLTEwLTQwIDEwLTYwWiIgZmlsbD0iI0JBRDdFQSIvPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxnIHN0cm9rZS13aWR0aD0iNSI+CjxwYXRoIGQ9Ik02MC0xMCA4NCAyNTBNMTMwLTEwIDE1MCAyNDBNMjkwLTEwIDMwMCAyMDBNMzUwLTEwIDM1NiAxOTAiLz4KPHBhdGggZD0iTS0xMCAxMjAgMjAwIDk2IDQwMCA2ME0tMTAgMzMwIDIyMCAyOTBNLTEwIDQyMCAxNTAgNDAwIi8+CjxwYXRoIGQ9Ik0yMCAyNTAgNDAgNTAwTTEwMCAyNDUgMTE4IDUwOE0zMDAgMTk2IDMyMCA0ODRNMjUwIDMwMCAyNDQgNDcwIi8+CjxwYXRoIGQ9Ik0tMTAgNjEwIDE5MCA1OTAgNDAwIDU0ME0tMTAgNjkwIDYwIDcwME0yMDAgNjkwIDQwMCA2NjAiLz4KPHBhdGggZD0iTTYwIDUyMCA5MCA4NjBNMTQwIDUyNCAxNzAgODYwTTI0MCA1NjAgMjUwIDg2ME0zMzAgNTAwIDM1MCA4NjAiLz4KPHBhdGggZD0iTS0xMCA4MjAgNDAwIDgwMCIvPgo8L2c+CjxwYXRoIGQ9Ik0tMTAgMjUwIDQwMCAxODAiIHN0cm9rZS13aWR0aD0iMTQiLz4KPHBhdGggZD0iTTIwMC0xMCAyMzAgMzAwIDE4MCA1MjAgMjYwIDg2MCIgc3Ryb2tlLXdpZHRoPSIxNCIvPgo8cGF0aCBkPSJNLTEwIDUwMCAxODAgNTIwIDQwMCA0ODAiIHN0cm9rZS13aWR0aD0iMTIiLz4KPHBhdGggZD0iTS0xMCA3NjAgNDAwIDYwMCIgc3Ryb2tlLXdpZHRoPSIxMCIvPgo8L2c+Cjwvc3ZnPgo=" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.35) brightness(1.06)">
+<button aria-label="Course à pied, 17 h 30" style="position:absolute;left:28px;top:50px;height:44px;padding:0 6px;background:none;color:#16181D;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><span aria-hidden="true" style="width:12px;height:12px;border-radius:50%;background:#16181D;border:2px solid #fff"></span>Course · 17:30</button>
+<button aria-label="Basket, 18 h 30" style="position:absolute;left:250px;top:86px;height:44px;padding:0 6px;background:none;color:#16181D;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><span aria-hidden="true" style="width:12px;height:12px;border-radius:50%;background:#16181D;border:2px solid #fff"></span>Basket · 18:30</button>
+<button aria-label="Ping-pong, 19 h" style="position:absolute;left:54px;top:300px;height:44px;padding:0 6px;background:none;color:#16181D;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><span aria-hidden="true" style="width:12px;height:12px;border-radius:50%;background:#16181D;border:2px solid #fff"></span>Ping-pong · 19:00</button>
+<span aria-hidden="true" style="position:absolute;left:262px;top:212px;width:16px;height:16px;border-radius:50%;background:#2F5BEA;border:3px solid #fff;box-shadow:0 0 0 6px rgba(47,91,234,.2)"></span>
+
+<article style="position:absolute;left:16px;right:16px;bottom:16px;padding:16px;border-radius:14px;background:#fff;border:1px solid #E6E8EB;box-shadow:0 8px 24px rgba(22,24,29,.1);display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;justify-content:space-between;gap:12px">
+<div>
+<h2 style="margin:0;font-size:17px;font-weight:600">Spikeball</h2>
+<p style="margin:3px 0 0;font-size:14px;color:#5C6370">Parc du Cinquantenaire · 1,3 km</p>
+</div>
+<p style="margin:0;font-size:14px;font-weight:600;color:#2F5BEA;white-space:nowrap">17:45</p>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid #E6E8EB">
+<span style="font-size:14px;color:#5C6370">2 joueurs sur 4 · tous niveaux</span>
+<button style="height:44px;padding:0 4px;background:none;color:#2F5BEA;font-size:14px;font-weight:600">Voir la partie</button>
+</div>
+</article>
+</div>
+
+<nav style="height:64px;display:flex;font-size:14px">
+<button style="flex:1;background:none;color:#16181D;font-weight:600;box-shadow:inset 0 2px 0 #16181D">Carte</button>
+<button style="flex:1;background:none;color:#5C6370;font-weight:500">Swipe</button>
+<button style="flex:1;background:none;color:#5C6370;font-weight:500">Parties</button>
+<button style="flex:1;background:none;color:#5C6370;font-weight:500">Profil</button>
+</nav>
+</div></template>
+<template id="t-D-Swipe"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#F7F8F9;color:#16181D;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+<header style="padding:20px 20px 14px;display:flex;justify-content:space-between;align-items:baseline">
+<h1 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-.02em">Propositions</h1>
+<span style="font-size:13px;color:#5C6370">2 sur 9</span>
+</header>
+
+<article style="flex:1;margin:0 16px;border-radius:16px;background:#fff;border:1px solid #E6E8EB;overflow:hidden;display:flex;flex-direction:column">
+<div style="position:relative;height:190px;overflow:hidden;border-bottom:1px solid #E6E8EB">
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzOTAgODQ0IiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSI+CjxyZWN0IHdpZHRoPSIzOTAiIGhlaWdodD0iODQ0IiBmaWxsPSIjRTlFQUVDIi8+CjxwYXRoIGQ9Ik0tMTAgNzAgMTIwIDQwIDE1MiAxNjggNDQgMjE0LTEwIDE5NloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTIzNiAyODYgMzcyIDI2MiA0MDAgNDEwIDI2MiA0NDJaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0zNiA1NTYgMTY4IDUyOCAxOTggNjc2IDcwIDcxNloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTI4NCA2MzYgNDAwIDYxNiA0MDAgNzU2IDMwMCA3NzhaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0xNTAgMzcycTMyLTIyIDUyIDEwIDIwIDQyLTEyIDcyLTQwIDIwLTUwLTIyLTEwLTQwIDEwLTYwWiIgZmlsbD0iI0JBRDdFQSIvPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxnIHN0cm9rZS13aWR0aD0iNSI+CjxwYXRoIGQ9Ik02MC0xMCA4NCAyNTBNMTMwLTEwIDE1MCAyNDBNMjkwLTEwIDMwMCAyMDBNMzUwLTEwIDM1NiAxOTAiLz4KPHBhdGggZD0iTS0xMCAxMjAgMjAwIDk2IDQwMCA2ME0tMTAgMzMwIDIyMCAyOTBNLTEwIDQyMCAxNTAgNDAwIi8+CjxwYXRoIGQ9Ik0yMCAyNTAgNDAgNTAwTTEwMCAyNDUgMTE4IDUwOE0zMDAgMTk2IDMyMCA0ODRNMjUwIDMwMCAyNDQgNDcwIi8+CjxwYXRoIGQ9Ik0tMTAgNjEwIDE5MCA1OTAgNDAwIDU0ME0tMTAgNjkwIDYwIDcwME0yMDAgNjkwIDQwMCA2NjAiLz4KPHBhdGggZD0iTTYwIDUyMCA5MCA4NjBNMTQwIDUyNCAxNzAgODYwTTI0MCA1NjAgMjUwIDg2ME0zMzAgNTAwIDM1MCA4NjAiLz4KPHBhdGggZD0iTS0xMCA4MjAgNDAwIDgwMCIvPgo8L2c+CjxwYXRoIGQ9Ik0tMTAgMjUwIDQwMCAxODAiIHN0cm9rZS13aWR0aD0iMTQiLz4KPHBhdGggZD0iTTIwMC0xMCAyMzAgMzAwIDE4MCA1MjAgMjYwIDg2MCIgc3Ryb2tlLXdpZHRoPSIxNCIvPgo8cGF0aCBkPSJNLTEwIDUwMCAxODAgNTIwIDQwMCA0ODAiIHN0cm9rZS13aWR0aD0iMTIiLz4KPHBhdGggZD0iTS0xMCA3NjAgNDAwIDYwMCIgc3Ryb2tlLXdpZHRoPSIxMCIvPgo8L2c+Cjwvc3ZnPgo=" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.35) brightness(1.06)">
+<span aria-hidden="true" style="position:absolute;left:187px;top:88px;width:16px;height:16px;border-radius:50%;background:#2F5BEA;border:3px solid #fff;box-shadow:0 0 0 6px rgba(47,91,234,.2)"></span>
+<span style="position:absolute;left:12px;bottom:12px;padding:6px 10px;border-radius:8px;background:#fff;font-size:13px;font-weight:600">1,3 km · 6 min à vélo</span>
+</div>
+<div style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
+<div>
+<p style="margin:0;font-size:13px;font-weight:600;color:#2F5BEA">Dans tes sports</p>
+<h2 style="margin:4px 0 0;font-size:28px;font-weight:600;letter-spacing:-.03em">Spikeball</h2>
+<p style="margin:4px 0 0;font-size:15px;color:#5C6370">Parc du Cinquantenaire</p>
+</div>
+<dl style="margin:0;font-size:15px">
+<div style="display:flex;justify-content:space-between;padding:11px 0;border-top:1px solid #E6E8EB"><dt style="color:#5C6370">Quand</dt><dd style="margin:0;font-weight:500">Aujourd’hui, 17:45</dd></div>
+<div style="display:flex;justify-content:space-between;padding:11px 0;border-top:1px solid #E6E8EB"><dt style="color:#5C6370">Joueurs</dt><dd style="margin:0;font-weight:500">2 sur 4 · Léa, Sam</dd></div>
+<div style="display:flex;justify-content:space-between;padding:11px 0;border-top:1px solid #E6E8EB"><dt style="color:#5C6370">Niveau</dt><dd style="margin:0;font-weight:500">Tous niveaux</dd></div>
+<div style="display:flex;justify-content:space-between;padding:11px 0;border-top:1px solid #E6E8EB;border-bottom:1px solid #E6E8EB"><dt style="color:#5C6370">Organise</dt><dd style="margin:0;font-weight:500">Léa</dd></div>
+</dl>
+<p style="margin:0;font-size:15px;line-height:1.5;color:#3A3F4A">On a le filet, ramène juste de l’eau.</p>
+</div>
+</article>
+
+<div style="display:flex;gap:10px;padding:14px 16px">
+<button style="flex:1;height:52px;border-radius:12px;background:#fff;border:1px solid #D3D7DD;color:#16181D;font-size:15px;font-weight:600">Passer</button>
+<button style="flex:1.500;height:52px;border-radius:12px;background:#2F5BEA;color:#fff;font-size:15px;font-weight:600">Je suis partant</button>
+</div>
+
+<nav style="height:64px;display:flex;font-size:14px;background:#fff;border-top:1px solid #E6E8EB">
+<button style="flex:1;background:none;color:#5C6370;font-weight:500">Carte</button>
+<button style="flex:1;background:none;color:#16181D;font-weight:600;box-shadow:inset 0 2px 0 #16181D">Swipe</button>
+<button style="flex:1;background:none;color:#5C6370;font-weight:500">Parties</button>
+<button style="flex:1;background:none;color:#5C6370;font-weight:500">Profil</button>
+</nav>
+</div></template>
+<template id="t-D-Partie"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#fff;color:#16181D;font-family:Inter,sans-serif;display:flex;flex-direction:column">
+<header style="padding:12px 20px 0;display:flex;flex-direction:column;gap:12px">
+<button style="align-self:flex-start;height:44px;padding:0;background:none;color:#2F5BEA;font-size:15px;font-weight:500">‹ Mes parties</button>
+<div>
+<h1 style="margin:0;font-size:26px;font-weight:600;letter-spacing:-.03em">Spikeball</h1>
+<p style="margin:4px 0 0;font-size:15px;color:#5C6370">Parc du Cinquantenaire · aujourd’hui, 17:45</p>
+</div>
+<div style="display:flex;border-bottom:1px solid #E6E8EB;font-size:15px">
+<button style="height:44px;padding:0 4px;margin-right:24px;background:none;color:#16181D;font-weight:600;box-shadow:inset 0 -2px 0 #16181D">Discussion</button>
+<button style="height:44px;padding:0 4px;margin-right:24px;background:none;color:#5C6370;font-weight:500">Joueurs · 3/4</button>
+<button style="height:44px;padding:0 4px;background:none;color:#5C6370;font-weight:500">Infos</button>
+</div>
+</header>
+
+<div style="margin:16px 20px 0;padding:12px 14px;border-radius:12px;background:#EEF2FE;display:flex;justify-content:space-between;align-items:center;gap:12px">
+<p style="margin:0;font-size:14px;line-height:1.4;color:#1F3FA8">Début dans 45 min.<br>Il reste 1 place.</p>
+<button style="height:44px;padding:0 14px;border-radius:10px;background:#fff;color:#1F3FA8;font-size:14px;font-weight:600;border:1px solid #C5D2FB">Itinéraire</button>
+</div>
+
+<div style="flex:1;padding:8px 20px;display:flex;flex-direction:column;justify-content:flex-end">
+
+<div style="display:flex;gap:12px;padding:12px 0;border-top:1px solid #F1F2F4">
+<span aria-hidden="true" style="flex:none;width:36px;height:36px;border-radius:50%;background:#F1F2F4;color:#16181D;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center">L</span>
+<div style="flex:1;min-width:0">
+<p style="margin:0;font-size:14px"><strong style="font-weight:600">Léa</strong> <span style="color:#5C6370;font-size:13px">16:52</span></p>
+<p style="margin:3px 0 0;font-size:15px;line-height:1.45;color:#3A3F4A">On a le filet, rendez-vous près des arcades.</p>
+</div>
+</div>
+
+<div style="display:flex;gap:12px;padding:12px 0;border-top:1px solid #F1F2F4">
+<span aria-hidden="true" style="flex:none;width:36px;height:36px;border-radius:50%;background:#F1F2F4;color:#16181D;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center">S</span>
+<div style="flex:1;min-width:0">
+<p style="margin:0;font-size:14px"><strong style="font-weight:600">Sam</strong> <span style="color:#5C6370;font-size:13px">16:55</span></p>
+<p style="margin:3px 0 0;font-size:15px;line-height:1.45;color:#3A3F4A">J’amène de l’eau pour tout le monde.</p>
+</div>
+</div>
+
+<div style="display:flex;gap:12px;padding:12px 0;border-top:1px solid #F1F2F4">
+<span aria-hidden="true" style="flex:none;width:36px;height:36px;border-radius:50%;background:#F1F2F4;color:#16181D;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center">M</span>
+<div style="flex:1;min-width:0">
+<p style="margin:0;font-size:14px"><strong style="font-weight:600">Toi</strong> <span style="color:#5C6370;font-size:13px">16:58</span></p>
+<p style="margin:3px 0 0;font-size:15px;line-height:1.45;color:#3A3F4A">Parfait, j’arrive à 17h40 !</p>
+</div>
+</div>
+
+</div>
+
+<form style="display:flex;gap:10px;padding:12px 20px 20px;border-top:1px solid #E6E8EB">
+<label style="flex:1;display:flex"><span style="position:absolute;left:-9999px">Message au groupe</span><input placeholder="Écrire au groupe" style="flex:1;min-width:0;height:48px;padding:0 14px;border-radius:12px;border:1px solid #D3D7DD;background:#fff;font:inherit;font-size:15px;color:#16181D;box-sizing:border-box"></label>
+<button type="button" style="height:48px;padding:0 18px;border-radius:12px;background:#2F5BEA;color:#fff;font-size:15px;font-weight:600">Envoyer</button>
+</form>
+</div></template>
+<template id="t-E-Carte"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#0E3B2E;color:#F4F1E6;font-family:Barlow,sans-serif;display:flex;flex-direction:column">
+<header style="padding:16px 18px 14px;display:flex;justify-content:space-between;align-items:flex-end">
+<div>
+<p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.14em;color:#E9B824">SAMEDI 14 NOV. · BRUXELLES</p>
+<h1 style="margin:2px 0 0;font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:44px;letter-spacing:.02em;line-height:1">Parties du jour</h1>
+</div>
+<div style="text-align:center;border:2px solid #F4F1E6;padding:4px 10px">
+<div style="font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1">09</div>
+<div style="font-size:10px;font-weight:700;letter-spacing:.12em">OUVERTES</div>
+</div>
+</header>
+
+<div style="position:relative;height:330px;overflow:hidden;border-top:2px solid #F4F1E6;border-bottom:2px solid #F4F1E6">
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzOTAgODQ0IiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSI+CjxyZWN0IHdpZHRoPSIzOTAiIGhlaWdodD0iODQ0IiBmaWxsPSIjRTlFQUVDIi8+CjxwYXRoIGQ9Ik0tMTAgNzAgMTIwIDQwIDE1MiAxNjggNDQgMjE0LTEwIDE5NloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTIzNiAyODYgMzcyIDI2MiA0MDAgNDEwIDI2MiA0NDJaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0zNiA1NTYgMTY4IDUyOCAxOTggNjc2IDcwIDcxNloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTI4NCA2MzYgNDAwIDYxNiA0MDAgNzU2IDMwMCA3NzhaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0xNTAgMzcycTMyLTIyIDUyIDEwIDIwIDQyLTEyIDcyLTQwIDIwLTUwLTIyLTEwLTQwIDEwLTYwWiIgZmlsbD0iI0JBRDdFQSIvPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxnIHN0cm9rZS13aWR0aD0iNSI+CjxwYXRoIGQ9Ik02MC0xMCA4NCAyNTBNMTMwLTEwIDE1MCAyNDBNMjkwLTEwIDMwMCAyMDBNMzUwLTEwIDM1NiAxOTAiLz4KPHBhdGggZD0iTS0xMCAxMjAgMjAwIDk2IDQwMCA2ME0tMTAgMzMwIDIyMCAyOTBNLTEwIDQyMCAxNTAgNDAwIi8+CjxwYXRoIGQ9Ik0yMCAyNTAgNDAgNTAwTTEwMCAyNDUgMTE4IDUwOE0zMDAgMTk2IDMyMCA0ODRNMjUwIDMwMCAyNDQgNDcwIi8+CjxwYXRoIGQ9Ik0tMTAgNjEwIDE5MCA1OTAgNDAwIDU0ME0tMTAgNjkwIDYwIDcwME0yMDAgNjkwIDQwMCA2NjAiLz4KPHBhdGggZD0iTTYwIDUyMCA5MCA4NjBNMTQwIDUyNCAxNzAgODYwTTI0MCA1NjAgMjUwIDg2ME0zMzAgNTAwIDM1MCA4NjAiLz4KPHBhdGggZD0iTS0xMCA4MjAgNDAwIDgwMCIvPgo8L2c+CjxwYXRoIGQ9Ik0tMTAgMjUwIDQwMCAxODAiIHN0cm9rZS13aWR0aD0iMTQiLz4KPHBhdGggZD0iTTIwMC0xMCAyMzAgMzAwIDE4MCA1MjAgMjYwIDg2MCIgc3Ryb2tlLXdpZHRoPSIxNCIvPgo8cGF0aCBkPSJNLTEwIDUwMCAxODAgNTIwIDQwMCA0ODAiIHN0cm9rZS13aWR0aD0iMTIiLz4KPHBhdGggZD0iTS0xMCA3NjAgNDAwIDYwMCIgc3Ryb2tlLXdpZHRoPSIxMCIvPgo8L2c+Cjwvc3ZnPgo=" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:sepia(.55) saturate(.8) brightness(.96)">
+<button aria-label="Spikeball, Cinquantenaire" style="position:absolute;left:240px;top:140px;width:52px;height:52px;border-radius:50%;background:#E9B824;color:#0E3B2E;border:3px solid #0E3B2E;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em">SPK</button>
+<button aria-label="Course à pied, Parc Royal" style="position:absolute;left:36px;top:52px;width:52px;height:52px;border-radius:50%;background:#F4F1E6;color:#0E3B2E;border:3px solid #0E3B2E;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em">RUN</button>
+<button aria-label="Ping-pong, Place Flagey" style="position:absolute;left:78px;top:226px;width:52px;height:52px;border-radius:50%;background:#F4F1E6;color:#0E3B2E;border:3px solid #0E3B2E;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em">PNG</button>
+<button aria-label="Basket, Parc Élisabeth" style="position:absolute;left:300px;top:40px;width:52px;height:52px;border-radius:50%;background:#F4F1E6;color:#0E3B2E;border:3px solid #0E3B2E;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em">BSK</button>
+<span aria-hidden="true" style="position:absolute;left:186px;top:108px;width:16px;height:16px;border-radius:50%;background:#0E3B2E;border:3px solid #F4F1E6"></span>
+</div>
+
+<div style="flex:1;display:flex;flex-direction:column;padding:6px 18px 0">
+<div style="display:flex;justify-content:space-between;padding:8px 0;font-size:11px;font-weight:700;letter-spacing:.14em;color:#B9CDBF">
+<span>HEURE · SPORT · TERRAIN</span><span>JOUEURS</span>
+</div>
+
+<button style="display:flex;align-items:center;gap:14px;padding:11px 0;background:none;color:#F4F1E6;text-align:left;border-top:1px solid #2F5E4E">
+<span style="flex:none;width:62px;font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;color:#E9B824">17:30</span>
+<span style="flex:1;min-width:0">
+<span style="display:block;font-size:17px;font-weight:700;letter-spacing:.04em;text-transform:uppercase">Course à pied</span>
+<span style="display:block;font-size:13px;font-weight:500;color:#B9CDBF">Parc Royal · 1,0 km</span>
+</span>
+<span style="flex:none;font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1">1/4</span>
+</button>
+
+<button style="display:flex;align-items:center;gap:14px;padding:11px 0;background:none;color:#F4F1E6;text-align:left;border-top:1px solid #2F5E4E">
+<span style="flex:none;width:62px;font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;color:#E9B824">17:45</span>
+<span style="flex:1;min-width:0">
+<span style="display:block;font-size:17px;font-weight:700;letter-spacing:.04em;text-transform:uppercase">Spikeball</span>
+<span style="display:block;font-size:13px;font-weight:500;color:#B9CDBF">Cinquantenaire · 1,3 km</span>
+</span>
+<span style="flex:none;font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1">2/4</span>
+</button>
+
+<button style="display:flex;align-items:center;gap:14px;padding:11px 0;background:none;color:#F4F1E6;text-align:left;border-top:1px solid #2F5E4E">
+<span style="flex:none;width:62px;font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;color:#E9B824">18:30</span>
+<span style="flex:1;min-width:0">
+<span style="display:block;font-size:17px;font-weight:700;letter-spacing:.04em;text-transform:uppercase">Basket</span>
+<span style="display:block;font-size:13px;font-weight:500;color:#B9CDBF">Parc Élisabeth · 4,4 km</span>
+</span>
+<span style="flex:none;font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1">3/6</span>
+</button>
+
+<button style="display:flex;align-items:center;gap:14px;padding:11px 0;background:none;color:#F4F1E6;text-align:left;border-top:1px solid #2F5E4E">
+<span style="flex:none;width:62px;font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;color:#E9B824">19:00</span>
+<span style="flex:1;min-width:0">
+<span style="display:block;font-size:17px;font-weight:700;letter-spacing:.04em;text-transform:uppercase">Ping-pong</span>
+<span style="display:block;font-size:13px;font-weight:500;color:#B9CDBF">Place Flagey · 600 m</span>
+</span>
+<span style="flex:none;font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1">1/2</span>
+</button>
+
+</div>
+
+<nav style="height:68px;display:flex;background:#F4F1E6;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.06em">
+<button style="flex:1;background:#E9B824;color:#0E3B2E">Carte</button>
+<button style="flex:1;background:none;color:#0E3B2E">Swipe</button>
+<button style="flex:1;background:none;color:#0E3B2E">Parties</button>
+<button style="flex:1;background:none;color:#0E3B2E">Profil</button>
+</nav>
+</div></template>
+<template id="t-E-Swipe"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#0E3B2E;color:#F4F1E6;font-family:Barlow,sans-serif;display:flex;flex-direction:column">
+<header style="padding:18px 18px 10px;display:flex;justify-content:space-between;align-items:baseline">
+<h1 style="margin:0;font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:34px;letter-spacing:.03em">Billetterie</h1>
+<span style="font-size:12px;font-weight:700;letter-spacing:.14em;color:#E9B824">BILLET 2 / 9</span>
+</header>
+
+<article style="flex:1;margin:6px 22px 0;background:#F4F1E6;color:#0E3B2E;display:flex;flex-direction:column;position:relative">
+<div style="padding:20px 20px 16px;text-align:center;border-bottom:2px solid #0E3B2E">
+<p style="margin:0;font-size:12px;font-weight:700;letter-spacing:.2em">ENTRÉE LIBRE · TOUS NIVEAUX</p>
+<h2 style="margin:6px 0 0;font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:84px;line-height:.86;letter-spacing:.01em">Spike<br>ball</h2>
+<p style="margin:10px 0 0;font-size:16px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Parc du Cinquantenaire</p>
+</div>
+<div style="display:flex;border-bottom:2px solid #0E3B2E;text-align:center">
+<div style="flex:1;padding:12px 4px;border-right:2px solid #0E3B2E"><div style="font-size:11px;font-weight:700;letter-spacing:.14em">COUP D’ENVOI</div><div style="font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1.05">17:45</div></div>
+<div style="flex:1;padding:12px 4px;border-right:2px solid #0E3B2E"><div style="font-size:11px;font-weight:700;letter-spacing:.14em">DISTANCE</div><div style="font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1.05">1,3 km</div></div>
+<div style="flex:1;padding:12px 4px"><div style="font-size:11px;font-weight:700;letter-spacing:.14em">PLACES</div><div style="font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1.05;color:#A6400F">2 / 4</div></div>
+</div>
+<div style="padding:16px 20px;flex:1;display:flex;flex-direction:column;gap:12px">
+<p style="margin:0;font-size:12px;font-weight:700;letter-spacing:.14em">FEUILLE DE MATCH</p>
+<ol style="margin:0;padding:0;list-style:none;font-size:16px;font-weight:600">
+<li style="display:flex;gap:12px;padding:7px 0;border-bottom:1px dashed #0E3B2E"><span style="font-family:'Bebas Neue',sans-serif;font-size:20px;width:22px">1</span>Léa <span style="margin-left:auto;font-size:12px;letter-spacing:.1em">CAPITAINE</span></li>
+<li style="display:flex;gap:12px;padding:7px 0;border-bottom:1px dashed #0E3B2E"><span style="font-family:'Bebas Neue',sans-serif;font-size:20px;width:22px">2</span>Sam</li>
+<li style="display:flex;gap:12px;padding:7px 0;border-bottom:1px dashed #0E3B2E;color:#5A6F64"><span style="font-family:'Bebas Neue',sans-serif;font-size:20px;width:22px">3</span>Ton nom ici ?</li>
+<li style="display:flex;gap:12px;padding:7px 0;color:#5A6F64"><span style="font-family:'Bebas Neue',sans-serif;font-size:20px;width:22px">4</span>Place libre</li>
+</ol>
+<p style="margin:0;font-size:15px;font-weight:500;font-style:italic">« On a le filet, ramène juste de l’eau. » — Léa</p>
+</div>
+<span aria-hidden="true" style="position:absolute;left:-12px;top:312px;width:24px;height:24px;border-radius:50%;background:#0E3B2E"></span>
+<span aria-hidden="true" style="position:absolute;right:-12px;top:312px;width:24px;height:24px;border-radius:50%;background:#0E3B2E"></span>
+</article>
+
+<div style="display:flex;gap:12px;padding:16px 22px 18px">
+<button style="flex:1;height:60px;background:none;border:2px solid #F4F1E6;color:#F4F1E6;font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.06em">Passer</button>
+<button style="flex:1.600;height:60px;background:#E9B824;color:#0E3B2E;font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.06em">Je prends ma place</button>
+</div>
+
+<nav style="height:68px;display:flex;background:#F4F1E6;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.06em">
+<button style="flex:1;background:none;color:#0E3B2E">Carte</button>
+<button style="flex:1;background:#E9B824;color:#0E3B2E">Swipe</button>
+<button style="flex:1;background:none;color:#0E3B2E">Parties</button>
+<button style="flex:1;background:none;color:#0E3B2E">Profil</button>
+</nav>
+</div></template>
+<template id="t-E-Partie"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#F4F1E6;color:#0E3B2E;font-family:Barlow,sans-serif;display:flex;flex-direction:column">
+<header style="background:#0E3B2E;color:#F4F1E6;padding:12px 18px 18px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<button style="height:44px;padding:0;background:none;color:#F4F1E6;font-size:13px;font-weight:700;letter-spacing:.12em">← MES PARTIES</button>
+<button style="height:44px;padding:0 14px;background:none;border:2px solid #F4F1E6;color:#F4F1E6;font-size:13px;font-weight:700;letter-spacing:.12em">ITINÉRAIRE</button>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px">
+<div>
+<h1 style="margin:0;font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:52px;line-height:.9;letter-spacing:.02em">Spikeball</h1>
+<p style="margin:6px 0 0;font-size:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#B9CDBF">Parc du Cinquantenaire</p>
+</div>
+<div style="text-align:center;background:#E9B824;color:#0E3B2E;padding:6px 12px">
+<div style="font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1">17:45</div>
+<div style="font-size:10px;font-weight:700;letter-spacing:.12em">DANS 45 MIN</div>
+</div>
+</div>
+</header>
+
+<section style="padding:14px 18px;border-bottom:2px solid #0E3B2E">
+<p style="margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.14em">L’ÉQUIPE · 3 / 4</p>
+<div style="display:flex;gap:8px">
+<div style="flex:1;text-align:center"><div style="height:52px;background:#0E3B2E;color:#E9B824;font-family:'Bebas Neue',sans-serif;font-size:30px;display:flex;align-items:center;justify-content:center">1</div><div style="font-size:13px;font-weight:700;margin-top:4px">Léa (C)</div></div>
+<div style="flex:1;text-align:center"><div style="height:52px;background:#0E3B2E;color:#F4F1E6;font-family:'Bebas Neue',sans-serif;font-size:30px;display:flex;align-items:center;justify-content:center">2</div><div style="font-size:13px;font-weight:700;margin-top:4px">Sam</div></div>
+<div style="flex:1;text-align:center"><div style="height:52px;background:#0E3B2E;color:#F4F1E6;font-family:'Bebas Neue',sans-serif;font-size:30px;display:flex;align-items:center;justify-content:center">3</div><div style="font-size:13px;font-weight:700;margin-top:4px">Toi</div></div>
+<div style="flex:1;text-align:center"><div style="height:52px;border:2px dashed #0E3B2E;box-sizing:border-box;font-family:'Bebas Neue',sans-serif;font-size:30px;display:flex;align-items:center;justify-content:center">4</div><div style="font-size:13px;font-weight:600;margin-top:4px;color:#4A6457">Libre</div></div>
+</div>
+</section>
+
+<div style="flex:1;padding:14px 18px;display:flex;flex-direction:column;justify-content:flex-end">
+<p style="margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.14em">LE VESTIAIRE</p>
+
+<div style="padding:10px 0;border-top:1px dashed #0E3B2E">
+<p style="margin:0;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#A6400F">Léa · 16:52</p>
+<p style="margin:3px 0 0;font-size:16px;font-weight:500;line-height:1.35">On a le filet, rendez-vous près des arcades.</p>
+</div>
+
+<div style="padding:10px 0;border-top:1px dashed #0E3B2E">
+<p style="margin:0;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#A6400F">Sam · 16:55</p>
+<p style="margin:3px 0 0;font-size:16px;font-weight:500;line-height:1.35">J’amène de l’eau pour tout le monde.</p>
+</div>
+
+<div style="padding:10px 0;border-top:1px dashed #0E3B2E">
+<p style="margin:0;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#A6400F">Toi · 16:58</p>
+<p style="margin:3px 0 0;font-size:16px;font-weight:500;line-height:1.35">Parfait, j’arrive à 17h40 !</p>
+</div>
+
+</div>
+
+<form style="display:flex;gap:10px;padding:12px 18px 18px;background:#0E3B2E">
+<label style="flex:1;display:flex"><span style="position:absolute;left:-9999px">Message au groupe</span><input placeholder="Un mot au vestiaire…" style="flex:1;min-width:0;height:50px;padding:0 14px;border:0;background:#F4F1E6;font:inherit;font-size:16px;font-weight:500;color:#0E3B2E;box-sizing:border-box"></label>
+<button type="button" style="height:50px;padding:0 18px;background:#E9B824;color:#0E3B2E;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.06em">Envoyer</button>
+</form>
+</div></template>
+<template id="t-F-Carte"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#EFE9FF;color:#24124F;font-family:Nunito,sans-serif">
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzOTAgODQ0IiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSI+CjxyZWN0IHdpZHRoPSIzOTAiIGhlaWdodD0iODQ0IiBmaWxsPSIjRTlFQUVDIi8+CjxwYXRoIGQ9Ik0tMTAgNzAgMTIwIDQwIDE1MiAxNjggNDQgMjE0LTEwIDE5NloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTIzNiAyODYgMzcyIDI2MiA0MDAgNDEwIDI2MiA0NDJaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0zNiA1NTYgMTY4IDUyOCAxOTggNjc2IDcwIDcxNloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTI4NCA2MzYgNDAwIDYxNiA0MDAgNzU2IDMwMCA3NzhaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0xNTAgMzcycTMyLTIyIDUyIDEwIDIwIDQyLTEyIDcyLTQwIDIwLTUwLTIyLTEwLTQwIDEwLTYwWiIgZmlsbD0iI0JBRDdFQSIvPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxnIHN0cm9rZS13aWR0aD0iNSI+CjxwYXRoIGQ9Ik02MC0xMCA4NCAyNTBNMTMwLTEwIDE1MCAyNDBNMjkwLTEwIDMwMCAyMDBNMzUwLTEwIDM1NiAxOTAiLz4KPHBhdGggZD0iTS0xMCAxMjAgMjAwIDk2IDQwMCA2ME0tMTAgMzMwIDIyMCAyOTBNLTEwIDQyMCAxNTAgNDAwIi8+CjxwYXRoIGQ9Ik0yMCAyNTAgNDAgNTAwTTEwMCAyNDUgMTE4IDUwOE0zMDAgMTk2IDMyMCA0ODRNMjUwIDMwMCAyNDQgNDcwIi8+CjxwYXRoIGQ9Ik0tMTAgNjEwIDE5MCA1OTAgNDAwIDU0ME0tMTAgNjkwIDYwIDcwME0yMDAgNjkwIDQwMCA2NjAiLz4KPHBhdGggZD0iTTYwIDUyMCA5MCA4NjBNMTQwIDUyNCAxNzAgODYwTTI0MCA1NjAgMjUwIDg2ME0zMzAgNTAwIDM1MCA4NjAiLz4KPHBhdGggZD0iTS0xMCA4MjAgNDAwIDgwMCIvPgo8L2c+CjxwYXRoIGQ9Ik0tMTAgMjUwIDQwMCAxODAiIHN0cm9rZS13aWR0aD0iMTQiLz4KPHBhdGggZD0iTTIwMC0xMCAyMzAgMzAwIDE4MCA1MjAgMjYwIDg2MCIgc3Ryb2tlLXdpZHRoPSIxNCIvPgo8cGF0aCBkPSJNLTEwIDUwMCAxODAgNTIwIDQwMCA0ODAiIHN0cm9rZS13aWR0aD0iMTIiLz4KPHBhdGggZD0iTS0xMCA3NjAgNDAwIDYwMCIgc3Ryb2tlLXdpZHRoPSIxMCIvPgo8L2c+Cjwvc3ZnPgo=" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:hue-rotate(40deg) saturate(1.2)">
+
+<div style="position:absolute;top:0;left:0;right:0;padding:16px 16px 18px;background:#fff;border-radius:0 0 32px 32px;box-shadow:0 8px 24px rgba(36,18,79,.12)">
+<h1 style="margin:0 0 12px;font-size:24px;font-weight:900;letter-spacing:-.01em">On joue à quoi ?</h1>
+<div style="display:flex;gap:10px">
+<button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:none;color:#24124F;font-size:12px;font-weight:800"><span aria-hidden="true" style="width:56px;height:56px;border-radius:50%;background:#5B2EE0;color:#fff;font-size:15px;font-weight:900;display:flex;align-items:center;justify-content:center">Tout</span>9 parties</button>
+<button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:none;color:#24124F;font-size:12px;font-weight:800"><span aria-hidden="true" style="width:56px;height:56px;border-radius:50%;background:#FFD84D;font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center">Sp</span>Spikeball</button>
+<button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:none;color:#24124F;font-size:12px;font-weight:800"><span aria-hidden="true" style="width:56px;height:56px;border-radius:50%;background:#FFB37A;font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center">Ba</span>Basket</button>
+<button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:none;color:#24124F;font-size:12px;font-weight:800"><span aria-hidden="true" style="width:56px;height:56px;border-radius:50%;background:#8FD3FF;font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center">Vo</span>Volley</button>
+<button style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:none;color:#24124F;font-size:12px;font-weight:800"><span aria-hidden="true" style="width:56px;height:56px;border-radius:50%;background:#FF9CC2;font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center">Pi</span>Ping-pong</button>
+</div>
+</div>
+
+<button aria-label="Spikeball, 2 joueurs, 2 places" style="position:absolute;left:216px;top:330px;height:60px;padding:0 16px 0 6px;border-radius:30px;background:#fff;color:#24124F;box-shadow:0 8px 20px rgba(36,18,79,.22);display:flex;align-items:center;gap:8px;font-size:14px;font-weight:900"><span aria-hidden="true" style="width:48px;height:48px;border-radius:50%;background:#FFD84D;display:flex;align-items:center;justify-content:center;font-size:18px">Sp</span>2 places</button>
+<button aria-label="Ping-pong, 1 place" style="position:absolute;left:40px;top:440px;height:60px;padding:0 16px 0 6px;border-radius:30px;background:#fff;color:#24124F;box-shadow:0 8px 20px rgba(36,18,79,.22);display:flex;align-items:center;gap:8px;font-size:14px;font-weight:900"><span aria-hidden="true" style="width:48px;height:48px;border-radius:50%;background:#FF9CC2;display:flex;align-items:center;justify-content:center;font-size:18px">Pi</span>1 place</button>
+<button aria-label="Basket, 3 places" style="position:absolute;left:36px;top:222px;height:60px;padding:0 16px 0 6px;border-radius:30px;background:#fff;color:#24124F;box-shadow:0 8px 20px rgba(36,18,79,.22);display:flex;align-items:center;gap:8px;font-size:14px;font-weight:900"><span aria-hidden="true" style="width:48px;height:48px;border-radius:50%;background:#FFB37A;display:flex;align-items:center;justify-content:center;font-size:18px">Ba</span>3 places</button>
+<span aria-hidden="true" style="position:absolute;left:180px;top:286px;width:20px;height:20px;border-radius:50%;background:#5B2EE0;border:4px solid #fff;box-shadow:0 0 0 8px rgba(91,46,224,.2)"></span>
+
+<article style="position:absolute;left:16px;right:16px;bottom:104px;padding:16px;border-radius:28px;background:#fff;box-shadow:0 10px 28px rgba(36,18,79,.18);display:flex;align-items:center;gap:14px">
+<span aria-hidden="true" style="flex:none;width:64px;height:64px;border-radius:22px;background:#FFD84D;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900">Sp</span>
+<div style="flex:1;min-width:0">
+<h2 style="margin:0;font-size:18px;font-weight:900">Spikeball dans 45 min</h2>
+<p style="margin:2px 0 0;font-size:14px;font-weight:600;color:#5A4B85">Cinquantenaire · Léa et Sam t’attendent</p>
+</div>
+<button aria-label="Voir la partie" style="flex:none;width:48px;height:48px;border-radius:50%;background:#5B2EE0;color:#fff;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+</article>
+
+<nav style="position:absolute;left:16px;right:16px;bottom:20px;height:68px;border-radius:34px;background:#24124F;display:flex;align-items:center;padding:0 8px;gap:4px;font-size:14px;font-weight:800">
+<button style="flex:1.300;height:52px;border-radius:26px;background:#fff;color:#24124F">Carte</button>
+<button style="flex:1;height:52px;border-radius:26px;background:none;color:#D9CEFF">Swipe</button>
+<button aria-label="Proposer une partie" style="flex:none;width:52px;height:52px;border-radius:50%;background:#FF6FA5;color:#24124F;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+<button style="flex:1;height:52px;border-radius:26px;background:none;color:#D9CEFF">Parties</button>
+<button style="flex:1;height:52px;border-radius:26px;background:none;color:#D9CEFF">Moi</button>
+</nav>
+</div></template>
+<template id="t-F-Swipe"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#EFE9FF;color:#24124F;font-family:Nunito,sans-serif;display:flex;flex-direction:column">
+<header style="padding:20px 20px 10px">
+<h1 style="margin:0;font-size:26px;font-weight:900;letter-spacing:-.01em">Ça te dit ?</h1>
+<p style="margin:2px 0 0;font-size:14px;font-weight:600;color:#5A4B85">9 parties à moins de 15 km</p>
+</header>
+
+<div style="flex:1;position:relative;margin:4px 20px 0">
+<div aria-hidden="true" style="position:absolute;inset:20px 16px -12px;border-radius:40px;background:#D9CEFF"></div>
+<article style="position:absolute;inset:0;border-radius:40px;background:#fff;box-shadow:0 14px 32px rgba(36,18,79,.16);padding:22px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start">
+<span aria-hidden="true" style="width:96px;height:96px;border-radius:36px;background:#FFD84D;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:900">Sp</span>
+<span style="padding:8px 14px;border-radius:20px;background:#EFE9FF;font-size:14px;font-weight:800">à 1,3 km</span>
+</div>
+<div>
+<h2 style="margin:0;font-size:34px;font-weight:900;letter-spacing:-.02em;line-height:1.05">Spikeball</h2>
+<p style="margin:4px 0 0;font-size:17px;font-weight:800;color:#5B2EE0">Dans 45 min · Cinquantenaire</p>
+</div>
+
+<div style="padding:16px;border-radius:28px;background:#EFE9FF;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:10px">
+<div style="flex:1;text-align:center;font-size:13px;font-weight:800"><span aria-hidden="true" style="display:flex;width:56px;height:56px;margin:0 auto 4px;border-radius:50%;background:#5B2EE0;color:#fff;font-size:20px;font-weight:900;align-items:center;justify-content:center">L</span>Léa</div>
+<div style="flex:1;text-align:center;font-size:13px;font-weight:800"><span aria-hidden="true" style="display:flex;width:56px;height:56px;margin:0 auto 4px;border-radius:50%;background:#FF6FA5;font-size:20px;font-weight:900;align-items:center;justify-content:center">S</span>Sam</div>
+<div style="flex:1;text-align:center;font-size:13px;font-weight:800;color:#5B2EE0"><span aria-hidden="true" style="display:flex;width:56px;height:56px;margin:0 auto 4px;border-radius:50%;border:3px dashed #5B2EE0;box-sizing:border-box;font-size:22px;font-weight:900;align-items:center;justify-content:center">+</span>Toi ?</div>
+<div style="flex:1;text-align:center;font-size:13px;font-weight:600;color:#5A4B85"><span aria-hidden="true" style="display:flex;width:56px;height:56px;margin:0 auto 4px;border-radius:50%;border:3px dashed #A89BD6;box-sizing:border-box"></span>Libre</div>
+</div>
+<p style="margin:0;font-size:15px;font-weight:800;text-align:center">Plus que 2 joueurs et c’est parti !</p>
+</div>
+
+<div style="display:flex;gap:10px;align-items:flex-start">
+<span aria-hidden="true" style="flex:none;width:36px;height:36px;border-radius:50%;background:#5B2EE0;color:#fff;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center">L</span>
+<p style="margin:0;padding:10px 14px;border-radius:6px 20px 20px 20px;background:#FFF1C2;font-size:15px;font-weight:600;line-height:1.35">On a le filet, ramène juste de l’eau. Tous niveaux bienvenus !</p>
+</div>
+</article>
+</div>
+
+<div style="display:flex;justify-content:center;align-items:center;gap:20px;padding:26px 0 22px">
+<button style="height:64px;padding:0 28px;border-radius:32px;background:#fff;color:#24124F;font-size:17px;font-weight:900;box-shadow:0 8px 18px rgba(36,18,79,.12)">Pas cette fois</button>
+<button style="height:72px;padding:0 32px;border-radius:36px;background:#5B2EE0;color:#fff;font-size:19px;font-weight:900;box-shadow:0 10px 22px rgba(91,46,224,.35)">Je viens !</button>
+</div>
+</div></template>
+<template id="t-F-Partie"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#EFE9FF;color:#24124F;font-family:Nunito,sans-serif;display:flex;flex-direction:column">
+<header style="background:#fff;border-radius:0 0 36px 36px;padding:14px 18px 18px;box-shadow:0 8px 24px rgba(36,18,79,.1);display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:12px">
+<button aria-label="Retour" style="width:48px;height:48px;border-radius:50%;background:#EFE9FF;color:#24124F;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+<span aria-hidden="true" style="width:52px;height:52px;border-radius:20px;background:#FFD84D;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900">Sp</span>
+<div style="flex:1;min-width:0">
+<h1 style="margin:0;font-size:20px;font-weight:900">Spikeball</h1>
+<p style="margin:0;font-size:14px;font-weight:800;color:#5B2EE0">17:45 · Cinquantenaire</p>
+</div>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<div aria-hidden="true" style="display:flex">
+<span style="width:44px;height:44px;border-radius:50%;background:#5B2EE0;color:#fff;font-size:16px;font-weight:900;display:flex;align-items:center;justify-content:center;border:3px solid #fff">L</span>
+<span style="width:44px;height:44px;border-radius:50%;background:#FF6FA5;font-size:16px;font-weight:900;display:flex;align-items:center;justify-content:center;border:3px solid #fff;margin-left:-10px">S</span>
+<span style="width:44px;height:44px;border-radius:50%;background:#8FD3FF;font-size:16px;font-weight:900;display:flex;align-items:center;justify-content:center;border:3px solid #fff;margin-left:-10px">M</span>
+<span style="width:44px;height:44px;border-radius:50%;border:3px dashed #A89BD6;box-sizing:border-box;background:#fff;margin-left:-10px"></span>
+</div>
+<p style="margin:0;font-size:14px;font-weight:800">3 sur 4 · encore 1 place</p>
+<button style="height:44px;padding:0 16px;border-radius:22px;background:#24124F;color:#fff;font-size:14px;font-weight:800">Inviter</button>
+</div>
+</header>
+
+<div style="flex:1;padding:16px 18px;display:flex;flex-direction:column;gap:12px;justify-content:flex-end">
+<div style="display:flex;gap:8px;align-items:flex-end;max-width:84%">
+<span aria-hidden="true" style="flex:none;width:32px;height:32px;border-radius:50%;background:#5B2EE0;color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center">L</span>
+<p style="margin:0;padding:12px 16px;border-radius:24px 24px 24px 6px;background:#fff;font-size:15px;font-weight:600;line-height:1.35">On a le filet, rendez-vous près des arcades.</p>
+</div>
+<div style="display:flex;gap:8px;align-items:flex-end;max-width:84%">
+<span aria-hidden="true" style="flex:none;width:32px;height:32px;border-radius:50%;background:#FF6FA5;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center">S</span>
+<p style="margin:0;padding:12px 16px;border-radius:24px 24px 24px 6px;background:#fff;font-size:15px;font-weight:600;line-height:1.35">J’amène de l’eau pour tout le monde.</p>
+</div>
+<p style="margin:0;align-self:flex-end;max-width:80%;padding:12px 16px;border-radius:24px 24px 6px 24px;background:#5B2EE0;color:#fff;font-size:15px;font-weight:600;line-height:1.35">Parfait, j’arrive à 17h40 !</p>
+</div>
+
+<div style="display:flex;gap:8px;padding:0 18px 10px;flex-wrap:wrap">
+<button style="height:44px;padding:0 16px;border-radius:22px;background:#FFD84D;color:#24124F;font-size:14px;font-weight:800">J’arrive !</button>
+<button style="height:44px;padding:0 16px;border-radius:22px;background:#FF9CC2;color:#24124F;font-size:14px;font-weight:800">5 min de retard</button>
+<button style="height:44px;padding:0 16px;border-radius:22px;background:#8FD3FF;color:#24124F;font-size:14px;font-weight:800">J’ai le matériel</button>
+</div>
+<form style="display:flex;gap:8px;padding:4px 18px 20px">
+<label style="flex:1;display:flex"><span style="position:absolute;left:-9999px">Message au groupe</span><input placeholder="Écris un petit mot…" style="flex:1;min-width:0;height:56px;padding:0 20px;border-radius:28px;border:0;background:#fff;font:inherit;font-size:16px;font-weight:600;color:#24124F;box-sizing:border-box"></label>
+<button type="button" aria-label="Envoyer" style="width:56px;height:56px;border-radius:50%;background:#5B2EE0;color:#fff;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+</form>
+</div></template>
+<template id="t-G-Carte"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#fff;color:#111;font-family:Newsreader,serif;display:flex;flex-direction:column">
+<header style="padding:16px 20px 12px;border-bottom:3px double #111">
+<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px;letter-spacing:.12em;font-family:Fraunces,serif;font-weight:600">
+<span>SAMEDI 14 NOVEMBRE</span><span>IXELLES · 15 KM</span>
+</div>
+<h1 style="margin:8px 0 0;font-family:Fraunces,serif;font-weight:800;font-size:40px;letter-spacing:-.03em;line-height:1">Le Partant</h1>
+<p style="margin:4px 0 0;font-size:16px;font-style:italic;color:#444">Neuf parties ouvertes ce soir près de chez vous.</p>
+</header>
+
+<div style="position:relative;height:190px;overflow:hidden;border-bottom:1px solid #111">
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzOTAgODQ0IiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSI+CjxyZWN0IHdpZHRoPSIzOTAiIGhlaWdodD0iODQ0IiBmaWxsPSIjRTlFQUVDIi8+CjxwYXRoIGQ9Ik0tMTAgNzAgMTIwIDQwIDE1MiAxNjggNDQgMjE0LTEwIDE5NloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTIzNiAyODYgMzcyIDI2MiA0MDAgNDEwIDI2MiA0NDJaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0zNiA1NTYgMTY4IDUyOCAxOTggNjc2IDcwIDcxNloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTI4NCA2MzYgNDAwIDYxNiA0MDAgNzU2IDMwMCA3NzhaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0xNTAgMzcycTMyLTIyIDUyIDEwIDIwIDQyLTEyIDcyLTQwIDIwLTUwLTIyLTEwLTQwIDEwLTYwWiIgZmlsbD0iI0JBRDdFQSIvPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxnIHN0cm9rZS13aWR0aD0iNSI+CjxwYXRoIGQ9Ik02MC0xMCA4NCAyNTBNMTMwLTEwIDE1MCAyNDBNMjkwLTEwIDMwMCAyMDBNMzUwLTEwIDM1NiAxOTAiLz4KPHBhdGggZD0iTS0xMCAxMjAgMjAwIDk2IDQwMCA2ME0tMTAgMzMwIDIyMCAyOTBNLTEwIDQyMCAxNTAgNDAwIi8+CjxwYXRoIGQ9Ik0yMCAyNTAgNDAgNTAwTTEwMCAyNDUgMTE4IDUwOE0zMDAgMTk2IDMyMCA0ODRNMjUwIDMwMCAyNDQgNDcwIi8+CjxwYXRoIGQ9Ik0tMTAgNjEwIDE5MCA1OTAgNDAwIDU0ME0tMTAgNjkwIDYwIDcwME0yMDAgNjkwIDQwMCA2NjAiLz4KPHBhdGggZD0iTTYwIDUyMCA5MCA4NjBNMTQwIDUyNCAxNzAgODYwTTI0MCA1NjAgMjUwIDg2ME0zMzAgNTAwIDM1MCA4NjAiLz4KPHBhdGggZD0iTS0xMCA4MjAgNDAwIDgwMCIvPgo8L2c+CjxwYXRoIGQ9Ik0tMTAgMjUwIDQwMCAxODAiIHN0cm9rZS13aWR0aD0iMTQiLz4KPHBhdGggZD0iTTIwMC0xMCAyMzAgMzAwIDE4MCA1MjAgMjYwIDg2MCIgc3Ryb2tlLXdpZHRoPSIxNCIvPgo8cGF0aCBkPSJNLTEwIDUwMCAxODAgNTIwIDQwMCA0ODAiIHN0cm9rZS13aWR0aD0iMTIiLz4KPHBhdGggZD0iTS0xMCA3NjAgNDAwIDYwMCIgc3Ryb2tlLXdpZHRoPSIxMCIvPgo8L2c+Cjwvc3ZnPgo=" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.1) brightness(1.05)">
+<button aria-label="Partie A, Course à pied" style="position:absolute;left:44px;top:20px;width:44px;height:44px;border-radius:50%;background:#fff;color:#111;border:1.5px solid #111;font-family:Fraunces,serif;font-weight:800;font-size:18px">A</button>
+<button aria-label="Partie B, Spikeball" style="position:absolute;left:250px;top:78px;width:44px;height:44px;border-radius:50%;background:#C8102E;color:#fff;border:1.5px solid #111;font-family:Fraunces,serif;font-weight:800;font-size:18px">B</button>
+<button aria-label="Partie C, Basket" style="position:absolute;left:316px;top:14px;width:44px;height:44px;border-radius:50%;background:#fff;color:#111;border:1.5px solid #111;font-family:Fraunces,serif;font-weight:800;font-size:18px">C</button>
+<button aria-label="Partie D, Ping-pong" style="position:absolute;left:96px;top:128px;width:44px;height:44px;border-radius:50%;background:#fff;color:#111;border:1.5px solid #111;font-family:Fraunces,serif;font-weight:800;font-size:18px">D</button>
+<button style="position:absolute;right:12px;bottom:12px;height:44px;padding:0 14px;background:#111;color:#fff;font-family:Fraunces,serif;font-weight:600;font-size:13px;letter-spacing:.08em">AGRANDIR LA CARTE</button>
+</div>
+
+<div style="flex:1;padding:0 20px;display:flex;flex-direction:column">
+
+<button style="display:flex;gap:14px;padding:13px 0;background:none;color:#111;text-align:left;border-bottom:1px solid #D0D0D0;align-items:flex-start">
+<span style="flex:none;width:58px;font-family:Fraunces,serif;font-weight:800;font-size:22px;line-height:1.1">17:30</span>
+<span style="flex:1;min-width:0">
+<span style="display:block;font-family:Fraunces,serif;font-weight:600;font-size:11px;letter-spacing:.14em;color:#B00D27">A · COURSE À PIED · 1,0 KM</span>
+<span style="display:block;font-family:Fraunces,serif;font-weight:800;font-size:19px;letter-spacing:-.01em;line-height:1.2">Cinq kilomètres à allure causette</span>
+<span style="display:block;font-size:15px;color:#444;margin-top:2px">Parc Royal · 1 inscrit sur 4</span>
+</span>
+</button>
+
+<button style="display:flex;gap:14px;padding:13px 0;background:none;color:#111;text-align:left;border-bottom:1px solid #D0D0D0;align-items:flex-start">
+<span style="flex:none;width:58px;font-family:Fraunces,serif;font-weight:800;font-size:22px;line-height:1.1">17:45</span>
+<span style="flex:1;min-width:0">
+<span style="display:block;font-family:Fraunces,serif;font-weight:600;font-size:11px;letter-spacing:.14em;color:#B00D27">B · SPIKEBALL · 1,3 KM</span>
+<span style="display:block;font-family:Fraunces,serif;font-weight:800;font-size:19px;letter-spacing:-.01em;line-height:1.2">Deux places au Cinquantenaire</span>
+<span style="display:block;font-size:15px;color:#444;margin-top:2px">Léa a le filet · tous niveaux</span>
+</span>
+</button>
+
+<button style="display:flex;gap:14px;padding:13px 0;background:none;color:#111;text-align:left;border-bottom:1px solid #D0D0D0;align-items:flex-start">
+<span style="flex:none;width:58px;font-family:Fraunces,serif;font-weight:800;font-size:22px;line-height:1.1">18:30</span>
+<span style="flex:1;min-width:0">
+<span style="display:block;font-family:Fraunces,serif;font-weight:600;font-size:11px;letter-spacing:.14em;color:#B00D27">C · BASKET · 4,4 KM</span>
+<span style="display:block;font-family:Fraunces,serif;font-weight:800;font-size:19px;letter-spacing:-.01em;line-height:1.2">Trois contre trois au parc Élisabeth</span>
+<span style="display:block;font-size:15px;color:#444;margin-top:2px">3 inscrits sur 6</span>
+</span>
+</button>
+
+<button style="display:flex;gap:14px;padding:13px 0;background:none;color:#111;text-align:left;border-bottom:1px solid #D0D0D0;align-items:flex-start">
+<span style="flex:none;width:58px;font-family:Fraunces,serif;font-weight:800;font-size:22px;line-height:1.1">19:00</span>
+<span style="flex:1;min-width:0">
+<span style="display:block;font-family:Fraunces,serif;font-weight:600;font-size:11px;letter-spacing:.14em;color:#B00D27">D · PING-PONG · 600 M</span>
+<span style="display:block;font-family:Fraunces,serif;font-weight:800;font-size:19px;letter-spacing:-.01em;line-height:1.2">Un adversaire cherché place Flagey</span>
+<span style="display:block;font-size:15px;color:#444;margin-top:2px">Niveau confirmé · raquette prêtée</span>
+</span>
+</button>
+
+</div>
+
+<nav style="height:64px;display:flex;border-top:3px double #111;font-family:Fraunces,serif;font-size:14px;letter-spacing:.06em">
+<button style="flex:1;background:#111;color:#fff;font-weight:800">À la une</button>
+<button style="flex:1;background:none;color:#111;font-weight:600">Swipe</button>
+<button style="flex:1;background:none;color:#111;font-weight:600">Parties</button>
+<button style="flex:1;background:none;color:#111;font-weight:600">Proposer</button>
+</nav>
+</div></template>
+<template id="t-G-Swipe"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#fff;color:#111;font-family:Newsreader,serif;display:flex;flex-direction:column">
+<header style="padding:16px 20px 12px;border-bottom:3px double #111;display:flex;justify-content:space-between;align-items:baseline">
+<h1 style="margin:0;font-family:Fraunces,serif;font-weight:800;font-size:24px;letter-spacing:-.02em">Le Partant</h1>
+<span style="font-family:Fraunces,serif;font-weight:600;font-size:12px;letter-spacing:.12em">PAGE 2 SUR 9</span>
+</header>
+
+<article style="flex:1;padding:22px 20px 0;display:flex;flex-direction:column;gap:14px">
+<p style="margin:0;font-family:Fraunces,serif;font-weight:600;font-size:12px;letter-spacing:.14em;color:#B00D27">SPIKEBALL · À 1,3 KM · DANS 45 MIN</p>
+<h2 style="margin:0;font-family:Fraunces,serif;font-weight:800;font-size:46px;letter-spacing:-.035em;line-height:.98">Deux places à prendre au Cinquantenaire</h2>
+<p style="margin:0;font-size:19px;line-height:1.4;color:#333">Léa et Sam montent le filet à 17 h 45 près des arcades. Tous niveaux, il manque deux joueurs pour lancer la partie.</p>
+<blockquote style="margin:4px 0 0;padding:14px 0;border-top:1px solid #111;border-bottom:1px solid #111;font-size:22px;font-style:italic;line-height:1.3">« On a le filet, ramène juste de l’eau. »<span style="display:block;margin-top:6px;font-family:Fraunces,serif;font-style:normal;font-weight:600;font-size:12px;letter-spacing:.12em">— LÉA, ORGANISATRICE</span></blockquote>
+<dl style="margin:0;display:flex;gap:0;text-align:left">
+<div style="flex:1;padding-right:10px;border-right:1px solid #D0D0D0"><dt style="font-family:Fraunces,serif;font-weight:600;font-size:11px;letter-spacing:.14em;color:#555">HEURE</dt><dd style="margin:2px 0 0;font-family:Fraunces,serif;font-weight:800;font-size:24px">17:45</dd></div>
+<div style="flex:1;padding:0 10px;border-right:1px solid #D0D0D0"><dt style="font-family:Fraunces,serif;font-weight:600;font-size:11px;letter-spacing:.14em;color:#555">JOUEURS</dt><dd style="margin:2px 0 0;font-family:Fraunces,serif;font-weight:800;font-size:24px">2 / 4</dd></div>
+<div style="flex:1.300;padding-left:10px"><dt style="font-family:Fraunces,serif;font-weight:600;font-size:11px;letter-spacing:.14em;color:#555">NIVEAU</dt><dd style="margin:2px 0 0;font-family:Fraunces,serif;font-weight:800;font-size:24px">Tous</dd></div>
+</dl>
+</article>
+
+<div style="padding:16px 20px 18px;display:flex;flex-direction:column;gap:6px">
+<button style="height:58px;background:#C8102E;color:#fff;font-family:Fraunces,serif;font-weight:800;font-size:19px;letter-spacing:-.01em">J’en suis →</button>
+<button style="height:48px;background:none;color:#111;font-size:17px;font-style:italic;text-decoration:underline;text-underline-offset:4px">Tourner la page</button>
+</div>
+
+<nav style="height:64px;display:flex;border-top:3px double #111;font-family:Fraunces,serif;font-size:14px;letter-spacing:.06em">
+<button style="flex:1;background:none;color:#111;font-weight:600">À la une</button>
+<button style="flex:1;background:#111;color:#fff;font-weight:800">Swipe</button>
+<button style="flex:1;background:none;color:#111;font-weight:600">Parties</button>
+<button style="flex:1;background:none;color:#111;font-weight:600">Proposer</button>
+</nav>
+</div></template>
+<template id="t-G-Partie"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#fff;color:#111;font-family:Newsreader,serif;display:flex;flex-direction:column">
+<header style="padding:8px 20px 16px;border-bottom:3px double #111">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<button style="height:44px;padding:0;background:none;color:#111;font-size:16px;font-style:italic;text-decoration:underline;text-underline-offset:4px">← Mes parties</button>
+<button style="height:44px;padding:0;background:none;color:#B00D27;font-size:16px;font-style:italic;text-decoration:underline;text-underline-offset:4px">Itinéraire</button>
+</div>
+<p style="margin:6px 0 0;font-family:Fraunces,serif;font-weight:600;font-size:12px;letter-spacing:.14em;color:#B00D27">CE SOIR, 17:45 · DANS 45 MIN</p>
+<h1 style="margin:4px 0 0;font-family:Fraunces,serif;font-weight:800;font-size:34px;letter-spacing:-.03em;line-height:1">Spikeball au Cinquantenaire</h1>
+<p style="margin:8px 0 0;font-size:17px;color:#333">Avec <strong style="font-weight:600">Léa</strong> (organisatrice), <strong style="font-weight:600">Sam</strong> et <strong style="font-weight:600">toi</strong>. Reste une place.</p>
+</header>
+
+<div style="flex:1;padding:6px 20px 0;display:flex;flex-direction:column;justify-content:flex-end">
+<p style="margin:0 0 2px;font-family:Fraunces,serif;font-weight:600;font-size:12px;letter-spacing:.14em;color:#555">LE COURRIER DES JOUEURS</p>
+
+<div style="padding:14px 0;border-top:1px solid #D0D0D0">
+<p style="margin:0;font-size:19px;line-height:1.35">On a le filet, rendez-vous près des arcades.</p>
+<p style="margin:5px 0 0;font-family:Fraunces,serif;font-weight:600;font-size:12px;letter-spacing:.12em;color:#555">— LÉA, 16 H 52</p>
+</div>
+
+<div style="padding:14px 0;border-top:1px solid #D0D0D0">
+<p style="margin:0;font-size:19px;line-height:1.35">J’amène de l’eau pour tout le monde.</p>
+<p style="margin:5px 0 0;font-family:Fraunces,serif;font-weight:600;font-size:12px;letter-spacing:.12em;color:#555">— SAM, 16 H 55</p>
+</div>
+
+<div style="padding:14px 0;border-top:1px solid #D0D0D0">
+<p style="margin:0;font-size:19px;line-height:1.35">Parfait, j’arrive à 17h40 !</p>
+<p style="margin:5px 0 0;font-family:Fraunces,serif;font-weight:600;font-size:12px;letter-spacing:.12em;color:#555">— TOI, 16 H 58</p>
+</div>
+
+</div>
+
+<form style="padding:14px 20px 20px;border-top:1px solid #111;display:flex;flex-direction:column;gap:10px">
+<label style="display:flex;flex-direction:column;gap:6px;font-family:Fraunces,serif;font-weight:600;font-size:12px;letter-spacing:.14em;color:#555">VOTRE MOT AU GROUPE<input placeholder="Écrire ici…" style="height:48px;padding:0;border:0;border-bottom:1.5px solid #111;background:none;font-family:Newsreader,serif;font-size:19px;font-style:italic;color:#111;letter-spacing:0"></label>
+<div style="display:flex;gap:10px">
+<button type="button" style="flex:1;height:50px;background:none;border:1.5px solid #111;color:#111;font-family:Fraunces,serif;font-weight:600;font-size:15px">Quitter la partie</button>
+<button type="button" style="flex:1;height:50px;background:#111;color:#fff;font-family:Fraunces,serif;font-weight:800;font-size:15px">Envoyer</button>
+</div>
+</form>
+</div></template>
+<template id="t-H-Carte"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#DCE6E8;color:#0E1F26;font-family:Manrope,sans-serif">
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzOTAgODQ0IiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSI+CjxyZWN0IHdpZHRoPSIzOTAiIGhlaWdodD0iODQ0IiBmaWxsPSIjRTlFQUVDIi8+CjxwYXRoIGQ9Ik0tMTAgNzAgMTIwIDQwIDE1MiAxNjggNDQgMjE0LTEwIDE5NloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTIzNiAyODYgMzcyIDI2MiA0MDAgNDEwIDI2MiA0NDJaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0zNiA1NTYgMTY4IDUyOCAxOTggNjc2IDcwIDcxNloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTI4NCA2MzYgNDAwIDYxNiA0MDAgNzU2IDMwMCA3NzhaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0xNTAgMzcycTMyLTIyIDUyIDEwIDIwIDQyLTEyIDcyLTQwIDIwLTUwLTIyLTEwLTQwIDEwLTYwWiIgZmlsbD0iI0JBRDdFQSIvPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxnIHN0cm9rZS13aWR0aD0iNSI+CjxwYXRoIGQ9Ik02MC0xMCA4NCAyNTBNMTMwLTEwIDE1MCAyNDBNMjkwLTEwIDMwMCAyMDBNMzUwLTEwIDM1NiAxOTAiLz4KPHBhdGggZD0iTS0xMCAxMjAgMjAwIDk2IDQwMCA2ME0tMTAgMzMwIDIyMCAyOTBNLTEwIDQyMCAxNTAgNDAwIi8+CjxwYXRoIGQ9Ik0yMCAyNTAgNDAgNTAwTTEwMCAyNDUgMTE4IDUwOE0zMDAgMTk2IDMyMCA0ODRNMjUwIDMwMCAyNDQgNDcwIi8+CjxwYXRoIGQ9Ik0tMTAgNjEwIDE5MCA1OTAgNDAwIDU0ME0tMTAgNjkwIDYwIDcwME0yMDAgNjkwIDQwMCA2NjAiLz4KPHBhdGggZD0iTTYwIDUyMCA5MCA4NjBNMTQwIDUyNCAxNzAgODYwTTI0MCA1NjAgMjUwIDg2ME0zMzAgNTAwIDM1MCA4NjAiLz4KPHBhdGggZD0iTS0xMCA4MjAgNDAwIDgwMCIvPgo8L2c+CjxwYXRoIGQ9Ik0tMTAgMjUwIDQwMCAxODAiIHN0cm9rZS13aWR0aD0iMTQiLz4KPHBhdGggZD0iTTIwMC0xMCAyMzAgMzAwIDE4MCA1MjAgMjYwIDg2MCIgc3Ryb2tlLXdpZHRoPSIxNCIvPgo8cGF0aCBkPSJNLTEwIDUwMCAxODAgNTIwIDQwMCA0ODAiIHN0cm9rZS13aWR0aD0iMTIiLz4KPHBhdGggZD0iTS0xMCA3NjAgNDAwIDYwMCIgc3Ryb2tlLXdpZHRoPSIxMCIvPgo8L2c+Cjwvc3ZnPgo=" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:hue-rotate(-12deg) saturate(1.15)">
+
+<div style="position:absolute;top:14px;left:14px;right:14px;padding:12px;border-radius:24px;background:rgba(255,255,255,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.9);box-shadow:0 8px 24px rgba(14,31,38,.12);display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px">
+<div>
+<p style="margin:0;font-size:12px;font-weight:700;color:#3F5560">Autour de toi</p>
+<h1 style="margin:0;font-size:19px;font-weight:800;letter-spacing:-.01em">Ixelles · 9 parties</h1>
+</div>
+<button aria-label="Proposer une partie" style="width:48px;height:48px;border-radius:50%;background:#0B7A75;color:#fff;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+</div>
+<div style="display:flex;gap:6px">
+<button style="flex:1;height:44px;border-radius:14px;background:#0E1F26;color:#fff;font-size:13px;font-weight:700">Maintenant</button>
+<button style="flex:1;height:44px;border-radius:14px;background:rgba(255,255,255,.7);color:#0E1F26;font-size:13px;font-weight:700">Ce soir</button>
+<button style="flex:1;height:44px;border-radius:14px;background:rgba(255,255,255,.7);color:#0E1F26;font-size:13px;font-weight:700">Demain</button>
+</div>
+</div>
+
+<button aria-label="Spikeball, sélectionné" style="position:absolute;left:228px;top:300px;width:60px;height:60px;border-radius:50%;background:#0B7A75;color:#fff;border:4px solid #fff;font-size:15px;font-weight:800;box-shadow:0 0 0 10px rgba(11,122,117,.2),0 8px 18px rgba(14,31,38,.3)">2/4</button>
+<button aria-label="Course à pied" style="position:absolute;left:44px;top:196px;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.85);color:#0E1F26;border:2px solid #fff;font-size:13px;font-weight:800;box-shadow:0 6px 14px rgba(14,31,38,.2)">1/4</button>
+<button aria-label="Ping-pong" style="position:absolute;left:84px;top:420px;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.85);color:#0E1F26;border:2px solid #fff;font-size:13px;font-weight:800;box-shadow:0 6px 14px rgba(14,31,38,.2)">1/2</button>
+<button aria-label="Basket" style="position:absolute;left:300px;top:186px;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.85);color:#0E1F26;border:2px solid #fff;font-size:13px;font-weight:800;box-shadow:0 6px 14px rgba(14,31,38,.2)">3/6</button>
+<span aria-hidden="true" style="position:absolute;left:184px;top:268px;width:18px;height:18px;border-radius:50%;background:#2563EB;border:3px solid #fff;box-shadow:0 0 0 8px rgba(37,99,235,.2)"></span>
+
+<article style="position:absolute;left:14px;right:14px;bottom:96px;padding:16px;border-radius:28px;background:rgba(255,255,255,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 30px rgba(14,31,38,.16);display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+<div>
+<h2 style="margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em">Spikeball</h2>
+<p style="margin:2px 0 0;font-size:14px;font-weight:500;color:#3F5560">Parc du Cinquantenaire · 6 min à vélo</p>
+</div>
+<span style="padding:6px 10px;border-radius:10px;background:#0E1F26;color:#fff;font-size:13px;font-weight:800;white-space:nowrap">45 min</span>
+</div>
+<p style="margin:0;font-size:14px;font-weight:500;line-height:1.4">Léa et Sam y sont · il manque 2 joueurs · tous niveaux</p>
+<div style="display:flex;gap:8px">
+<button style="flex:1;height:50px;border-radius:16px;background:rgba(255,255,255,.8);color:#0E1F26;font-size:15px;font-weight:700">Détails</button>
+<button style="flex:2;height:50px;border-radius:16px;background:#0B7A75;color:#fff;font-size:15px;font-weight:800">Je suis partant</button>
+</div>
+</article>
+
+<nav style="position:absolute;left:14px;right:14px;bottom:18px;height:64px;border-radius:24px;background:rgba(255,255,255,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.9);display:flex;padding:8px;gap:4px;box-sizing:border-box;font-size:14px;font-weight:700">
+<button style="flex:1;border-radius:16px;background:#0E1F26;color:#fff">Carte</button>
+<button style="flex:1;border-radius:16px;background:none;color:#0E1F26">Swipe</button>
+<button style="flex:1;border-radius:16px;background:none;color:#0E1F26">Parties</button>
+<button style="flex:1;border-radius:16px;background:none;color:#0E1F26">Profil</button>
+</nav>
+</div></template>
+<template id="t-H-Swipe"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#DCE6E8;color:#0E1F26;font-family:Manrope,sans-serif">
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzOTAgODQ0IiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSI+CjxyZWN0IHdpZHRoPSIzOTAiIGhlaWdodD0iODQ0IiBmaWxsPSIjRTlFQUVDIi8+CjxwYXRoIGQ9Ik0tMTAgNzAgMTIwIDQwIDE1MiAxNjggNDQgMjE0LTEwIDE5NloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTIzNiAyODYgMzcyIDI2MiA0MDAgNDEwIDI2MiA0NDJaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0zNiA1NTYgMTY4IDUyOCAxOTggNjc2IDcwIDcxNloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTI4NCA2MzYgNDAwIDYxNiA0MDAgNzU2IDMwMCA3NzhaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0xNTAgMzcycTMyLTIyIDUyIDEwIDIwIDQyLTEyIDcyLTQwIDIwLTUwLTIyLTEwLTQwIDEwLTYwWiIgZmlsbD0iI0JBRDdFQSIvPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxnIHN0cm9rZS13aWR0aD0iNSI+CjxwYXRoIGQ9Ik02MC0xMCA4NCAyNTBNMTMwLTEwIDE1MCAyNDBNMjkwLTEwIDMwMCAyMDBNMzUwLTEwIDM1NiAxOTAiLz4KPHBhdGggZD0iTS0xMCAxMjAgMjAwIDk2IDQwMCA2ME0tMTAgMzMwIDIyMCAyOTBNLTEwIDQyMCAxNTAgNDAwIi8+CjxwYXRoIGQ9Ik0yMCAyNTAgNDAgNTAwTTEwMCAyNDUgMTE4IDUwOE0zMDAgMTk2IDMyMCA0ODRNMjUwIDMwMCAyNDQgNDcwIi8+CjxwYXRoIGQ9Ik0tMTAgNjEwIDE5MCA1OTAgNDAwIDU0ME0tMTAgNjkwIDYwIDcwME0yMDAgNjkwIDQwMCA2NjAiLz4KPHBhdGggZD0iTTYwIDUyMCA5MCA4NjBNMTQwIDUyNCAxNzAgODYwTTI0MCA1NjAgMjUwIDg2ME0zMzAgNTAwIDM1MCA4NjAiLz4KPHBhdGggZD0iTS0xMCA4MjAgNDAwIDgwMCIvPgo8L2c+CjxwYXRoIGQ9Ik0tMTAgMjUwIDQwMCAxODAiIHN0cm9rZS13aWR0aD0iMTQiLz4KPHBhdGggZD0iTTIwMC0xMCAyMzAgMzAwIDE4MCA1MjAgMjYwIDg2MCIgc3Ryb2tlLXdpZHRoPSIxNCIvPgo8cGF0aCBkPSJNLTEwIDUwMCAxODAgNTIwIDQwMCA0ODAiIHN0cm9rZS13aWR0aD0iMTIiLz4KPHBhdGggZD0iTS0xMCA3NjAgNDAwIDYwMCIgc3Ryb2tlLXdpZHRoPSIxMCIvPgo8L2c+Cjwvc3ZnPgo=" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:hue-rotate(-12deg) saturate(1.15)">
+
+<svg aria-hidden="true" width="390" height="360" viewBox="0 0 390 360" style="position:absolute;left:0;top:0" fill="none"><path d="M96 286 L150 250 L200 236 L226 150 L262 120" stroke="#0B7A75" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 12"/></svg>
+<span aria-hidden="true" style="position:absolute;left:86px;top:276px;width:18px;height:18px;border-radius:50%;background:#2563EB;border:3px solid #fff;box-shadow:0 0 0 8px rgba(37,99,235,.2)"></span>
+<span aria-hidden="true" style="position:absolute;left:234px;top:92px;width:56px;height:56px;border-radius:50%;background:#0B7A75;border:4px solid #fff;box-shadow:0 0 0 10px rgba(11,122,117,.2);color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;box-sizing:border-box">2/4</span>
+
+<div style="position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center">
+<span style="height:44px;padding:0 16px;border-radius:22px;background:rgba(255,255,255,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.9);font-size:13px;font-weight:700;display:flex;align-items:center">2 sur 9</span>
+<span style="height:44px;padding:0 16px;border-radius:22px;background:rgba(255,255,255,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.9);font-size:13px;font-weight:700;display:flex;align-items:center">1,3 km · 6 min à vélo</span>
+</div>
+
+<article style="position:absolute;left:14px;right:14px;bottom:96px;padding:20px;border-radius:32px;background:rgba(255,255,255,.76);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid rgba(255,255,255,.9);box-shadow:0 14px 36px rgba(14,31,38,.2);display:flex;flex-direction:column;gap:14px">
+<div aria-hidden="true" style="width:40px;height:5px;border-radius:3px;background:rgba(14,31,38,.25);align-self:center"></div>
+<div>
+<p style="margin:0;font-size:13px;font-weight:800;color:#0A5F5B">DANS 45 MIN · DANS TES SPORTS</p>
+<h1 style="margin:4px 0 0;font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.05">Spikeball</h1>
+<p style="margin:4px 0 0;font-size:16px;font-weight:500;color:#3F5560">Parc du Cinquantenaire</p>
+</div>
+<div style="display:flex;gap:8px">
+<div style="flex:1;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.75)"><div style="font-size:11px;font-weight:700;color:#3F5560">Heure</div><div style="font-size:17px;font-weight:800">17:45</div></div>
+<div style="flex:1;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.75)"><div style="font-size:11px;font-weight:700;color:#3F5560">Joueurs</div><div style="font-size:17px;font-weight:800">2 sur 4</div></div>
+<div style="flex:1.200;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.75)"><div style="font-size:11px;font-weight:700;color:#3F5560">Niveau</div><div style="font-size:17px;font-weight:800">Tous</div></div>
+</div>
+<p style="margin:0;font-size:15px;font-weight:500;line-height:1.45"><strong style="font-weight:800">Léa :</strong> on a le filet, ramène juste de l’eau.</p>
+<div style="display:flex;gap:10px">
+<button aria-label="Passer" style="width:60px;height:60px;border-radius:20px;background:rgba(255,255,255,.85);color:#0E1F26;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+<button style="flex:1;height:60px;border-radius:20px;background:#0B7A75;color:#fff;font-size:17px;font-weight:800">Je suis partant</button>
+</div>
+</article>
+
+<nav style="position:absolute;left:14px;right:14px;bottom:18px;height:64px;border-radius:24px;background:rgba(255,255,255,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.9);display:flex;padding:8px;gap:4px;box-sizing:border-box;font-size:14px;font-weight:700">
+<button style="flex:1;border-radius:16px;background:none;color:#0E1F26">Carte</button>
+<button style="flex:1;border-radius:16px;background:#0E1F26;color:#fff">Swipe</button>
+<button style="flex:1;border-radius:16px;background:none;color:#0E1F26">Parties</button>
+<button style="flex:1;border-radius:16px;background:none;color:#0E1F26">Profil</button>
+</nav>
+</div></template>
+<template id="t-H-Partie"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#DCE6E8;color:#0E1F26;font-family:Manrope,sans-serif">
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzOTAgODQ0IiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSI+CjxyZWN0IHdpZHRoPSIzOTAiIGhlaWdodD0iODQ0IiBmaWxsPSIjRTlFQUVDIi8+CjxwYXRoIGQ9Ik0tMTAgNzAgMTIwIDQwIDE1MiAxNjggNDQgMjE0LTEwIDE5NloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTIzNiAyODYgMzcyIDI2MiA0MDAgNDEwIDI2MiA0NDJaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0zNiA1NTYgMTY4IDUyOCAxOTggNjc2IDcwIDcxNloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTI4NCA2MzYgNDAwIDYxNiA0MDAgNzU2IDMwMCA3NzhaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0xNTAgMzcycTMyLTIyIDUyIDEwIDIwIDQyLTEyIDcyLTQwIDIwLTUwLTIyLTEwLTQwIDEwLTYwWiIgZmlsbD0iI0JBRDdFQSIvPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxnIHN0cm9rZS13aWR0aD0iNSI+CjxwYXRoIGQ9Ik02MC0xMCA4NCAyNTBNMTMwLTEwIDE1MCAyNDBNMjkwLTEwIDMwMCAyMDBNMzUwLTEwIDM1NiAxOTAiLz4KPHBhdGggZD0iTS0xMCAxMjAgMjAwIDk2IDQwMCA2ME0tMTAgMzMwIDIyMCAyOTBNLTEwIDQyMCAxNTAgNDAwIi8+CjxwYXRoIGQ9Ik0yMCAyNTAgNDAgNTAwTTEwMCAyNDUgMTE4IDUwOE0zMDAgMTk2IDMyMCA0ODRNMjUwIDMwMCAyNDQgNDcwIi8+CjxwYXRoIGQ9Ik0tMTAgNjEwIDE5MCA1OTAgNDAwIDU0ME0tMTAgNjkwIDYwIDcwME0yMDAgNjkwIDQwMCA2NjAiLz4KPHBhdGggZD0iTTYwIDUyMCA5MCA4NjBNMTQwIDUyNCAxNzAgODYwTTI0MCA1NjAgMjUwIDg2ME0zMzAgNTAwIDM1MCA4NjAiLz4KPHBhdGggZD0iTS0xMCA4MjAgNDAwIDgwMCIvPgo8L2c+CjxwYXRoIGQ9Ik0tMTAgMjUwIDQwMCAxODAiIHN0cm9rZS13aWR0aD0iMTQiLz4KPHBhdGggZD0iTTIwMC0xMCAyMzAgMzAwIDE4MCA1MjAgMjYwIDg2MCIgc3Ryb2tlLXdpZHRoPSIxNCIvPgo8cGF0aCBkPSJNLTEwIDUwMCAxODAgNTIwIDQwMCA0ODAiIHN0cm9rZS13aWR0aD0iMTIiLz4KPHBhdGggZD0iTS0xMCA3NjAgNDAwIDYwMCIgc3Ryb2tlLXdpZHRoPSIxMCIvPgo8L2c+Cjwvc3ZnPgo=" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:hue-rotate(-12deg) saturate(1.15)">
+<svg aria-hidden="true" width="390" height="300" viewBox="0 0 390 300" style="position:absolute;left:0;top:0" fill="none"><path d="M90 250 L150 236 L200 226 L226 150 L262 126" stroke="#0B7A75" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<span aria-hidden="true" style="position:absolute;left:80px;top:240px;width:18px;height:18px;border-radius:50%;background:#2563EB;border:3px solid #fff"></span>
+<span aria-hidden="true" style="position:absolute;left:250px;top:112px;width:26px;height:26px;border-radius:50%;background:#0B7A75;border:4px solid #fff;box-shadow:0 0 0 8px rgba(11,122,117,.2)"></span>
+
+<div style="position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center">
+<button aria-label="Retour" style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.76);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.9);color:#0E1F26;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+<span style="height:48px;padding:0 16px;border-radius:24px;background:#0E1F26;color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center">6 min à vélo · pars à 17:35</span>
+</div>
+
+<section style="position:absolute;left:0;right:0;top:290px;bottom:0;border-radius:32px 32px 0 0;background:rgba(255,255,255,.8);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-top:1px solid rgba(255,255,255,.95);box-shadow:0 -10px 30px rgba(14,31,38,.14);padding:18px 16px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:0 4px">
+<div>
+<h1 style="margin:0;font-size:24px;font-weight:800;letter-spacing:-.02em">Spikeball · 17:45</h1>
+<p style="margin:2px 0 0;font-size:14px;font-weight:500;color:#3F5560">Parc du Cinquantenaire · 3 sur 4</p>
+</div>
+<div aria-hidden="true" style="display:flex">
+<span style="width:36px;height:36px;border-radius:50%;background:#0B7A75;color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff">L</span>
+<span style="width:36px;height:36px;border-radius:50%;background:#0E1F26;color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-8px">S</span>
+<span style="width:36px;height:36px;border-radius:50%;background:#2563EB;color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-8px">M</span>
+</div>
+</div>
+
+<div style="flex:1;display:flex;flex-direction:column;gap:10px;justify-content:flex-end">
+<div style="align-self:flex-start;max-width:80%;padding:11px 14px;border-radius:20px 20px 20px 6px;background:rgba(255,255,255,.9);font-size:15px;font-weight:500;line-height:1.4"><span style="display:block;font-size:12px;font-weight:800;color:#0A5F5B">Léa</span>On a le filet, rendez-vous près des arcades.</div>
+<div style="align-self:flex-start;max-width:80%;padding:11px 14px;border-radius:20px 20px 20px 6px;background:rgba(255,255,255,.9);font-size:15px;font-weight:500;line-height:1.4"><span style="display:block;font-size:12px;font-weight:800;color:#0A5F5B">Sam</span>J’amène de l’eau pour tout le monde.</div>
+<div style="align-self:flex-end;max-width:80%;padding:11px 14px;border-radius:20px 20px 6px 20px;background:#0B7A75;color:#fff;font-size:15px;font-weight:500;line-height:1.4">Parfait, j’arrive à 17h40 !</div>
+</div>
+
+<form style="display:flex;gap:8px">
+<label style="flex:1;display:flex"><span style="position:absolute;left:-9999px">Message au groupe</span><input placeholder="Message au groupe…" style="flex:1;min-width:0;height:54px;padding:0 18px;border-radius:18px;border:1px solid rgba(14,31,38,.12);background:rgba(255,255,255,.9);font:inherit;font-size:15px;font-weight:500;color:#0E1F26;box-sizing:border-box"></label>
+<button type="button" style="height:54px;padding:0 20px;border-radius:18px;background:#0E1F26;color:#fff;font-size:15px;font-weight:800">Envoyer</button>
+</form>
+</section>
+</div></template>
+<template id="t-I-Carte"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#F4F6F8;color:#0F1B2D;font-family:'IBM Plex Sans',sans-serif;display:flex;flex-direction:column">
+<div style="position:relative;height:268px;overflow:hidden">
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzOTAgODQ0IiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSI+CjxyZWN0IHdpZHRoPSIzOTAiIGhlaWdodD0iODQ0IiBmaWxsPSIjRTlFQUVDIi8+CjxwYXRoIGQ9Ik0tMTAgNzAgMTIwIDQwIDE1MiAxNjggNDQgMjE0LTEwIDE5NloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTIzNiAyODYgMzcyIDI2MiA0MDAgNDEwIDI2MiA0NDJaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0zNiA1NTYgMTY4IDUyOCAxOTggNjc2IDcwIDcxNloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTI4NCA2MzYgNDAwIDYxNiA0MDAgNzU2IDMwMCA3NzhaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0xNTAgMzcycTMyLTIyIDUyIDEwIDIwIDQyLTEyIDcyLTQwIDIwLTUwLTIyLTEwLTQwIDEwLTYwWiIgZmlsbD0iI0JBRDdFQSIvPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxnIHN0cm9rZS13aWR0aD0iNSI+CjxwYXRoIGQ9Ik02MC0xMCA4NCAyNTBNMTMwLTEwIDE1MCAyNDBNMjkwLTEwIDMwMCAyMDBNMzUwLTEwIDM1NiAxOTAiLz4KPHBhdGggZD0iTS0xMCAxMjAgMjAwIDk2IDQwMCA2ME0tMTAgMzMwIDIyMCAyOTBNLTEwIDQyMCAxNTAgNDAwIi8+CjxwYXRoIGQ9Ik0yMCAyNTAgNDAgNTAwTTEwMCAyNDUgMTE4IDUwOE0zMDAgMTk2IDMyMCA0ODRNMjUwIDMwMCAyNDQgNDcwIi8+CjxwYXRoIGQ9Ik0tMTAgNjEwIDE5MCA1OTAgNDAwIDU0ME0tMTAgNjkwIDYwIDcwME0yMDAgNjkwIDQwMCA2NjAiLz4KPHBhdGggZD0iTTYwIDUyMCA5MCA4NjBNMTQwIDUyNCAxNzAgODYwTTI0MCA1NjAgMjUwIDg2ME0zMzAgNTAwIDM1MCA4NjAiLz4KPHBhdGggZD0iTS0xMCA4MjAgNDAwIDgwMCIvPgo8L2c+CjxwYXRoIGQ9Ik0tMTAgMjUwIDQwMCAxODAiIHN0cm9rZS13aWR0aD0iMTQiLz4KPHBhdGggZD0iTTIwMC0xMCAyMzAgMzAwIDE4MCA1MjAgMjYwIDg2MCIgc3Ryb2tlLXdpZHRoPSIxNCIvPgo8cGF0aCBkPSJNLTEwIDUwMCAxODAgNTIwIDQwMCA0ODAiIHN0cm9rZS13aWR0aD0iMTIiLz4KPHBhdGggZD0iTS0xMCA3NjAgNDAwIDYwMCIgc3Ryb2tlLXdpZHRoPSIxMCIvPgo8L2c+Cjwvc3ZnPgo=" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.6)">
+<button aria-label="Spikeball 17 h 45" style="position:absolute;left:236px;top:112px;height:44px;padding:0 10px;border-radius:6px;background:#0F1B2D;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600">17:45</button>
+<button aria-label="Course à pied 17 h 30" style="position:absolute;left:30px;top:40px;height:44px;padding:0 10px;border-radius:6px;background:#B4530A;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600">17:30</button>
+<button aria-label="Basket 18 h 30" style="position:absolute;left:300px;top:30px;height:44px;padding:0 10px;border-radius:6px;background:#fff;color:#0F1B2D;border:1.5px solid #0F1B2D;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600">18:30</button>
+<button aria-label="Ping-pong 19 h" style="position:absolute;left:80px;top:190px;height:44px;padding:0 10px;border-radius:6px;background:#fff;color:#0F1B2D;border:1.5px solid #0F1B2D;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600">19:00</button>
+<span aria-hidden="true" style="position:absolute;left:186px;top:88px;width:14px;height:14px;border-radius:50%;background:#1D4ED8;border:3px solid #fff"></span>
+<button style="position:absolute;right:10px;bottom:10px;height:44px;padding:0 14px;border-radius:6px;background:#1D4ED8;color:#fff;font-size:14px;font-weight:600">+ Proposer</button>
+</div>
+
+<div style="display:flex;gap:6px;padding:10px 12px;background:#fff;border-bottom:1px solid #D7DCE3;font-size:13px;font-weight:500">
+<button style="height:44px;padding:0 12px;border-radius:6px;background:#0F1B2D;color:#fff">Mes sports</button>
+<button style="height:44px;padding:0 12px;border-radius:6px;background:#fff;color:#0F1B2D;border:1px solid #B6BEC9">≤ 5 km</button>
+<button style="height:44px;padding:0 12px;border-radius:6px;background:#fff;color:#0F1B2D;border:1px solid #B6BEC9">Places libres</button>
+<button style="height:44px;padding:0 12px;border-radius:6px;background:#fff;color:#0F1B2D;border:1px solid #B6BEC9">Niveau</button>
+</div>
+
+<div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+<h2 style="margin:0;padding:10px 14px 6px;font-size:12px;font-weight:600;letter-spacing:.08em;color:#8A3E05">DANS L’HEURE</h2>
+
+<button style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;color:#0F1B2D;text-align:left;border-top:1px solid #E3E7EC;min-height:56px">
+<span style="flex:none;width:52px;font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600">17:30</span>
+<span style="flex:1;min-width:0"><span style="display:block;font-size:15px;font-weight:600">Course à pied</span><span style="display:block;font-size:13px;color:#4A5668">Parc Royal · débutant</span></span>
+<span style="flex:none;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#4A5668">1,0 km</span>
+<span style="flex:none;width:44px;text-align:center;padding:4px 0;border-radius:4px;background:#E8EEFD;color:#173EAD;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600">1/4</span>
+</button>
+
+<button style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;color:#0F1B2D;text-align:left;border-top:1px solid #E3E7EC;min-height:56px">
+<span style="flex:none;width:52px;font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600">17:45</span>
+<span style="flex:1;min-width:0"><span style="display:block;font-size:15px;font-weight:600">Spikeball</span><span style="display:block;font-size:13px;color:#4A5668">Cinquantenaire · tous niveaux</span></span>
+<span style="flex:none;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#4A5668">1,3 km</span>
+<span style="flex:none;width:44px;text-align:center;padding:4px 0;border-radius:4px;background:#E8EEFD;color:#173EAD;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600">2/4</span>
+</button>
+
+<h2 style="margin:0;padding:12px 14px 6px;font-size:12px;font-weight:600;letter-spacing:.08em;color:#4A5668">CE SOIR</h2>
+
+<button style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;color:#0F1B2D;text-align:left;border-top:1px solid #E3E7EC;min-height:56px">
+<span style="flex:none;width:52px;font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600">18:30</span>
+<span style="flex:1;min-width:0"><span style="display:block;font-size:15px;font-weight:600">Basket</span><span style="display:block;font-size:13px;color:#4A5668">Parc Élisabeth · tous niveaux</span></span>
+<span style="flex:none;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#4A5668">4,4 km</span>
+<span style="flex:none;width:44px;text-align:center;padding:4px 0;border-radius:4px;background:#E8EEFD;color:#173EAD;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600">3/6</span>
+</button>
+
+<button style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;color:#0F1B2D;text-align:left;border-top:1px solid #E3E7EC;min-height:56px">
+<span style="flex:none;width:52px;font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600">19:00</span>
+<span style="flex:1;min-width:0"><span style="display:block;font-size:15px;font-weight:600">Ping-pong</span><span style="display:block;font-size:13px;color:#4A5668">Place Flagey · confirmé</span></span>
+<span style="flex:none;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#4A5668">600 m</span>
+<span style="flex:none;width:44px;text-align:center;padding:4px 0;border-radius:4px;background:#E8EEFD;color:#173EAD;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600">1/2</span>
+</button>
+
+<button style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;color:#0F1B2D;text-align:left;border-top:1px solid #E3E7EC;min-height:56px">
+<span style="flex:none;width:52px;font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600">20:00</span>
+<span style="flex:1;min-width:0"><span style="display:block;font-size:15px;font-weight:600">Foot</span><span style="display:block;font-size:13px;color:#4A5668">Parc de Forest · débutant</span></span>
+<span style="flex:none;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#4A5668">3,9 km</span>
+<span style="flex:none;width:44px;text-align:center;padding:4px 0;border-radius:4px;background:#E8EEFD;color:#173EAD;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600">7/10</span>
+</button>
+
+</div>
+
+<nav style="height:60px;display:flex;background:#0F1B2D;font-size:13px;font-weight:500">
+<button style="flex:1;background:none;color:#fff;font-weight:600;box-shadow:inset 0 3px 0 #6E9BFF">Carte</button>
+<button style="flex:1;background:none;color:#B6C2D4">Swipe</button>
+<button style="flex:1;background:none;color:#B6C2D4">Parties (2)</button>
+<button style="flex:1;background:none;color:#B6C2D4">Profil</button>
+</nav>
+</div></template>
+<template id="t-I-Swipe"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#F4F6F8;color:#0F1B2D;font-family:'IBM Plex Sans',sans-serif;display:flex;flex-direction:column">
+<header style="padding:14px 14px 10px;display:flex;justify-content:space-between;align-items:center">
+<h1 style="margin:0;font-size:18px;font-weight:600">À trier</h1>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#4A5668">2/9 · tri : heure</span>
+</header>
+
+<article style="margin:0 12px;border-radius:8px;background:#fff;border:1px solid #B6BEC9;display:flex;flex-direction:column">
+<div style="padding:14px;border-bottom:1px solid #E3E7EC;display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+<div>
+<span style="display:inline-block;padding:3px 8px;border-radius:4px;background:#FCEBDD;color:#8A3E05;font-size:12px;font-weight:600">Dans 45 min</span>
+<h2 style="margin:8px 0 0;font-size:26px;font-weight:600;letter-spacing:-.02em">Spikeball</h2>
+<p style="margin:2px 0 0;font-size:14px;color:#4A5668">Parc du Cinquantenaire</p>
+</div>
+<div style="text-align:right;font-family:'IBM Plex Mono',monospace">
+<div style="font-size:26px;font-weight:600">17:45</div>
+<div style="font-size:13px;font-weight:500;color:#4A5668">sam. 14 nov.</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid #E3E7EC">
+<div style="padding:10px 14px;border-right:1px solid #E3E7EC"><div style="font-size:11px;font-weight:600;letter-spacing:.06em;color:#4A5668">DISTANCE</div><div style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600">1,3 km</div></div>
+<div style="padding:10px 14px;border-right:1px solid #E3E7EC"><div style="font-size:11px;font-weight:600;letter-spacing:.06em;color:#4A5668">TRAJET VÉLO</div><div style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600">6 min</div></div>
+<div style="padding:10px 14px"><div style="font-size:11px;font-weight:600;letter-spacing:.06em;color:#4A5668">NIVEAU</div><div style="font-size:16px;font-weight:600">Tous</div></div>
+</div>
+<div style="padding:12px 14px;border-bottom:1px solid #E3E7EC">
+<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;letter-spacing:.06em;color:#4A5668"><span>EFFECTIF</span><span>2 / 4 · MINIMUM 4 POUR JOUER</span></div>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px">
+<span style="height:44px;border-radius:4px;background:#0F1B2D;color:#fff;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center">Léa</span>
+<span style="height:44px;border-radius:4px;background:#0F1B2D;color:#fff;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center">Sam</span>
+<span style="height:44px;border-radius:4px;border:1.5px dashed #1D4ED8;box-sizing:border-box;color:#173EAD;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center">Toi ?</span>
+<span style="height:44px;border-radius:4px;border:1.5px dashed #8893A3;box-sizing:border-box;color:#4A5668;font-size:14px;display:flex;align-items:center;justify-content:center">libre</span>
+</div>
+</div>
+<div style="padding:12px 14px;font-size:14px;line-height:1.45">
+<span style="font-size:11px;font-weight:600;letter-spacing:.06em;color:#4A5668">NOTE DE LÉA</span><br>On a le filet, ramène juste de l’eau.
+</div>
+</article>
+
+<div style="display:flex;gap:8px;padding:12px">
+<button style="flex:1;height:54px;border-radius:8px;background:#fff;border:1px solid #8893A3;color:#0F1B2D;font-size:15px;font-weight:600">Passer</button>
+<button style="flex:1;height:54px;border-radius:8px;background:#fff;border:1px solid #8893A3;color:#0F1B2D;font-size:15px;font-weight:600">Plus tard</button>
+<button style="flex:1.600;height:54px;border-radius:8px;background:#1D4ED8;color:#fff;font-size:15px;font-weight:600">Je participe</button>
+</div>
+
+<div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+<h2 style="margin:0;padding:6px 14px;font-size:12px;font-weight:600;letter-spacing:.08em;color:#4A5668">ENSUITE</h2>
+
+<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border-top:1px solid #E3E7EC">
+<span style="flex:none;width:52px;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600">18:30</span>
+<span style="flex:1;min-width:0;font-size:14px"><strong style="font-weight:600">Basket</strong> · Parc Élisabeth</span>
+<span style="flex:none;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#4A5668">3/6</span>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border-top:1px solid #E3E7EC">
+<span style="flex:none;width:52px;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600">19:00</span>
+<span style="flex:1;min-width:0;font-size:14px"><strong style="font-weight:600">Ping-pong</strong> · Place Flagey</span>
+<span style="flex:none;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#4A5668">1/2</span>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border-top:1px solid #E3E7EC">
+<span style="flex:none;width:52px;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600">20:00</span>
+<span style="flex:1;min-width:0;font-size:14px"><strong style="font-weight:600">Foot</strong> · Parc de Forest</span>
+<span style="flex:none;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#4A5668">7/10</span>
+</div>
+
+</div>
+
+<nav style="height:60px;display:flex;background:#0F1B2D;font-size:13px;font-weight:500">
+<button style="flex:1;background:none;color:#B6C2D4">Carte</button>
+<button style="flex:1;background:none;color:#fff;font-weight:600;box-shadow:inset 0 3px 0 #6E9BFF">Swipe</button>
+<button style="flex:1;background:none;color:#B6C2D4">Parties (2)</button>
+<button style="flex:1;background:none;color:#B6C2D4">Profil</button>
+</nav>
+</div></template>
+<template id="t-I-Partie"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#F4F6F8;color:#0F1B2D;font-family:'IBM Plex Sans',sans-serif;display:flex;flex-direction:column">
+<header style="background:#0F1B2D;color:#fff;padding:8px 14px 14px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<button style="height:44px;padding:0;background:none;color:#B6C2D4;font-size:14px;font-weight:500">‹ Parties</button>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:#FFC38A">Départ conseillé 17:35</span>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:4px">
+<div>
+<h1 style="margin:0;font-size:22px;font-weight:600">Spikeball</h1>
+<p style="margin:2px 0 0;font-size:14px;color:#B6C2D4">Parc du Cinquantenaire · 1,3 km</p>
+</div>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600">17:45</span>
+</div>
+</header>
+
+<section style="background:#fff;border-bottom:1px solid #D7DCE3">
+<h2 style="margin:0;padding:10px 14px 4px;font-size:12px;font-weight:600;letter-spacing:.08em;color:#4A5668">JOUEURS · 3/4</h2>
+
+<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid #E3E7EC;font-size:15px">
+<span style="flex:1;font-weight:600">Léa</span>
+<span style="font-size:13px;color:#4A5668">organise</span>
+<span style="flex:none;width:92px;text-align:center;padding:4px 0;border-radius:4px;background:#EEF1F5;font-size:13px;font-weight:600;color:#0F1B2D">Sur place</span>
+</div>
+
+<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid #E3E7EC;font-size:15px">
+<span style="flex:1;font-weight:600">Sam</span>
+<span style="font-size:13px;color:#4A5668"></span>
+<span style="flex:none;width:92px;text-align:center;padding:4px 0;border-radius:4px;background:#EEF1F5;font-size:13px;font-weight:600;color:#0F1B2D">En route</span>
+</div>
+
+<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid #E3E7EC;font-size:15px">
+<span style="flex:1;font-weight:600">Toi</span>
+<span style="font-size:13px;color:#4A5668"></span>
+<span style="flex:none;width:92px;text-align:center;padding:4px 0;border-radius:4px;background:#EEF1F5;font-size:13px;font-weight:600;color:#0F1B2D">Confirmé</span>
+</div>
+
+<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid #E3E7EC;font-size:15px">
+<span style="flex:1;font-weight:600">Place libre</span>
+<span style="font-size:13px;color:#4A5668"></span>
+<span style="flex:none;width:92px;text-align:center;padding:4px 0;border-radius:4px;background:#EEF1F5;font-size:13px;font-weight:600;color:#0F1B2D">Ouverte</span>
+</div>
+
+<div style="display:flex;gap:8px;padding:10px 14px 12px;border-top:1px solid #E3E7EC">
+<button style="flex:1;height:44px;border-radius:6px;background:#1D4ED8;color:#fff;font-size:14px;font-weight:600">Je suis en route</button>
+<button style="flex:1;height:44px;border-radius:6px;background:#fff;border:1px solid #8893A3;color:#0F1B2D;font-size:14px;font-weight:600">Itinéraire</button>
+</div>
+</section>
+
+<section style="background:#fff;border-bottom:1px solid #D7DCE3;margin-top:8px;border-top:1px solid #D7DCE3;padding:10px 14px;display:flex;gap:16px;font-size:14px">
+<span style="font-size:12px;font-weight:600;letter-spacing:.08em;color:#4A5668">MATÉRIEL</span>
+<span>Filet : <strong style="font-weight:600">Léa</strong></span>
+<span>Eau : <strong style="font-weight:600">Sam</strong></span>
+</section>
+
+<div style="flex:1;padding:8px 14px;display:flex;flex-direction:column;justify-content:flex-end;font-size:14px;line-height:1.4">
+<h2 style="margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:.08em;color:#4A5668">DISCUSSION</h2>
+
+<p style="margin:0;padding:7px 0;border-top:1px solid #E3E7EC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#4A5668">16:52</span> <strong style="font-weight:600">Léa</strong> On a le filet, rendez-vous près des arcades.</p>
+
+<p style="margin:0;padding:7px 0;border-top:1px solid #E3E7EC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#4A5668">16:55</span> <strong style="font-weight:600">Sam</strong> J’amène de l’eau pour tout le monde.</p>
+
+<p style="margin:0;padding:7px 0;border-top:1px solid #E3E7EC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#4A5668">16:58</span> <strong style="font-weight:600">Toi</strong> Parfait, j’arrive à 17h40 !</p>
+
+</div>
+
+<form style="display:flex;gap:8px;padding:10px 12px 14px;background:#fff;border-top:1px solid #D7DCE3">
+<label style="flex:1;display:flex"><span style="position:absolute;left:-9999px">Message au groupe</span><input placeholder="Message" style="flex:1;min-width:0;height:46px;padding:0 12px;border-radius:6px;border:1px solid #8893A3;background:#fff;font:inherit;font-size:15px;color:#0F1B2D;box-sizing:border-box"></label>
+<button type="button" style="height:46px;padding:0 16px;border-radius:6px;background:#0F1B2D;color:#fff;font-size:14px;font-weight:600">Envoyer</button>
+</form>
+</div></template>
+<template id="t-J-Carte"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#fff;color:#15120F;font-family:Outfit,sans-serif">
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzOTAgODQ0IiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBzbGljZSI+CjxyZWN0IHdpZHRoPSIzOTAiIGhlaWdodD0iODQ0IiBmaWxsPSIjRTlFQUVDIi8+CjxwYXRoIGQ9Ik0tMTAgNzAgMTIwIDQwIDE1MiAxNjggNDQgMjE0LTEwIDE5NloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTIzNiAyODYgMzcyIDI2MiA0MDAgNDEwIDI2MiA0NDJaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0zNiA1NTYgMTY4IDUyOCAxOTggNjc2IDcwIDcxNloiIGZpbGw9IiNDREUyQzMiLz4KPHBhdGggZD0iTTI4NCA2MzYgNDAwIDYxNiA0MDAgNzU2IDMwMCA3NzhaIiBmaWxsPSIjQ0RFMkMzIi8+CjxwYXRoIGQ9Ik0xNTAgMzcycTMyLTIyIDUyIDEwIDIwIDQyLTEyIDcyLTQwIDIwLTUwLTIyLTEwLTQwIDEwLTYwWiIgZmlsbD0iI0JBRDdFQSIvPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CjxnIHN0cm9rZS13aWR0aD0iNSI+CjxwYXRoIGQ9Ik02MC0xMCA4NCAyNTBNMTMwLTEwIDE1MCAyNDBNMjkwLTEwIDMwMCAyMDBNMzUwLTEwIDM1NiAxOTAiLz4KPHBhdGggZD0iTS0xMCAxMjAgMjAwIDk2IDQwMCA2ME0tMTAgMzMwIDIyMCAyOTBNLTEwIDQyMCAxNTAgNDAwIi8+CjxwYXRoIGQ9Ik0yMCAyNTAgNDAgNTAwTTEwMCAyNDUgMTE4IDUwOE0zMDAgMTk2IDMyMCA0ODRNMjUwIDMwMCAyNDQgNDcwIi8+CjxwYXRoIGQ9Ik0tMTAgNjEwIDE5MCA1OTAgNDAwIDU0ME0tMTAgNjkwIDYwIDcwME0yMDAgNjkwIDQwMCA2NjAiLz4KPHBhdGggZD0iTTYwIDUyMCA5MCA4NjBNMTQwIDUyNCAxNzAgODYwTTI0MCA1NjAgMjUwIDg2ME0zMzAgNTAwIDM1MCA4NjAiLz4KPHBhdGggZD0iTS0xMCA4MjAgNDAwIDgwMCIvPgo8L2c+CjxwYXRoIGQ9Ik0tMTAgMjUwIDQwMCAxODAiIHN0cm9rZS13aWR0aD0iMTQiLz4KPHBhdGggZD0iTTIwMC0xMCAyMzAgMzAwIDE4MCA1MjAgMjYwIDg2MCIgc3Ryb2tlLXdpZHRoPSIxNCIvPgo8cGF0aCBkPSJNLTEwIDUwMCAxODAgNTIwIDQwMCA0ODAiIHN0cm9rZS13aWR0aD0iMTIiLz4KPHBhdGggZD0iTS0xMCA3NjAgNDAwIDYwMCIgc3Ryb2tlLXdpZHRoPSIxMCIvPgo8L2c+Cjwvc3ZnPgo=" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.5) brightness(1.04)">
+
+<div style="position:absolute;top:14px;left:14px;right:14px;display:flex;flex-wrap:wrap;gap:6px">
+<button style="height:44px;padding:0 14px;border-radius:12px;background:#FFD21F;color:#15120F;font-size:14px;font-weight:700;border:2px solid #15120F">Spikeball</button>
+<button style="height:44px;padding:0 14px;border-radius:12px;background:#FF7A1A;color:#15120F;font-size:14px;font-weight:700;border:2px solid #15120F">Basket</button>
+<button style="height:44px;padding:0 14px;border-radius:12px;background:#2F6BFF;color:#fff;font-size:14px;font-weight:700;border:2px solid #15120F">Volley</button>
+<button style="height:44px;padding:0 14px;border-radius:12px;background:#FF7FA6;color:#15120F;font-size:14px;font-weight:700;border:2px solid #15120F">Ping-pong</button>
+<button style="height:44px;padding:0 14px;border-radius:12px;background:#3DD68C;color:#15120F;font-size:14px;font-weight:700;border:2px solid #15120F">Course</button>
+<button style="height:44px;padding:0 14px;border-radius:12px;background:#fff;color:#15120F;font-size:14px;font-weight:700;border:2px solid #15120F">+ 11 sports</button>
+</div>
+
+<button aria-label="Spikeball, 2 places" style="position:absolute;left:214px;top:296px;padding:8px 12px;border-radius:14px 14px 14px 2px;background:#FFD21F;color:#15120F;border:2px solid #15120F;text-align:left;min-height:52px"><span style="display:block;font-family:Unbounded,sans-serif;font-size:13px;font-weight:800">SPIKE</span><span style="font-size:13px;font-weight:600">17:45 · 2 places</span></button>
+<button aria-label="Course à pied, 3 places" style="position:absolute;left:24px;top:176px;padding:8px 12px;border-radius:14px 14px 14px 2px;background:#3DD68C;color:#15120F;border:2px solid #15120F;text-align:left;min-height:52px"><span style="display:block;font-family:Unbounded,sans-serif;font-size:13px;font-weight:800">COURSE</span><span style="font-size:13px;font-weight:600">17:30 · 3 places</span></button>
+<button aria-label="Ping-pong, 1 place" style="position:absolute;left:56px;top:400px;padding:8px 12px;border-radius:14px 14px 14px 2px;background:#FF7FA6;color:#15120F;border:2px solid #15120F;text-align:left;min-height:52px"><span style="display:block;font-family:Unbounded,sans-serif;font-size:13px;font-weight:800">PING</span><span style="font-size:13px;font-weight:600">19:00 · 1 place</span></button>
+<button aria-label="Basket, 3 places" style="position:absolute;left:256px;top:176px;padding:8px 12px;border-radius:14px 14px 14px 2px;background:#FF7A1A;color:#15120F;border:2px solid #15120F;text-align:left;min-height:52px"><span style="display:block;font-family:Unbounded,sans-serif;font-size:13px;font-weight:800">BASKET</span><span style="font-size:13px;font-weight:600">18:30 · 3 places</span></button>
+<span aria-hidden="true" style="position:absolute;left:180px;top:268px;width:18px;height:18px;border-radius:50%;background:#15120F;border:3px solid #fff"></span>
+
+<article style="position:absolute;left:14px;right:14px;bottom:92px;padding:16px;border-radius:24px;background:#FFD21F;border:2px solid #15120F;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+<div>
+<p style="margin:0;font-size:13px;font-weight:700">LE PLUS PROCHE · 1,3 KM</p>
+<h2 style="margin:2px 0 0;font-family:Unbounded,sans-serif;font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.05">Spikeball</h2>
+<p style="margin:2px 0 0;font-size:15px;font-weight:600">Parc du Cinquantenaire · dans 45 min</p>
+</div>
+<div style="text-align:center;background:#15120F;color:#FFD21F;border-radius:14px;padding:8px 12px">
+<div style="font-family:Unbounded,sans-serif;font-size:24px;font-weight:800;line-height:1">2</div>
+<div style="font-size:11px;font-weight:700">places</div>
+</div>
+</div>
+<button style="height:50px;border-radius:14px;background:#15120F;color:#fff;font-size:16px;font-weight:700">Je suis partant</button>
+</article>
+
+<nav style="position:absolute;left:0;right:0;bottom:0;height:76px;background:#15120F;display:flex;align-items:center;padding:0 10px;gap:6px;box-sizing:border-box;font-size:14px;font-weight:700">
+<button style="flex:1;height:48px;border-radius:14px;background:#fff;color:#15120F">Carte</button>
+<button style="flex:1;height:48px;border-radius:14px;background:none;color:#fff">Swipe</button>
+<button style="flex:1;height:48px;border-radius:14px;background:none;color:#fff">Parties</button>
+<button style="flex:1.300;height:48px;border-radius:14px;background:#FF7A1A;color:#15120F">+ Proposer</button>
+</nav>
+</div></template>
+<template id="t-J-Swipe"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#FFD21F;color:#15120F;font-family:Outfit,sans-serif;display:flex;flex-direction:column;box-sizing:border-box;padding:18px 20px 0">
+<div style="display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700">
+<span style="padding:8px 12px;border-radius:10px;background:#15120F;color:#FFD21F">2 / 9</span>
+<span>à 1,3 km · dans tes sports</span>
+</div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px">
+<p style="margin:0;font-size:16px;font-weight:700">DANS 45 MIN · 17:45</p>
+<h1 style="margin:0;font-family:Unbounded,sans-serif;font-size:60px;font-weight:800;letter-spacing:-.06em;line-height:.92">SPIKE<br>BALL</h1>
+<p style="margin:10px 0 0;font-size:22px;font-weight:700;line-height:1.2">Parc du Cinquantenaire</p>
+
+<div style="display:flex;align-items:center;gap:16px;margin-top:22px">
+<div style="font-family:Unbounded,sans-serif;font-size:96px;font-weight:800;line-height:.8;letter-spacing:-.06em">2</div>
+<div style="font-size:18px;font-weight:700;line-height:1.25">places à prendre<br><span style="font-weight:400">sur 4 · Léa et Sam y sont</span></div>
+</div>
+
+<div style="margin-top:22px;padding:14px 16px;border-radius:18px;background:#fff;border:2px solid #15120F;font-size:16px;line-height:1.4">
+<strong style="font-weight:700">Léa :</strong> on a le filet, ramène juste de l’eau. Tous niveaux.
+</div>
+</div>
+
+<div style="display:flex;gap:10px;padding:16px 0 14px">
+<button style="flex:1;height:64px;border-radius:18px;background:none;border:2px solid #15120F;color:#15120F;font-size:17px;font-weight:700">← Passer</button>
+<button style="flex:1.500;height:64px;border-radius:18px;background:#15120F;color:#FFD21F;font-size:17px;font-weight:700">Partant →</button>
+</div>
+
+<div aria-hidden="true" style="display:flex;gap:6px;margin:0 -20px;height:44px">
+<div style="flex:1;background:#FF7A1A;border-top:2px solid #15120F;border-right:2px solid #15120F;border-radius:0 14px 0 0;font-family:Unbounded,sans-serif;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">BASKET 18:30</div>
+<div style="flex:1;background:#FF7FA6;border-top:2px solid #15120F;border-left:2px solid #15120F;border-right:2px solid #15120F;border-radius:14px 14px 0 0;font-family:Unbounded,sans-serif;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">PING 19:00</div>
+<div style="flex:1;background:#2F6BFF;color:#fff;border-top:2px solid #15120F;border-left:2px solid #15120F;border-radius:14px 0 0 0;font-family:Unbounded,sans-serif;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">VOLLEY 17:00</div>
+</div>
+
+<nav style="margin:0 -20px;height:76px;background:#15120F;display:flex;align-items:center;padding:0 10px;gap:6px;box-sizing:border-box;font-size:14px;font-weight:700">
+<button style="flex:1;height:48px;border-radius:14px;background:none;color:#fff">Carte</button>
+<button style="flex:1;height:48px;border-radius:14px;background:#fff;color:#15120F">Swipe</button>
+<button style="flex:1;height:48px;border-radius:14px;background:none;color:#fff">Parties</button>
+<button style="flex:1.300;height:48px;border-radius:14px;background:#FF7A1A;color:#15120F">+ Proposer</button>
+</nav>
+</div></template>
+<template id="t-J-Partie"><div style="width:390px;height:844px;position:relative;overflow:hidden;background:#fff;color:#15120F;font-family:Outfit,sans-serif;display:flex;flex-direction:column">
+<header style="background:#FFD21F;border-bottom:2px solid #15120F;padding:12px 16px 16px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<button style="height:44px;padding:0 14px;border-radius:12px;background:#fff;border:2px solid #15120F;color:#15120F;font-size:14px;font-weight:700">← Parties</button>
+<button style="height:44px;padding:0 14px;border-radius:12px;background:#15120F;color:#fff;font-size:14px;font-weight:700">Itinéraire</button>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px">
+<div>
+<h1 style="margin:0;font-family:Unbounded,sans-serif;font-size:30px;font-weight:800;letter-spacing:-.04em;line-height:1">Spikeball</h1>
+<p style="margin:4px 0 0;font-size:15px;font-weight:600">Parc du Cinquantenaire</p>
+</div>
+<div style="text-align:right">
+<div style="font-family:Unbounded,sans-serif;font-size:30px;font-weight:800;letter-spacing:-.04em;line-height:1">17:45</div>
+<div style="font-size:14px;font-weight:700">dans 45 min</div>
+</div>
+</div>
+<div style="display:flex;gap:6px">
+<span style="flex:1;height:44px;border-radius:12px;background:#15120F;color:#FFD21F;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center">Léa · orga</span>
+<span style="flex:1;height:44px;border-radius:12px;background:#FF7FA6;border:2px solid #15120F;box-sizing:border-box;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center">Sam</span>
+<span style="flex:1;height:44px;border-radius:12px;background:#3DD68C;border:2px solid #15120F;box-sizing:border-box;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center">Toi</span>
+<span style="flex:1;height:44px;border-radius:12px;border:2px dashed #15120F;box-sizing:border-box;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center">1 place</span>
+</div>
+</header>
+
+<div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:10px;justify-content:flex-end">
+<div style="align-self:flex-start;max-width:80%;padding:10px 14px;border-radius:18px 18px 18px 4px;background:#FFF3BF;border:2px solid #15120F;font-size:16px;line-height:1.35"><span style="display:block;font-size:12px;font-weight:700">LÉA</span>On a le filet, rendez-vous près des arcades.</div>
+<div style="align-self:flex-start;max-width:80%;padding:10px 14px;border-radius:18px 18px 18px 4px;background:#FFD9E5;border:2px solid #15120F;font-size:16px;line-height:1.35"><span style="display:block;font-size:12px;font-weight:700">SAM</span>J’amène de l’eau pour tout le monde.</div>
+<div style="align-self:flex-end;max-width:80%;padding:10px 14px;border-radius:18px 18px 4px 18px;background:#3DD68C;border:2px solid #15120F;font-size:16px;line-height:1.35">Parfait, j’arrive à 17h40 !</div>
+</div>
+
+<form style="display:flex;gap:8px;padding:12px 16px 18px;border-top:2px solid #15120F">
+<label style="flex:1;display:flex"><span style="position:absolute;left:-9999px">Message au groupe</span><input placeholder="Message au groupe…" style="flex:1;min-width:0;height:52px;padding:0 16px;border-radius:14px;border:2px solid #15120F;background:#fff;font:inherit;font-size:16px;color:#15120F;box-sizing:border-box"></label>
+<button type="button" style="height:52px;padding:0 18px;border-radius:14px;background:#15120F;color:#fff;font-size:15px;font-weight:700">Envoyer</button>
+</form>
+</div></template>
+
+
+<script>
+(() => {
+  const DIRS = [
+    { id: 'A', name: 'Stade', pitch: 'Sportif classique, orange vif. Carte avec panneau du bas, pile de cartes à swiper.' },
+    { id: 'B', name: 'Nuit', pitch: 'Sombre et vert fluo. Le compte à rebours avant le début est l’information principale.' },
+    { id: 'C', name: 'Brut', pitch: 'Noir, blanc, jaune, bordures épaisses. Épingles numérotées, boutons NON et OUI.' },
+    { id: 'D', name: 'Calme', pitch: 'Blanc, un seul bleu, très sobre. Bascule carte ou liste, fiche présentée en lignes.' },
+    { id: 'E', name: 'Club', pitch: 'Vert de club de sport et tableau d’affichage. Le swipe est un billet de match.' },
+    { id: 'F', name: 'Bulle', pitch: 'Rond, pastel, joueur. Les sports sont des bulles, les places libres des ronds vides.' },
+    { id: 'G', name: 'Papier', pitch: 'Un journal : l’agenda du jour passe avant la carte, chaque partie est un titre d’article.' },
+    { id: 'H', name: 'Glace', pitch: 'La carte reste toujours visible derrière des panneaux translucides, même pendant le swipe.' },
+    { id: 'I', name: 'Tableau', pitch: 'Utilitaire et dense, façon appli de transport. Liste par heure, statut de chaque joueur.' },
+    { id: 'J', name: 'Soleil', pitch: 'Une couleur par sport, de très gros chiffres, des aplats francs.' },
+  ];
+  const SCREENS = [
+    { id: 'Carte', label: 'Carte', pitch: 'Où se joue quoi autour de moi, et comment proposer une partie.' },
+    { id: 'Swipe', label: 'Swipe', pitch: 'Une partie à la fois : j’y vais ou je passe.' },
+    { id: 'Partie', label: 'Partie et chat', pitch: 'La partie que j’ai rejointe : qui vient, à quelle heure, et la discussion du groupe.' },
+  ];
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const dirOf = id => DIRS.find(d => d.id === id), screenOf = id => SCREENS.find(s => s.id === id);
+
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem('partant-galerie') || '{}') || {}; } catch (e) { saved = {}; }
+  const state = { mode: saved.mode === 'screen' ? 'screen' : 'dir', dir: dirOf(saved.dir) ? saved.dir : 'A', screen: screenOf(saved.screen) ? saved.screen : 'Carte', pick: {} };
+  for (const s of SCREENS) state.pick[s.id] = saved.pick && dirOf(saved.pick[s.id]) ? saved.pick[s.id] : null;
+  const persist = () => { try { localStorage.setItem('partant-galerie', JSON.stringify(state)); } catch (e) { /* stockage indisponible */ } };
+
+  const sizer = new ResizeObserver(entries => { for (const en of entries) en.target.style.setProperty('--s', en.contentRect.width / 390); });
+  function fill(frame, d, s) {
+    const mock = el('div', 'mock');
+    mock.inert = true; mock.setAttribute('aria-hidden', 'true');
+    mock.append($(`t-${d.id}-${s.id}`).content.cloneNode(true));
+    frame.replaceChildren(mock);
+    sizer.observe(frame);
+  }
+  function pickButton(btn, d, s, long) {
+    const on = state.pick[s.id] === d.id;
+    btn.setAttribute('aria-pressed', String(on));
+    btn.textContent = on ? (long ? `Choisi pour « ${s.label} »` : 'Choisi') : (long ? `Choisir pour « ${s.label} »` : 'Choisir');
+    btn.onclick = () => { state.pick[s.id] = on ? null : d.id; persist(); render(); if ($('dlg').open) pickButton($('dlg-pick'), d, s, true); };
+  }
+  function phone(d, s, caption) {
+    const fig = el('figure', 'phone'), frame = el('div', 'frame');
+    fill(frame, d, s);
+    const zoom = el('button', 'zoom');
+    zoom.type = 'button'; zoom.setAttribute('aria-label', `Agrandir : ${d.id} ${d.name}, ${s.label}`);
+    zoom.onclick = () => openZoom(d, s);
+    frame.append(zoom);
+    const cap = el('figcaption', 'cap'), name = el('span');
+    name.append(el('b', null, caption.lead), ' ' + caption.rest);
+    const pick = el('button', 'ui pick'); pick.type = 'button';
+    pickButton(pick, d, s, false);
+    cap.append(name, pick);
+    fig.append(frame, cap);
+    return fig;
+  }
+  function openZoom(d, s) {
+    $('dlg-title').textContent = `${d.id} · ${d.name} — ${s.label}`;
+    fill($('dlg-frame'), d, s);
+    pickButton($('dlg-pick'), d, s, true);
+    $('dlg').showModal();
+  }
+  $('dlg-close').onclick = () => $('dlg').close();
+  $('dlg').addEventListener('click', e => { if (e.target === $('dlg')) $('dlg').close(); });
+
+  function tab(label, lead, on, go) {
+    const b = el('button', 'ui'); b.type = 'button'; b.setAttribute('aria-pressed', String(on));
+    if (lead) b.append(el('b', null, lead));
+    b.append(label); b.onclick = go;
+    return b;
+  }
+  function render() {
+    const byDir = state.mode === 'dir';
+    $('mode-dir').setAttribute('aria-pressed', String(byDir));
+    $('mode-screen').setAttribute('aria-pressed', String(!byDir));
+    const pitch = $('pitch'), grid = $('grid'), txt = el('div', 'txt');
+    grid.className = 'grid ' + (byDir ? 'dir' : 'screen');
+    if (byDir) {
+      const d = dirOf(state.dir), i = DIRS.indexOf(d);
+      $('tabs').replaceChildren(...DIRS.map(x => tab(x.name, x.id, x.id === d.id, () => { state.dir = x.id; persist(); render(); })));
+      txt.append(el('h2', null, `${d.id} · ${d.name}`), el('p', null, d.pitch));
+      const nav = el('div', 'nav');
+      const prev = el('button', 'ui', '← Précédente'), next = el('button', 'ui', 'Suivante →');
+      prev.type = next.type = 'button';
+      prev.onclick = () => { state.dir = DIRS[(i + DIRS.length - 1) % DIRS.length].id; persist(); render(); };
+      next.onclick = () => { state.dir = DIRS[(i + 1) % DIRS.length].id; persist(); render(); };
+      nav.append(prev, next);
+      pitch.replaceChildren(txt, nav);
+      grid.replaceChildren(...SCREENS.map(s => phone(d, s, { lead: s.label, rest: '' })));
+    } else {
+      const s = screenOf(state.screen);
+      $('tabs').replaceChildren(...SCREENS.map(x => tab(x.label, null, x.id === s.id, () => { state.screen = x.id; persist(); render(); })));
+      txt.append(el('h2', null, s.label), el('p', null, s.pitch + ' Les dix directions, côte à côte.'));
+      pitch.replaceChildren(txt);
+      grid.replaceChildren(...DIRS.map(d => phone(d, s, { lead: d.id, rest: d.name })));
+    }
+    const parts = SCREENS.map(s => ({ s, d: dirOf(state.pick[s.id]) }));
+    $('slots').replaceChildren(...parts.map(({ s, d }) => el('span', 'slot' + (d ? '' : ' empty'), d ? `${s.label} : ${d.id} · ${d.name}` : `${s.label} : à choisir`)));
+    const chosen = parts.filter(p => p.d);
+    $('choice-text').value = chosen.length ? 'Mon choix Partant — ' + chosen.map(({ s, d }) => `${s.label} : ${d.id} (${d.name})`).join(', ') : '';
+    $('copy').disabled = !chosen.length;
+  }
+  $('mode-dir').onclick = () => { state.mode = 'dir'; persist(); render(); };
+  $('mode-screen').onclick = () => { state.mode = 'screen'; persist(); render(); };
+  $('copy').onclick = async () => {
+    const input = $('choice-text'), btn = $('copy');
+    let ok = false;
+    try { await navigator.clipboard.writeText(input.value); ok = true; } catch (e) { input.style.position = 'static'; input.style.flex = '1 1 100%'; input.select(); }
+    btn.textContent = ok ? 'Copié' : 'Sélectionné : copie-le';
+    setTimeout(() => { btn.textContent = 'Copier mon choix'; }, 2200);
+  };
+  render();
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Catch — Créer un team-up</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1C1C1E}a:hover{color:#000000}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #1C1C1E;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #DDE3E6; font-family: Inter, system-ui, sans-serif; font-variant-numeric: tabular-nums; color: #1C1C1E">
+
+  <svg aria-hidden="true" width="390" height="844" viewBox="0 0 390 844" style="position: absolute; left: 0; top: 0">
+    <rect width="390" height="844" fill="#DDE3E6"></rect>
+    <path d="M-10 40 L120 10 L152 98 L44 124 L-10 116 Z" fill="#B9D3A8"></path>
+    <path d="M236 30 L372 6 L400 104 L262 126 Z" fill="#B9D3A8"></path>
+    <g fill="none" stroke="#FFFFFF" stroke-linecap="round">
+      <path d="M60 -10 L84 250 M290 -10 L300 200 M-10 60 L200 46 L400 30" stroke-width="5"></path>
+      <path d="M-10 130 L400 80 M200 -10 L230 300" stroke-width="14"></path>
+    </g>
+  </svg>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(28,28,30,0.18)"></div>
+
+  <section aria-label="Créer un team-up" style="position: absolute; left: 0; right: 0; top: 96px; bottom: 0; border-radius: 34px 34px 0 0; background: rgba(242,242,247,0.80); backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); border-top: 1px solid rgba(255,255,255,0.7); box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 -10px 30px rgba(0,0,0,0.14); padding: 10px 20px 28px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px">
+    <div aria-hidden="true" style="width: 40px; height: 5px; border-radius: 3px; background: rgba(60,60,67,0.3); align-self: center"></div>
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em">Nouveau team-up</h1>
+      <a href="GlassCarte.dc.html" aria-label="Fermer" style="width: 40px; height: 40px; border-radius: 20px; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.8); box-shadow: inset 0 1px 0 rgba(255,255,255,0.9); color: #1C1C1E; display: flex; align-items: center; justify-content: center">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{sports}}" as="s" hint-placeholder-count="6">
+        <button type="button" onClick="{{s.pick}}" style="{{s.style}} height: 46px; border-radius: 23px; font: 600 15px Inter, sans-serif">{{s.name}}</button>
+      </sc-for>
+    </div>
+
+    <div style="padding: 18px; border-radius: 26px; background: rgba(255,255,255,0.75); border: 1px solid rgba(255,255,255,0.85); box-shadow: inset 0 1px 0 rgba(255,255,255,0.95); display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 16px; font-weight: 500; color: #4A4A50">Il nous manque</span>
+      <div style="display: flex; align-items: center; gap: 14px">
+        <button type="button" aria-label="Une personne de moins" onClick="{{minus}}" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: rgba(120,120,128,0.16); font: 600 22px Inter, sans-serif; color: #1C1C1E">−</button>
+        <span style="font-size: 52px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; min-width: 32px; text-align: center">{{need}}</span>
+        <button type="button" aria-label="Une personne de plus" onClick="{{plus}}" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: rgba(120,120,128,0.16); font: 600 22px Inter, sans-serif; color: #1C1C1E">+</button>
+        <span style="font-size: 20px; font-weight: 600">{{word}}</span>
+      </div>
+      <span style="font-size: 22px; font-weight: 700; letter-spacing: -0.01em">{{forSport}}</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{times}}" as="t" hint-placeholder-count="3">
+        <button type="button" onClick="{{t.pick}}" style="{{t.style}} height: 44px; border-radius: 22px; font: 600 14px Inter, sans-serif">{{t.name}}</button>
+      </sc-for>
+    </div>
+
+    <div style="border-radius: 20px; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.8); box-shadow: inset 0 1px 0 rgba(255,255,255,0.9); overflow: hidden">
+      <button type="button" style="width: 100%; min-height: 52px; padding: 0 16px; border: none; background: none; display: flex; justify-content: space-between; align-items: center; gap: 10px; font: 500 15px Inter, sans-serif; color: #1C1C1E; text-align: left">
+        <span><span style="display: block; font-size: 12px; font-weight: 600; color: #4A4A50">Près de toi</span>Parc du Cinquantenaire</span>
+        <span style="font-weight: 600; color: #4A4A50">Changer</span>
+      </button>
+      <div style="min-height: 52px; padding: 0 16px; border-top: 1px solid rgba(60,60,67,0.15); display: flex; align-items: center; gap: 10px; font-size: 15px">
+        <span aria-hidden="true" style="width: 30px; height: 30px; border-radius: 15px; background: #1C1C1E; color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center">A</span>
+        Organisé par <strong style="font-weight: 600">Alex</strong>
+      </div>
+    </div>
+
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px">
+      <a href="GlassPartie.dc.html" style="height: 58px; border-radius: 29px; background: {{accent}}; color: {{ink}}; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.4)">Catch</a>
+      <span style="text-align: center; font-size: 13px; color: #4A4A50">Visible sur la carte · lien à partager juste après</span>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#FF5A36","options":["#FF5A36","#1C1C1E","#0071E3","#30D158"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#FF5A36';
+    const lin = (c) => { const v = c / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    const h = accent.replace('#', '');
+    const L = 0.2126 * lin(parseInt(h.slice(0, 2), 16)) + 0.7152 * lin(parseInt(h.slice(2, 4), 16)) + 0.0722 * lin(parseInt(h.slice(4, 6), 16));
+    const ink = (L + 0.05) / 0.064 >= 1.05 / (L + 0.05) ? '#1C1C1E' : '#FFFFFF';
+    const catalog = [
+      { name: 'Spikeball', label: 'le spikeball', need: 2 },
+      { name: 'Foot', label: 'le foot', need: 3 },
+      { name: 'Basket', label: 'le basket', need: 1 },
+      { name: 'Volley', label: 'le volley', need: 2 },
+      { name: 'Pétanque', label: 'la pétanque', need: 1 },
+      { name: 'Course', label: 'la course', need: 1 }
+    ];
+    const st = this.state || {};
+    const current = catalog.find((c) => c.name === (st.sport ?? 'Spikeball')) || catalog[0];
+    const need = st.need ?? current.need;
+    const when = st.when ?? 'Maintenant';
+    const on = 'background: #1C1C1E; color: #FFFFFF; border: 1px solid #1C1C1E;';
+    const off = 'background: rgba(255,255,255,0.7); color: #1C1C1E; border: 1px solid rgba(255,255,255,0.8); box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);';
+    const sports = catalog.map((c) => ({
+      name: c.name,
+      style: c.name === current.name ? on : off,
+      pick: () => this.setState({ sport: c.name, need: c.need })
+    }));
+    const times = ['Maintenant', 'Dans 30 min', 'Ce soir'].map((name) => ({
+      name,
+      style: name === when ? on : off,
+      pick: () => this.setState({ when: name })
+    }));
+    return {
+      accent,
+      ink,
+      sports,
+      times,
+      need,
+      word: need > 1 ? 'personnes' : 'personne',
+      forSport: 'pour ' + current.label,
+      minus: () => this.setState({ need: Math.max(1, need - 1) }),
+      plus: () => this.setState({ need: Math.min(20, need + 1) })
+    };
+  }
+}
+</script>
+</body>
+</html>
