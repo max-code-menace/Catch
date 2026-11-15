@@ -17,6 +17,11 @@ export const palettes = {
     trait: '#E8DFD7',
     beige: '#F3EDE8',
     ombre: 'rgba(28, 20, 18, 0.14)',
+    // Carte : rond blanc derrière les pictos, voile de l'état vide, fond de secours (web).
+    rondPicto: '#FFFFFF',
+    voile: 'rgba(251, 248, 245, 0.55)',
+    fondCarte: '#F1EAE3',
+    position: '#2F6FD6',
   },
   dark: {
     rouge: '#E8553A',
@@ -33,6 +38,10 @@ export const palettes = {
     trait: '#3A312C',
     beige: '#2A2320',
     ombre: 'rgba(0, 0, 0, 0.5)',
+    rondPicto: '#FFFFFF',
+    voile: 'rgba(20, 16, 14, 0.55)',
+    fondCarte: '#1B1614',
+    position: '#6FA3F5',
   },
 } as const;
 

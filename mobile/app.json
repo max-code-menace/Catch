@@ -35,6 +35,12 @@
             "backgroundColor": "#14100E"
           }
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Catch utilise ta position pour te montrer les sessions près de toi."
+        }
       ]
     ],
     "experiments": {

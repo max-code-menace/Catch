@@ -28,20 +28,27 @@ Plan complet dans `docs/produit.md`.
 
 - [x] 0. Projet Expo créé dans `mobile/`
 - [x] 1. Squelette, barre flottante à 4 onglets, thème clair et sombre, module de vibrations
-- [ ] 2. Carte des sessions ← **prochaine étape**
-- [ ] 3. Liste · 4. Détail et bouton Catch · 5. Connexion · 6. Créer · 7. Lien d'invitation
+- [x] 2. Carte des sessions (fond de carte, pastilles, aperçu au toucher, état « Rien à 5 km », erreur réseau)
+- [ ] 3. Liste des sessions ← **prochaine étape** (ajouter le bouton Liste/Carte dans la barre du haut)
+- [ ] 4. Détail et bouton Catch · 5. Connexion · 6. Créer · 7. Lien d'invitation
 - [ ] 8. Notifications · 9. Messagerie interne · 10. Signalement, blocage, suppression de compte · 11. Tests
 
 En attente d'une réponse de Maxime :
-- Fond de carte : Apple Plans sur iPhone + Google Maps sur Android (recommandé) ?
-- L'étape 1 s'ouvre-t-elle bien dans Expo Go sur son iPhone ? (pas encore confirmé)
+- L'étape 2 s'ouvre-t-elle bien dans Expo Go sur son iPhone (carte Apple Plans visible, point bleu) ? Pas encore confirmé, l'étape 1 non plus.
 
-Pas encore fait : icône et écran de démarrage (ceux d'Expo par défaut), Supabase (aucun projet créé), aucun test sur vrai téléphone.
+Volontairement pas encore dans la carte (prévu plus tard) : bouton Catch et avatars dans l'aperçu (étape 4), bouton Inviter (étape 7), changer de zone / « Choisir ma commune », « Me prévenir des sessions » (étape 8), point « En direct » qui pulse.
+
+**Supabase** : projet `fwhewavlrbujnwfbgcdf` (« max-code-menace's Project », eu-central-1). Une seule table, `sessions`, lisible par tous, **vide** (personne ne peut encore écrire : ça vient avec les étapes 5 et 6). Le SQL est dans `supabase/migrations/`. Ne jamais y mettre de fausses sessions. L'app lit la table par l'API REST avec `fetch` (`src/lib/sessions.ts`) ; passer à `@supabase/supabase-js` à l'étape 5 pour la connexion.
+
+Pas encore fait : icône et écran de démarrage (ceux d'Expo par défaut), aucun test sur vrai téléphone, clé Google Maps pour Android (nécessaire seulement pour un build hors Expo Go, étape 8).
 
 ## Structure de `mobile/`
 
 - `src/app/_layout.tsx` : polices, thème, pile de navigation
-- `src/app/(tabs)/` : les 4 onglets (`creer`, `index` = Carte, `messages`, `profil`). Seul Profil a du contenu (Apparence, Vibrations)
+- `src/app/(tabs)/` : les 4 onglets (`creer`, `index` = Carte, `messages`, `profil`). Carte et Profil ont du contenu
+- `src/components/carte/` : `fond-carte.tsx` (react-native-maps : Apple Plans sur iPhone, Google Maps sur Android), `fond-carte.web.tsx` (fond uni, sert seulement aux vérifications dans un navigateur), `pastille`, `barre-haut`, `apercu-session`, `panneau`
+- `src/components/picto-sport.tsx` + `src/theme/pictos.ts` (généré depuis `design/pictos/` par `node scripts/generer-pictos.mjs`)
+- `src/lib/` : `config.ts` (Supabase, zone de départ Wavre, rayon 5 km), `sessions.ts` (chargement, statuts, textes), `position.ts` (localisation), `geo.ts` (distances)
 - `src/components/tab-bar.tsx` : barre flottante sur mesure (`expo-router/ui`)
 - `src/components/` : `ecran`, `texte`, `pressable-scale`
 - `src/theme/tokens.ts` : couleurs, polices, rayons, ressorts. **Aucune couleur en dur dans un écran**
@@ -56,13 +63,14 @@ Règles de code : React Compiler est actif, donc avec Reanimated écrire `valeur
 - Maxime teste sur **iPhone avec Expo Go**, sans PC. Après chaque étape, publier :
   `npx eas-cli@latest update --branch main --message "…" --platform ios --environment development --non-interactive` (dans `mobile/`)
 - La version d'exécution doit rester `sdkVersion` dans `app.json` (nécessaire pour Expo Go).
-- Vérifier soi-même avant de publier : `npx expo start --web` puis captures en clair et en sombre.
+- Vérifier soi-même avant de publier : `npx expo start --web` puis captures en clair et en sombre. Le bac à sable n'atteint pas Supabase : dans Playwright, simuler la réponse de `**/rest/v1/sessions**` (`page.route`) pour voir des pastilles, sans jamais rien écrire dans la vraie base.
+- Accès Expo : l'environnement cloud « catch » contient le jeton (injecté vers `api.expo.dev`). Si la session tourne sur un autre environnement, basculer dessus (`switch_environment`), puis lancer les commandes EAS avec `EXPO_TOKEN=dummy` devant. La doc `docs.expo.dev` n'est pas joignable : lire les types dans `node_modules/`.
 - Les notifications push ne marchent pas dans Expo Go sur Android : build de développement à partir de l'étape 8.
 - Si la session n'est pas connectée à Expo, demander un accès à Maxime, ne jamais lui faire coller un jeton dans la conversation.
 
 ## Git
 
-Le travail est sur la branche `ccr-30ebed49-o1vbis`. Pousser après chaque étape (les sessions cloud sont effacées). Pas de pull request sans que Maxime le demande.
+L'étape 2 est sur la branche `claude/quirky-brown-63j7wf` (pas encore fusionnée dans `main` ; les étapes 0 et 1 y sont déjà). Pousser après chaque étape (les sessions cloud sont effacées). Pas de pull request sans que Maxime le demande.
 
 ## Décisions à ne pas rediscuter
 
