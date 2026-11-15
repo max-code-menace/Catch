@@ -25,4 +25,16 @@ Deux recherches ont été faites pendant la conception (novembre 2026). Voici ce
 - Pile technique : Reanimated 4, Gesture Handler, pile de navigation native d'expo-router, expo-haptics. Pas de Lottie ni Rive en v1. Pas de « shared element transitions » en v1 (encore expérimentales).
 - Tester sur un vrai iPhone 120 Hz et un Android d'entrée de gamme, en build release.
 
+## Concurrents
+
+Audit complet avec captures : [Catch face aux concurrents](https://claude.ai/artifact/SnWSPV13GtcyZeZiQPrwnD) (onze apps, fiches App Store du 15 novembre 2026).
+
+- **La place est libre en Belgique** : GamUp est absente du store belge, Wiinup et Sportmate y ont zéro note. Seul Playtomic est installé, sur le padel en club.
+- **Les annuaires et réseaux de sportifs n'ont pas percé** (Sportmate, Leets, Sportpartner). Les apps à sessions, oui (Plei, GoodRec, Playtomic, Timeleft).
+- **Celles qui marchent garantissent la session** : un hôte sur place ou un rendez-vous fixe chaque semaine.
+- **Trous repérés dans Catch** : sessions qui se répètent, liste d'attente, « je viens avec 1 pote », prix, arrivée sur place, minimum de joueurs, trop de sports au lancement.
+- **Amusement** : prendre le rematch, le compte à rebours, les places vides dessinées, l'aperçu du groupe, le merci en un appui. Laisser les niveaux XP, les classements, les notes entre joueurs et le swipe.
+
+Ces propositions ne sont pas encore des décisions : elles passent dans `produit.md` une fois validées par Maxime.
+
 Sources principales : Nielsen Norman Group, Laws of UX, Apple Human Interface Guidelines, WWDC 2018 « Designing Fluid Interfaces », Material Design 3, documentation Reanimated et Expo, Baymard Institute.
