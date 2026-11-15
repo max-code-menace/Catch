@@ -1,4 +1,5 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -18,7 +19,7 @@ import { IconeRetour } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
 import { Couleurs, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { ANNULE, useCompte } from '@/lib/compte';
-import { quand, textePlaces } from '@/lib/formats';
+import { quandPhrase, textePlaces } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { useSessions } from '@/lib/sessions';
 
@@ -44,7 +45,9 @@ export default function Connexion() {
   const [appleDisponible, setAppleDisponible] = useState(false);
 
   useEffect(() => {
-    if (Platform.OS === 'ios') {
+    // Dans Expo Go, Apple connecterait à « Expo Go » et pas à Catch : le bouton n'apparaît que dans la vraie app
+    const dansExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+    if (Platform.OS === 'ios' && !dansExpoGo) {
       AppleAuthentication.isAvailableAsync().then(setAppleDisponible, () => {});
     }
   }, []);
@@ -116,7 +119,7 @@ export default function Connexion() {
             </View>
             <View style={styles.rappelTextes}>
               <Text style={styles.rappelTitre} numberOfLines={1}>
-                {session.titre} · {quand(session.debut).toLowerCase()}
+                {session.titre} · {quandPhrase(session)}
               </Text>
               <Text style={styles.aide}>{textePlaces(session)}</Text>
             </View>
