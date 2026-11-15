@@ -38,6 +38,7 @@ npx eas-cli@latest update --branch main --environment development --platform ios
 | [src/](src/) | Le code de l'app : écrans dans `src/app/`, composants, design system dans `src/constants/theme.ts` |
 | [design/apercus/](design/apercus/) | Captures des écrans, des pictos et du système |
 | [design/pictos/](design/pictos/) | Les 10 pictos de sport en SVG, prêts pour l'app |
+| [design/laboratoire-ux/](design/laboratoire-ux/) | Laboratoire UX : 40 patterns et leurs variantes jouables, avec une recommandation pour chacun |
 | [design/canvas/](design/canvas/) | Sources du canvas de design et script qui les génère |
 | [Canvas de design (claude.ai)](https://claude.ai/artifact/Qda1Ef9NTeL6fSq7kZj8z1) | Design v1 des écrans, modifiable |
 | [Canvas wireframes (claude.ai)](https://claude.ai/artifact/Td5KvG3CNRkR7QxivRB6DG) | Plan des écrans, parcours et wireframes d'origine |

@@ -43,6 +43,8 @@ Badge « En direct » animé avancé, bouton « je cherche un joueur » avec not
 
 À ne pas construire sans l'accord de Maxime. Elles ne font pas partie du plan de construction.
 
+La réserve d'idées la plus complète est le **laboratoire UX** ([design/laboratoire-ux/](../design/laboratoire-ux/), [version en ligne](https://claude.ai/artifact/XnGqqCVsjx5U1CSBRzKAHR)) : pour chaque écran, plusieurs variantes jouables et une recommandation. Ses variantes recommandées servent de référence quand on construit un écran ; ses variantes expérimentales (phrase à trous, grille à peindre, balayage) sont à tester avec de vrais utilisateurs avant d'entrer dans l'app.
+
 Principe : le fun, c'est le terrain, pas l'écran. On récompense le fait de jouer, jamais le fait d'ouvrir l'app.
 
 - **« Il manque 1 joueur » comme mission** : celui qui catche sauve la session.
