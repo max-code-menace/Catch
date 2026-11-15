@@ -26,7 +26,10 @@ type Valeur = {
 export const ANNULE = 'annule';
 
 const PAS_BRANCHEE = 'La connexion n’est pas encore disponible.';
+// Pas de réseau : la demande n'est pas partie
 const ECHEC = 'Ça n’a pas marché. Vérifie ta connexion et réessaie.';
+// Supabase a répondu par une erreur : le téléphone n'y est pour rien
+const PANNE = 'Ça coince de notre côté. Réessaie dans un instant.';
 
 function message(erreur: { status?: number; code?: string } | null) {
   if (!erreur) return null;
@@ -39,7 +42,7 @@ function message(erreur: { status?: number; code?: string } | null) {
   if (erreur.code === 'email_address_invalid' || erreur.code === 'validation_failed') {
     return 'Cette adresse e-mail n’a pas l’air valide.';
   }
-  return ECHEC;
+  return erreur.status && erreur.status >= 400 ? PANNE : ECHEC;
 }
 
 const Contexte = createContext<Valeur | null>(null);
