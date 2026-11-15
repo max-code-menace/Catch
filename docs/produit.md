@@ -55,7 +55,7 @@ Badge « En direct » animé avancé, bouton « je cherche un joueur » avec not
 
 ## Plan de construction
 
-Une fonctionnalité à la fois, testée avant de passer à la suivante. **Étape en cours : 4.** Les étapes 0 à 3 sont faites, avec des sessions fictives en attendant Supabase.
+Une fonctionnalité à la fois, testée avant de passer à la suivante. **Étape en cours : 5.** Les étapes 0 à 4 sont faites, avec des sessions fictives et un Catch gardé sur le téléphone en attendant Supabase.
 
 0. Installer les outils (Node.js LTS, Git, VS Code) et créer le projet Expo (à la racine du dépôt)
 1. Squelette, barre de navigation flottante et design system

@@ -61,3 +61,53 @@ export function texteDistance(metres: number) {
   if (metres < 950) return `à ${Math.max(50, Math.round(metres / 50) * 50)} m`;
   return `à ${Math.round(metres / 1000)} km`;
 }
+
+const JOURS_LONGS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+const MOIS = [
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+];
+
+function majuscule(texte: string) {
+  return texte.charAt(0).toUpperCase() + texte.slice(1);
+}
+
+/** Dans le détail : « Jeudi 20 novembre · 19h », « Ce soir · 19h », « En ce moment · jusqu'à 20h » */
+export function quandDetail(session: Session, maintenant = new Date()) {
+  const { debut } = session;
+  if (estEnDirect(session, maintenant)) return `En ce moment · jusqu'à ${heure(session.fin)}`;
+  const ecart = joursEntre(maintenant, debut);
+  if (ecart === 0) return `${debut.getHours() >= 18 ? 'Ce soir' : "Aujourd'hui"} · ${heure(debut)}`;
+  if (ecart === 1) return `Demain · ${heure(debut)}`;
+  return `${majuscule(JOURS_LONGS[debut.getDay()])} ${debut.getDate()} ${MOIS[debut.getMonth()]} · ${heure(debut)}`;
+}
+
+/** Dans une phrase : « jeudi 19h », « ce soir 19h », « en ce moment » */
+export function quandPhrase(session: Session, maintenant = new Date()) {
+  const { debut } = session;
+  if (estEnDirect(session, maintenant)) return 'en ce moment';
+  const ecart = joursEntre(maintenant, debut);
+  if (ecart === 0) return `${debut.getHours() >= 18 ? 'ce soir' : "aujourd'hui"} ${heure(debut)}`;
+  if (ecart === 1) return `demain ${heure(debut)}`;
+  return `${JOURS_LONGS[debut.getDay()]} ${heure(debut)}`;
+}
+
+/** « Environ 1h30 », « Environ 45 min » */
+export function texteDuree(session: Session) {
+  const minutes = Math.round((session.fin.getTime() - session.debut.getTime()) / 60_000);
+  if (minutes < 60) return `Environ ${minutes} min`;
+  const reste = minutes % 60;
+  return `Environ ${Math.floor(minutes / 60)}h${reste === 0 ? '' : String(reste).padStart(2, '0')}`;
+}
+
+/** On peut annuler librement jusqu'à 3h avant le début. */
+export function annulationLibre(session: Session, maintenant = new Date()) {
+  return session.debut.getTime() - maintenant.getTime() > 3 * 3_600_000;
+}
+
+/** « Sarah t'attend », « Sarah et 5 autres t'attendent » : les inscrits, sans compter « Toi ». */
+export function texteAttente(session: Session) {
+  const autres = session.inscrits.filter((nom) => nom !== 'Toi').length - 1;
+  if (autres <= 0) return `${session.organisateur} t’attend`;
+  return `${session.organisateur} et ${autres} ${autres === 1 ? 'autre' : 'autres'} t’attendent`;
+}

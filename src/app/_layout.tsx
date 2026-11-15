@@ -4,16 +4,16 @@ import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
 import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
 import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
 import { useFonts } from 'expo-font';
-import { TabList, TabSlot, TabTrigger, Tabs } from 'expo-router/ui';
+import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { Onglet, useStyleBarre } from '@/components/barre-navigation';
-import { IconeCarte, IconeCreer, IconeMessages, IconeProfil } from '@/components/icones';
+import { ToastAnnulation } from '@/components/toast-annulation';
 import { Couleurs } from '@/constants/theme';
+import { FournisseurSessions } from '@/lib/sessions';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -26,8 +26,6 @@ export default function Racine() {
     Inter_600SemiBold,
   });
 
-  const styleBarre = useStyleBarre();
-
   useEffect(() => {
     if (chargees || erreur) SplashScreen.hideAsync();
   }, [chargees, erreur]);
@@ -37,24 +35,15 @@ export default function Racine() {
   return (
     <GestureHandlerRootView style={styles.racine}>
       <StatusBar style="dark" />
-      <Tabs style={styles.racine}>
-        <TabSlot />
-        {/* Ordre des onglets : Créer · Carte · Messages · Profil */}
-        <TabList style={styleBarre}>
-          <TabTrigger name="creer" href="/creer" asChild>
-            <Onglet titre="Créer" Icone={IconeCreer} />
-          </TabTrigger>
-          <TabTrigger name="index" href="/" asChild>
-            <Onglet titre="Carte" Icone={IconeCarte} />
-          </TabTrigger>
-          <TabTrigger name="messages" href="/messages" asChild>
-            <Onglet titre="Messages" Icone={IconeMessages} />
-          </TabTrigger>
-          <TabTrigger name="profil" href="/profil" asChild>
-            <Onglet titre="Profil" Icone={IconeProfil} />
-          </TabTrigger>
-        </TabList>
-      </Tabs>
+      <FournisseurSessions>
+        {/* Les onglets en dessous ; le détail et la confirmation passent par-dessus, sans la barre */}
+        <Stack screenOptions={{ headerShown: false, contentStyle: styles.racine }}>
+          <Stack.Screen name="(onglets)" />
+          <Stack.Screen name="session/[id]" />
+          <Stack.Screen name="catchee/[id]" options={{ animation: 'fade', gestureEnabled: false }} />
+        </Stack>
+        <ToastAnnulation />
+      </FournisseurSessions>
     </GestureHandlerRootView>
   );
 }

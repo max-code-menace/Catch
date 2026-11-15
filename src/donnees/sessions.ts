@@ -21,6 +21,8 @@ export type Session = {
   inscrits: string[];
   organisateur: string;
   debutantsBienvenus: boolean;
+  /** Ce qu'il faut savoir avant de venir : matériel, tenue */
+  aSavoir?: { titre: string; detail: string };
 };
 
 export const WAVRE: Coordonnees = { latitude: 50.7167, longitude: 4.6111 };
@@ -109,6 +111,7 @@ export function sessionsFictives(): Session[] {
       inscrits: ['SA', 'LM', 'TB', 'JD', 'NR', 'CL'],
       organisateur: 'Sarah',
       debutantsBienvenus: true,
+      aSavoir: { titre: 'Raquettes prêtées', detail: 'Viens en baskets de salle' },
     },
     {
       id: 'basket-limal',

@@ -1,26 +1,30 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { SlideInDown, SlideOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatars } from '@/components/avatars';
 import { BadgeSession } from '@/components/badge-session';
+import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
+import { BoutonCatch } from '@/components/bouton-catch';
 import { PictoSport } from '@/components/picto-sport';
 import { BarreNavigation, Couleurs, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
 import { estEnDirect, heure, placesLibres, quand, texteDistance, textePlaces } from '@/lib/formats';
-import { vibrer } from '@/lib/haptics';
 
 type Props = {
   session: Session;
   /** Distance en mètres depuis l'utilisateur (ou le centre de la zone) */
   distance: number;
   catchee: boolean;
+  /** Toucher la fiche ouvre le détail de la session */
+  onOuvrir: () => void;
   onCatch: () => void;
+  onAnnuler: () => void;
 };
 
 /** Fiche de la session choisie sur la carte, posée au-dessus de la barre de navigation. */
-export function FicheSession({ session, distance, catchee, onCatch }: Props) {
+export function FicheSession({ session, distance, catchee, onOuvrir, onCatch, onAnnuler }: Props) {
   const { bottom } = useSafeAreaInsets();
   const enDirect = estEnDirect(session);
   const complet = placesLibres(session) === 0;
@@ -32,46 +36,50 @@ export function FicheSession({ session, distance, catchee, onCatch }: Props) {
       entering={SlideInDown.duration(Durees.emphasized)}
       exiting={SlideOutDown.duration(Durees.standard)}
       style={[styles.fiche, { bottom: bas }]}>
-      <View style={styles.ligne}>
-        {avecBadge ? <BadgeSession session={session} /> : <Text style={styles.quand}>{quand(session.debut)}</Text>}
-        <Text style={styles.aide}>
-          {enDirect ? `Jusqu'à ${heure(session.fin)} · ` : ''}
-          {texteDistance(distance)}
-        </Text>
-      </View>
-
-      <View style={styles.ligne}>
-        <View style={styles.titreZone}>
-          <View style={styles.picto}>
-            <PictoSport sport={session.sport} taille={30} />
-          </View>
-          <Text style={styles.titre} numberOfLines={1}>
-            {session.titre}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${session.titre}, voir le détail`}
+        onPress={onOuvrir}
+        style={styles.resume}>
+        <View style={styles.ligne}>
+          {avecBadge ? (
+            <BadgeSession session={session} />
+          ) : (
+            <Text style={styles.quand}>{quand(session.debut)}</Text>
+          )}
+          <Text style={styles.aide}>
+            {enDirect ? `Jusqu'à ${heure(session.fin)} · ` : ''}
+            {texteDistance(distance)}
           </Text>
         </View>
-        <Avatars initiales={session.inscrits} />
-      </View>
 
-      <Text style={styles.aide}>
-        {session.lieu}, {session.commune} · {textePlaces(session)}
-      </Text>
+        <View style={styles.ligne}>
+          <View style={styles.titreZone}>
+            <View style={styles.picto}>
+              <PictoSport sport={session.sport} taille={30} />
+            </View>
+            <Text style={styles.titre} numberOfLines={1}>
+              {session.titre}
+            </Text>
+          </View>
+          <Avatars initiales={session.inscrits} />
+        </View>
+
+        <Text style={styles.aide}>
+          {session.lieu}, {session.commune} · {textePlaces(session)}
+        </Text>
+      </Pressable>
 
       {catchee ? (
-        <View style={styles.confirmation}>
-          <Text style={styles.confirmationTexte}>Tu l’as catchée !</Text>
-          <Bouton titre="Annuler ma participation" variante="secondaire" onPress={onCatch} />
+        <View>
+          <View style={styles.confirmation}>
+            <Balle taille={18} />
+            <Text style={styles.confirmationTexte}>Tu l’as catchée !</Text>
+          </View>
+          <Bouton titre="Annuler ma participation" variante="lien" onPress={onAnnuler} />
         </View>
       ) : (
-        <Bouton
-          titre={complet ? 'Complet' : 'Catch'}
-          disabled={complet}
-          variante={complet ? 'secondaire' : 'principal'}
-          onPressIn={() => vibrer.appuiCatch()}
-          onPress={() => {
-            vibrer.succes();
-            onCatch();
-          }}
-        />
+        <BoutonCatch complet={complet} onCatch={onCatch} />
       )}
     </Animated.View>
   );
@@ -108,11 +116,13 @@ const styles = StyleSheet.create({
     fontSize: Tailles.titreSession,
     color: Couleurs.encre,
   },
-  confirmation: { gap: 10 },
-  confirmationTexte: {
-    fontFamily: Polices.titreDemi,
-    fontSize: 20,
-    color: Couleurs.rougeTexte,
-    textAlign: 'center',
+  resume: { gap: 10 },
+  confirmation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingTop: 4,
   },
+  confirmationTexte: { fontFamily: Polices.titre, fontSize: 20, color: Couleurs.encre },
 });

@@ -1,5 +1,6 @@
 import * as Location from 'expo-location';
-import { useMemo, useState } from 'react';
+import { router } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { BarreHaut, type Vue } from '@/components/barre-haut';
@@ -7,27 +8,19 @@ import { CarteSessions } from '@/components/carte-sessions';
 import { FicheSession } from '@/components/fiche-session';
 import { ListeSessions } from '@/components/liste-sessions';
 import { Couleurs } from '@/constants/theme';
-import { sessionsFictives, WAVRE, type Coordonnees, type Session } from '@/donnees/sessions';
+import { WAVRE, type Coordonnees, type Session } from '@/donnees/sessions';
 import { distance, estEnDirect } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
+import { useSessions } from '@/lib/sessions';
 
 export default function Carte() {
-  const sessionsDeBase = useMemo(() => sessionsFictives(), []);
-  // Tant qu'on ne connaît pas la position, on mesure depuis le centre de Wavre
-  const [position, setPosition] = useState<Coordonnees | null>(null);
+  const { sessions, estCatchee, catcher, annuler, position, setPosition, origine } = useSessions();
   const [cible, setCible] = useState<(Coordonnees & { cle: number }) | null>(null);
-  const [catchees, setCatchees] = useState<string[]>([]);
   const [vue, setVue] = useState<Vue>('carte');
-  const origine = position ?? WAVRE;
-
-  // Interface optimiste : une session catchée compte tout de suite un inscrit de plus
-  const sessions = sessionsDeBase.map((s) =>
-    catchees.includes(s.id) ? { ...s, inscrits: ['Toi', ...s.inscrits] } : s,
-  );
 
   // À l'ouverture : la session en direct la plus proche est déjà choisie
   const [idChoisie, setIdChoisie] = useState<string | null>(() => {
-    const enDirect = sessionsDeBase
+    const enDirect = sessions
       .filter((s) => estEnDirect(s))
       .sort((a, b) => distance(WAVRE, a.position) - distance(WAVRE, b.position));
     return enDirect[0]?.id ?? null;
@@ -56,15 +49,8 @@ export default function Carte() {
     setCible({ ...point, cle: Date.now() });
   }
 
-  // Depuis la liste : on revient sur la carte, centrée sur la session touchée
   function ouvrir(session: Session) {
-    setIdChoisie(session.id);
-    setCible({ ...session.position, cle: Date.now() });
-    setVue('carte');
-  }
-
-  function basculerCatch(id: string) {
-    setCatchees((liste) => (liste.includes(id) ? liste.filter((x) => x !== id) : [...liste, id]));
+    router.push({ pathname: '/session/[id]', params: { id: session.id } });
   }
 
   return (
@@ -91,8 +77,13 @@ export default function Carte() {
           key={choisie.id}
           session={choisie}
           distance={distance(origine, choisie.position)}
-          catchee={catchees.includes(choisie.id)}
-          onCatch={() => basculerCatch(choisie.id)}
+          catchee={estCatchee(choisie.id)}
+          onOuvrir={() => ouvrir(choisie)}
+          onCatch={() => {
+            catcher(choisie.id);
+            router.push({ pathname: '/catchee/[id]', params: { id: choisie.id } });
+          }}
+          onAnnuler={() => annuler(choisie)}
         />
       )}
     </View>

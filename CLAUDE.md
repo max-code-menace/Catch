@@ -10,7 +10,7 @@ Le design de référence est dans `design/` (captures dans `design/apercus/`, pi
 
 ## Code
 
-Projet Expo à la racine (voir `AGENTS.md` pour les règles Expo). Écrans dans `src/app/`, composants dans `src/components/`, jetons du design system dans `src/constants/theme.ts`, vibrations dans `src/lib/haptics.ts`. Noms de fichiers, composants et variables en français. Vérifier avec `npx tsc --noEmit` avant de pousser.
+Projet Expo à la racine (voir `AGENTS.md` pour les règles Expo). Écrans dans `src/app/` (onglets dans `src/app/(onglets)/`, détail et confirmation par-dessus), sessions et Catchs partagés dans `src/lib/sessions.tsx`, composants dans `src/components/`, jetons du design system dans `src/constants/theme.ts`, vibrations dans `src/lib/haptics.ts`. Noms de fichiers, composants et variables en français. Vérifier avec `npx tsc --noEmit` avant de pousser.
 
 ## Façon de travailler
 

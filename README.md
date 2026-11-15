@@ -6,7 +6,7 @@ Lancement prévu en Brabant wallon / Bruxelles, d'abord avec un cercle d'amis, p
 
 ## État du projet
 
-Conception terminée (novembre 2026). Les étapes 0 à 3 du plan sont faites : squelette, barre de navigation flottante, design system, carte des sessions avec ses pastilles et la fiche de la session choisie, et liste des sessions avec ses filtres. Les sessions sont encore fictives (`src/donnees/sessions.ts`). Prochaine étape : le détail d'une session et le bouton Catch (étape 4).
+Conception terminée (novembre 2026). Les étapes 0 à 4 du plan sont faites : squelette, barre de navigation flottante, design system, carte des sessions, liste avec filtres, détail d'une session, geste Catch (la balle attrapée dans le bouton), écran « Tu l'as catchée ! » et annulation de participation. Les sessions sont encore fictives (`src/donnees/sessions.ts`) et le Catch n'est pas enregistré : il disparaît quand on ferme l'app. Rien n'a encore été testé sur un vrai téléphone. Prochaine étape : la connexion au moment du Catch (étape 5).
 
 ## Lancer l'app
 

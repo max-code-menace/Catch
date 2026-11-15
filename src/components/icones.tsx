@@ -69,3 +69,53 @@ export function IconeListe(props: Props) {
     </Base>
   );
 }
+
+export function IconeRetour(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M15 5l-7 7 7 7" />
+    </Base>
+  );
+}
+
+export function IconeCalendrier(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M5 6h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1zM4 10h16M8 3v4M16 3v4" />
+    </Base>
+  );
+}
+
+export function IconeLieu(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.800 12 21 12 21z" />
+      <Circle cx={12} cy={9.500} r={2.500} />
+    </Base>
+  );
+}
+
+export function IconeInfo(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M12 3l7 3v5.500c0 4.300-3 7.800-7 9.500-4-1.700-7-5.200-7-9.500V6l7-3z" />
+      <Path d="M9 12l2.200 2.200L15 10.400" />
+    </Base>
+  );
+}
+
+export function IconeItineraire(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M4 19V11a3 3 0 0 1 3-3h12M15 4l4 4-4 4" />
+    </Base>
+  );
+}
+
+export function IconeCoche(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M5 12.500l4.500 4.500L19 7.500" />
+    </Base>
+  );
+}
