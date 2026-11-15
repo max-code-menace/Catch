@@ -34,6 +34,8 @@ type Valeur = {
   catcher: (id: string) => Promise<ResultatCatch>;
   /** Annule tout de suite, ou demande d'abord si la session commence dans moins de 3h */
   annuler: (session: Session, ensuite?: () => void) => void;
+  /** Sessions qui viennent de disparaître (plus aucun inscrit) : la carte les fait éclater puis les oublie */
+  eclats: Eclat[];
   /** Dernière participation annulée, tant que le toast « Annuler » est affiché */
   annulee: string | null;
   retablir: () => void;
@@ -44,6 +46,12 @@ type Valeur = {
   /** D'où on mesure les distances : la position, sinon le centre de la zone */
   origine: Coordonnees;
 };
+
+/** Une session en train d'éclater sur la carte ; `delai` laisse le temps de revenir sur la carte */
+export type Eclat = { session: Session; delai: number };
+
+/** Durée de l'éclatement, en ms */
+export const DUREE_ECLAT = 450;
 
 type Inscrit = { id: string; prenom: string };
 
@@ -106,6 +114,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
   const [etat, setEtat] = useState<EtatSessions>(supabase ? 'chargement' : 'erreur');
   const [idCreee, setIdCreee] = useState<string | null>(null);
   const [annulee, setAnnulee] = useState<string | null>(null);
+  const [eclats, setEclats] = useState<Eclat[]>([]);
   const [position, setPosition] = useState<Coordonnees | null>(null);
 
   // Les sessions pas encore finies qui commencent dans les 7 prochains jours
@@ -143,11 +152,14 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
     return () => ecoute.remove();
   }, [recharger]);
 
-  const sessions: Session[] = lues.map(({ participants, ...session }) => ({
-    ...session,
-    idsInscrits: participants.map((p) => p.id),
-    inscrits: participants.map((p) => (p.id === moi ? 'Toi' : debutPrenom(p.prenom))),
-  }));
+  // Une session sans inscrit n'existe plus : elle quitte l'écran tout de suite, sans attendre la relecture
+  const sessions: Session[] = lues
+    .filter((s) => s.participants.length > 0)
+    .map(({ participants, ...session }) => ({
+      ...session,
+      idsInscrits: participants.map((p) => p.id),
+      inscrits: participants.map((p) => (p.id === moi ? 'Toi' : debutPrenom(p.prenom))),
+    }));
 
   function estCatchee(id: string) {
     return !!moi && !!lues.find((s) => s.id === id)?.participants.some((p) => p.id === moi);
@@ -218,6 +230,17 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
 
   async function quitter(id: string, ensuite?: () => void) {
     if (!supabase || !compte) return;
+    // J'étais le dernier inscrit : la session disparaît, et la carte la fait éclater
+    const session = sessions.find((s) => s.id === id);
+    if (session && session.idsInscrits.every((inscrit) => inscrit === compte.id)) {
+      // Depuis un autre écran, on attend d'être revenu sur la carte pour que ça se voie
+      const delai = ensuite ? 450 : 150;
+      setEclats((liste) => [...liste.filter((e) => e.session.id !== id), { session, delai }]);
+      setTimeout(
+        () => setEclats((liste) => liste.filter((e) => e.session.id !== id)),
+        delai + DUREE_ECLAT + 100,
+      );
+    }
     // On agit tout de suite à l'écran, et on revient en arrière proprement si le serveur refuse
     appliquer(id, false);
     setAnnulee(id);
@@ -284,6 +307,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
         creer,
         derniereCreee: sessions.find((s) => s.id === idCreee) ?? null,
         annuler,
+        eclats,
         annulee,
         retablir,
         oublierAnnulation: () => setAnnulee(null),

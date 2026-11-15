@@ -161,7 +161,7 @@ export default function DetailSession() {
               <Balle taille={20} />
               <Text style={styles.catcheeTexte}>Tu l’as catchée !</Text>
             </View>
-            <Bouton titre="Annuler ma participation" variante="lien" onPress={() => annuler(session)} />
+            <Bouton titre="Annuler ma participation" variante="lien" onPress={() => annuler(session, nombre <= 1 ? retour : undefined)} />
           </>
         ) : (
           <>
