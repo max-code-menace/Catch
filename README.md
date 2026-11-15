@@ -6,7 +6,7 @@ Lancement prévu en Brabant wallon / Bruxelles, d'abord avec un cercle d'amis, p
 
 ## État du projet
 
-Phase de conception terminée (novembre 2026) : idée challengée, parcours, wireframes, design haute fidélité des 11 écrans, système d'animation, audit des textes et pictos des sports. **Aucune ligne de code de l'app n'est écrite.** La prochaine étape est l'étape 0 du plan : installer les outils et créer le projet Expo.
+Phase de conception terminée (novembre 2026) : idée challengée, parcours, wireframes, design haute fidélité des 11 écrans, système d'animation, audit des textes et pictos des sports. Le code de l'app est dans [mobile/](mobile/) : étapes 0 et 1 du plan faites (projet Expo, barre flottante, thème clair et sombre). Prochaine étape : la carte des sessions.
 
 ## Où trouver quoi
 
