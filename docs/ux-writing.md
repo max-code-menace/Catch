@@ -38,9 +38,9 @@ Ces textes sont rédigés mais n'ont pas encore d'écran :
 
 - **Permissions** : localisation (« Voir les sessions près de toi », avec « Choisir ma commune » si refus) et notifications (demandées juste après le premier Catch).
 - **Erreurs** : plus de réseau, session devenue complète pendant le Catch, échec serveur.
-- **Annulation** : toast « Tu as quitté la session » avec « Annuler » pendant 5 s ; dialogue si moins de 3h avant.
+- **Annulation** : toast « Tu as quitté la session » avec « Annuler » pendant 5 s ; à moins de 3h, dialogue factuel : « Il reste moins de 3h. Les 5 inscrits seront prévenus. » avec « Annuler ma participation » / « Rester ». Jamais de « Les autres comptent sur toi ». 
 - **Suppression de compte** : dialogue « Supprimer ton compte ? … C'est définitif. »
-- **Notifications** : rappel 3h avant avec « Je viens » / « Je ne peux plus », nouveau message, joueur manquant, nouvelle session de ton sport (1 par jour maximum).
+- **Notifications** : rappel 3h avant avec « Je viens » / « Je ne peux plus », changement sur ta session, nouveau message, nouvelle session de ton sport (sur accord explicite, 1 par jour maximum). Pas de résumé quotidien.
 - **États vides** : Messages, Profil sans session à venir.
 - **Première utilisation** : une bulle sur la carte, une sur Créer.
 

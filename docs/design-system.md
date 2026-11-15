@@ -18,6 +18,30 @@ Sobre, chaleureux, rouge et orange. Aperçu : [design/apercus/systeme.png](../de
 | Carte | `#FFFFFF` | Cartes, barres |
 | Trait | `#E8DFD7` | Bordures |
 
+### Mode sombre
+
+Automatique selon le téléphone, avec un réglage dans Profil (Auto · Clair · Sombre). Aucune couleur écrite en dur dans un écran : tout passe par les jetons.
+
+| Nom | Clair | Sombre |
+| --- | --- | --- |
+| Rouge Catch | `#C8361C` | `#E8553A` |
+| Texte sur le rouge | `#FFFFFF` | `#1C1412` |
+| Rouge texte | `#A12A14` | `#FFB4A3` |
+| Rouge doux | `#FCE6E0` | `#3A1D16` |
+| Orange balle | `#E35A0C` | `#FF8A3D` |
+| Orange texte | `#863404` | `#FFC08F` |
+| Orange doux | `#FDE6D2` | `#3B2410` |
+| Encre | `#1C1412` | `#F5EEE9` |
+| Texte secondaire | `#6E625C` | `#A99C94` |
+| Fond | `#FBF8F5` | `#14100E` |
+| Carte | `#FFFFFF` | `#211B18` |
+| Trait | `#E8DFD7` | `#3A312C` |
+| Carré des pictos | `#F3EDE8` | `#2A2320` |
+
+En sombre, le texte du bouton Catch est foncé (le blanc ne passe pas le contraste sur ce rouge).
+
+**Erreurs** : pas de deuxième rouge. Une erreur = une icône + un mot, en encre sur fond neutre.
+
 Une seule couleur d'action par écran : le rouge. Un statut n'est jamais porté par la couleur seule (toujours un mot ou une icône). Contraste texte ≥ 4,5:1.
 
 ## Typographie
