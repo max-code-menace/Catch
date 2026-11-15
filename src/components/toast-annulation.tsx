@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Durees, Espaces, Polices, Rayons } from '@/constants/theme';
 import { useSessions } from '@/lib/sessions';
-import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
+import { useStyles, type Palette } from '@/lib/theme';
 
 /** Temps pendant lequel on peut revenir sur une annulation */
 const DELAI = 5000;
