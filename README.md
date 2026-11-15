@@ -6,7 +6,7 @@ Lancement prévu en Brabant wallon / Bruxelles, d'abord avec un cercle d'amis, p
 
 ## État du projet
 
-Conception terminée (novembre 2026). Le projet Expo est créé et les étapes 0 et 1 du plan sont faites : squelette, barre de navigation flottante, couleurs, polices, ressorts et vibrations. Les quatre écrans sont encore vides. Prochaine étape : la carte des sessions (étape 2).
+Conception terminée (novembre 2026). Les étapes 0 à 2 du plan sont faites : squelette, barre de navigation flottante, design system, et la carte des sessions avec ses pastilles et la fiche de la session choisie. Les sessions sont encore fictives (`src/donnees/sessions.ts`). Prochaine étape : la liste des sessions (étape 3).
 
 ## Lancer l'app
 

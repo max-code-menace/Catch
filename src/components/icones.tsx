@@ -51,3 +51,13 @@ export function IconeProfil(props: Props) {
     </Base>
   );
 }
+
+export function IconeRecentrer(props: Props) {
+  return (
+    <Base {...props}>
+      <Circle cx={12} cy={12} r={6} />
+      <Circle cx={12} cy={12} r={1.5} />
+      <Path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+    </Base>
+  );
+}
