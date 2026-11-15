@@ -1,96 +1,66 @@
-import * as Location from "expo-location";
-import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  View,
-  useWindowDimensions,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Location from 'expo-location';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Bouton } from "@/components/bouton";
-import {
-  IconeCreer,
-  IconeLieu,
-  IconeMoins,
-  IconeRecentrer,
-  IconeRelancer,
-} from "@/components/icones";
-import { PictoSport } from "@/components/picto-sport";
-import {
-  BarreNavigation,
-  Couleurs,
-  Espaces,
-  Polices,
-  Rayons,
-  Tailles,
-} from "@/constants/theme";
-import type { Sport } from "@/donnees/pictos";
-import { WAVRE, type Coordonnees } from "@/donnees/sessions";
-import { SPORTS, ficheSport } from "@/donnees/sports";
-import { useCompte } from "@/lib/compte";
-import { quand } from "@/lib/formats";
-import { vibrer } from "@/lib/haptics";
-import { useSessions } from "@/lib/sessions";
+import { Bouton } from '@/components/bouton';
+import { IconeLieu, IconeRecentrer, IconeRelancer } from '@/components/icones';
+import { PictoSport } from '@/components/picto-sport';
+import { Roulette } from '@/components/roulette';
+import { BarreNavigation, Couleurs, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
+import type { Sport } from '@/donnees/pictos';
+import { WAVRE, type Coordonnees } from '@/donnees/sessions';
+import { SPORTS, ficheSport } from '@/donnees/sports';
+import { useCompte } from '@/lib/compte';
+import { heure, quand } from '@/lib/formats';
+import { vibrer } from '@/lib/haptics';
+import { useSessions } from '@/lib/sessions';
 
 const MINUTE = 60_000;
 const DUREE = 90;
-const JOUEURS_MIN = 2;
-const JOUEURS_MAX = 30;
+const NOMBRES = Array.from({ length: 29 }, (_, i) => i + 2); // de 2 à 30 joueurs
+const JOURS = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'];
+/** « Maintenant », ou une heure de la journée en minutes depuis minuit */
+type Creneau = 'maintenant' | number;
 
-type Moment = { cle: string; titre: string; debut: () => Date };
-
-/** Les créneaux proposés : toujours valables au moment où on ouvre l'écran. */
-function moments(maintenant: Date): Moment[] {
-  const aHeure = (dansJours: number, heure: number) => {
+/** Les 7 prochains jours : « Aujourd'hui », « Demain », « Mer. 18 » */
+function jours(maintenant: Date) {
+  return Array.from({ length: 7 }, (_, i) => {
     const date = new Date(maintenant);
-    date.setDate(date.getDate() + dansJours);
-    date.setHours(heure, 0, 0, 0);
-    return date;
-  };
-  const liste: Moment[] = [
-    { cle: "maintenant", titre: "Maintenant", debut: () => new Date() },
-    {
-      cle: "1h",
-      titre: "Dans 1h",
-      debut: () => new Date(Date.now() + 60 * MINUTE),
-    },
-  ];
-  // « Ce soir » n'est proposé que s'il reste au moins une demi-heure avant 19h
-  if (
-    maintenant.getHours() < 18 ||
-    (maintenant.getHours() === 18 && maintenant.getMinutes() < 30)
-  ) {
-    liste.push({
-      cle: "soir",
-      titre: quand(aHeure(0, 19), maintenant),
-      debut: () => aHeure(0, 19),
-    });
-  }
-  liste.push({
-    cle: "demain",
-    titre: quand(aHeure(1, 19), maintenant),
-    debut: () => aHeure(1, 19),
+    date.setDate(date.getDate() + i);
+    const titre = i === 0 ? 'Aujourd’hui' : i === 1 ? 'Demain' : `${JOURS[date.getDay()]} ${date.getDate()}`;
+    return { ecart: i, titre };
   });
-  return liste;
 }
 
-type Lieu = {
-  position: Coordonnees;
-  nom: string;
-  commune: string;
-  estMaPosition: boolean;
-};
+/** Les heures proposées, de demi-heure en demi-heure. Aujourd'hui : « Maintenant », puis ce qui reste. */
+function creneaux(ecartJour: number, maintenant: Date): Creneau[] {
+  const liste: number[] = [];
+  for (let minutes = 6 * 60; minutes <= 23 * 60 + 30; minutes += 30) liste.push(minutes);
+  if (ecartJour > 0) return liste;
+  const passe = maintenant.getHours() * 60 + maintenant.getMinutes();
+  return ['maintenant', ...liste.filter((minutes) => minutes > passe + 10)];
+}
+
+function dateDe(ecartJour: number, creneau: Creneau) {
+  const date = new Date();
+  if (creneau === 'maintenant') return date;
+  date.setDate(date.getDate() + ecartJour);
+  date.setHours(Math.floor(creneau / 60), creneau % 60, 0, 0);
+  return date;
+}
+
+function texteCreneau(creneau: Creneau) {
+  return creneau === 'maintenant' ? 'Maintenant' : heure(dateDe(0, creneau));
+}
+
+type Lieu = { position: Coordonnees; nom: string; commune: string; estMaPosition: boolean };
 
 const LIEU_PAR_DEFAUT: Lieu = {
   position: WAVRE,
-  nom: "Centre de Wavre",
-  commune: "Wavre",
+  nom: 'Centre de Wavre',
+  commune: 'Wavre',
   estMaPosition: false,
 };
 
@@ -100,33 +70,38 @@ async function nommer(position: Coordonnees): Promise<Lieu> {
     const [adresse] = await Location.reverseGeocodeAsync(position);
     return {
       position,
-      nom: adresse?.name ?? adresse?.street ?? "Près de toi",
-      commune: adresse?.city ?? adresse?.subregion ?? "",
+      nom: adresse?.name ?? adresse?.street ?? 'Près de toi',
+      commune: adresse?.city ?? adresse?.subregion ?? '',
       estMaPosition: true,
     };
   } catch {
-    return { position, nom: "Près de toi", commune: "", estMaPosition: true };
+    return { position, nom: 'Près de toi', commune: '', estMaPosition: true };
   }
 }
 
 export default function Creer() {
   const { top, bottom } = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
-  // 4 tuiles par ligne, 8 px entre elles
-  const largeurTuile = Math.floor((width - 2 * Espaces.marge - 3 * 8) / 4);
   const { compte } = useCompte();
   const { creer, derniereCreee, position, setPosition } = useSessions();
 
-  const creneaux = useMemo(() => moments(new Date()), []);
-  const [sport, setSport] = useState<Sport>("foot");
-  const [moment, setMoment] = useState(
-    creneaux.some((m) => m.cle === "soir") ? "soir" : "demain",
-  );
+  const ouverture = useMemo(() => new Date(), []);
+  const listeJours = useMemo(() => jours(ouverture), [ouverture]);
+  // Par défaut : ce soir 19h s'il reste du temps, sinon demain 19h
+  const encoreCeSoir = ouverture.getHours() * 60 + ouverture.getMinutes() < 18 * 60 + 30;
+
+  const [sport, setSport] = useState<Sport>('foot');
+  const [jour, setJour] = useState(encoreCeSoir ? 0 : 1);
+  const [creneau, setCreneau] = useState<Creneau>(19 * 60);
   const [lieu, setLieu] = useState<Lieu>(LIEU_PAR_DEFAUT);
-  const [precision, setPrecision] = useState("");
-  const [joueurs, setJoueurs] = useState(ficheSport("foot").joueurs);
+  const [precision, setPrecision] = useState('');
+  const [joueurs, setJoueurs] = useState(ficheSport('foot').joueurs);
   const [debutants, setDebutants] = useState(true);
   const [enAttente, setEnAttente] = useState(false);
+
+  const listeCreneaux = useMemo(() => creneaux(jour, ouverture), [jour, ouverture]);
+  // L'heure choisie n'existe plus ce jour-là (déjà passée) : on prend la première proposée
+  const indexCreneau = Math.max(0, listeCreneaux.indexOf(creneau));
+  const creneauChoisi = listeCreneaux[indexCreneau];
 
   // Si la position est déjà connue (bouton « recentrer » de la carte), elle sert de lieu par défaut
   useEffect(() => {
@@ -135,35 +110,19 @@ export default function Creer() {
   }, [position]);
 
   function choisirSport(cle: Sport) {
-    if (cle === sport) return;
-    vibrer.selection();
     setSport(cle);
     setJoueurs(ficheSport(cle).joueurs);
   }
 
-  function changerJoueurs(ecart: number) {
-    const suivant = joueurs + ecart;
-    if (suivant < JOUEURS_MIN || suivant > JOUEURS_MAX) {
-      vibrer.avertissement();
-      return;
-    }
-    vibrer.selection();
-    setJoueurs(suivant);
-  }
-
-  // La position n'est demandée que si on appuie sur « Utiliser ma position »
+  // La position n'est demandée que si on appuie sur « Ma position »
   async function utiliserMaPosition() {
     vibrer.selection();
     try {
       const { granted } = await Location.requestForegroundPermissionsAsync();
       if (!granted) return;
       const trouve =
-        (await Location.getLastKnownPositionAsync()) ??
-        (await Location.getCurrentPositionAsync());
-      const point = {
-        latitude: trouve.coords.latitude,
-        longitude: trouve.coords.longitude,
-      };
+        (await Location.getLastKnownPositionAsync()) ?? (await Location.getCurrentPositionAsync());
+      const point = { latitude: trouve.coords.latitude, longitude: trouve.coords.longitude };
       setPosition(point);
       setLieu(await nommer(point));
     } catch {
@@ -177,7 +136,7 @@ export default function Creer() {
     setSport(derniereCreee.sport);
     setJoueurs(derniereCreee.joueurs);
     setDebutants(derniereCreee.debutantsBienvenus);
-    setPrecision("");
+    setPrecision('');
     setLieu({
       position: derniereCreee.position,
       nom: derniereCreee.lieu,
@@ -187,11 +146,13 @@ export default function Creer() {
   }
 
   const fiche = ficheSport(sport);
-  const creneau = creneaux.find((m) => m.cle === moment) ?? creneaux[0];
   const nomLieu = precision.trim() || lieu.nom;
+  const debutPrevu = dateDe(jour, creneauChoisi);
+  const texteQuand =
+    creneauChoisi === 'maintenant' ? 'maintenant' : quand(debutPrevu, ouverture).toLowerCase();
 
   function envoyer(prenom: string) {
-    const debut = creneau.debut();
+    const debut = dateDe(jour, creneauChoisi);
     const id = creer({
       sport,
       nomSport: fiche.nom,
@@ -206,7 +167,7 @@ export default function Creer() {
       debutantsBienvenus: debutants,
     });
     vibrer.succes();
-    router.push({ pathname: "/session/[id]", params: { id } });
+    router.push({ pathname: '/session/[id]', params: { id } });
   }
 
   function publier() {
@@ -216,7 +177,7 @@ export default function Creer() {
     }
     // Pas encore connecté : on passe par la connexion, la session est publiée au retour
     setEnAttente(true);
-    router.push({ pathname: "/connexion", params: { pour: "publier" } });
+    router.push({ pathname: '/connexion', params: { pour: 'publier' } });
   }
 
   // Retour de la connexion : on publie si elle a réussi, sinon on ne fait rien
@@ -236,36 +197,28 @@ export default function Creer() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           paddingTop: top + 24,
-          paddingHorizontal: Espaces.marge,
-          paddingBottom:
-            Math.max(bottom, BarreNavigation.margeBas) +
-            BarreNavigation.hauteur +
-            24,
-          gap: 22,
-        }}
-      >
-        <Text accessibilityRole="header" style={styles.titre}>
-          Créer une session
-        </Text>
+          paddingBottom: Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur + 24,
+          gap: 20,
+        }}>
+        <View style={styles.marges}>
+          <Text accessibilityRole="header" style={styles.titre}>
+            Créer une session
+          </Text>
+          {/* La phrase se réécrit toute seule pendant qu'on fait glisser les choix */}
+          <Text style={styles.phrase}>
+            {fiche.nom} · {texteQuand} · {joueurs} joueurs
+          </Text>
+        </View>
 
         {derniereCreee && (
           <Pressable
             accessibilityRole="button"
             onPress={relancer}
-            style={({ pressed }) => [
-              styles.relancer,
-              pressed && { opacity: 0.7 },
-            ]}
-          >
+            style={({ pressed }) => [styles.relancer, styles.dansMarges, pressed && { opacity: 0.7 }]}>
             <IconeRelancer couleur={Couleurs.rouge} taille={22} />
             <View style={styles.textes}>
-              <Text style={[styles.fort, { color: Couleurs.rougeTexte }]}>
-                Relancer ta dernière session
-              </Text>
-              <Text
-                style={[styles.aide, { color: Couleurs.rougeTexte }]}
-                numberOfLines={1}
-              >
+              <Text style={[styles.fort, { color: Couleurs.rougeTexte }]}>Relancer ta dernière session</Text>
+              <Text style={[styles.aide, { color: Couleurs.rougeTexte }]} numberOfLines={1}>
                 {derniereCreee.titre} · {derniereCreee.lieu}
               </Text>
             </View>
@@ -273,72 +226,83 @@ export default function Creer() {
         )}
 
         <View style={styles.section}>
-          <Text style={styles.etiquette}>Sport</Text>
-          <View style={styles.tuiles}>
-            {SPORTS.map(({ cle, nom }) => {
-              const actif = cle === sport;
-              return (
-                <Pressable
-                  key={cle}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: actif }}
-                  onPress={() => choisirSport(cle)}
-                  style={[
-                    styles.tuile,
-                    { width: largeurTuile },
-                    actif && styles.tuileActive,
-                  ]}
-                >
-                  <PictoSport sport={cle} taille={34} />
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      styles.tuileTexte,
-                      actif && {
-                        color: Couleurs.rougeTexte,
-                        fontFamily: Polices.texteDemi,
-                      },
-                    ]}
-                  >
-                    {nom}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          <Text style={[styles.etiquette, styles.dansMarges]}>Sport</Text>
+          <Roulette
+            elements={SPORTS}
+            index={SPORTS.findIndex((s) => s.cle === sport)}
+            onChange={(i) => choisirSport(SPORTS[i].cle)}
+            largeur={92}
+            hauteur={92}
+            cle={(s) => s.cle}
+            etiquette="Sport"
+            valeur={fiche.nom}
+            rendre={(s, actif) => (
+              <View style={[styles.sport, !actif && styles.efface]}>
+                <PictoSport sport={s.cle} taille={actif ? 44 : 36} />
+                <Text numberOfLines={1} style={[styles.sportNom, actif && styles.sportNomActif]}>
+                  {s.nom}
+                </Text>
+              </View>
+            )}
+          />
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.etiquette}>Quand</Text>
-          <View style={styles.puces}>
-            {creneaux.map(({ cle, titre }) => {
-              const actif = cle === moment;
-              return (
-                <Pressable
-                  key={cle}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: actif }}
-                  onPress={() => {
-                    if (!actif) vibrer.selection();
-                    setMoment(cle);
-                  }}
-                  style={[styles.puce, actif && styles.puceActive]}
-                >
-                  <Text
-                    style={[
-                      styles.puceTexte,
-                      actif && { color: Couleurs.carte },
-                    ]}
-                  >
-                    {titre}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          <Text style={[styles.etiquette, styles.dansMarges]}>Quand</Text>
+          <Roulette
+            elements={listeJours}
+            index={jour}
+            onChange={setJour}
+            largeur={116}
+            hauteur={44}
+            cle={(j) => String(j.ecart)}
+            etiquette="Jour"
+            valeur={listeJours[jour].titre}
+            styleCadre={styles.cadreSombre}
+            rendre={(j, actif) => (
+              <Text style={[styles.choix, actif ? styles.choixSombre : styles.efface]}>{j.titre}</Text>
+            )}
+          />
+          <Roulette
+            // Les heures proposées changent avec le jour : la bande repart au bon endroit
+            key={jour}
+            elements={listeCreneaux}
+            index={indexCreneau}
+            onChange={(i) => setCreneau(listeCreneaux[i])}
+            largeur={creneauChoisi === 'maintenant' ? 124 : 84}
+            hauteur={56}
+            cle={(c) => String(c)}
+            etiquette="Heure"
+            valeur={texteCreneau(creneauChoisi)}
+            rendre={(c, actif) => (
+              <Text style={[styles.heure, actif ? styles.heureActive : styles.efface]}>
+                {texteCreneau(c)}
+              </Text>
+            )}
+          />
         </View>
 
         <View style={styles.section}>
+          <View style={[styles.ligne, styles.dansMarges]}>
+            <Text style={styles.etiquette}>Joueurs</Text>
+            <Text style={styles.aide}>toi compris</Text>
+          </View>
+          <Roulette
+            elements={NOMBRES}
+            index={NOMBRES.indexOf(joueurs)}
+            onChange={(i) => setJoueurs(NOMBRES[i])}
+            largeur={64}
+            hauteur={64}
+            cle={String}
+            etiquette="Nombre de joueurs"
+            valeur={`${joueurs} joueurs`}
+            rendre={(n, actif) => (
+              <Text style={[styles.nombre, actif ? styles.nombreActif : styles.efface]}>{n}</Text>
+            )}
+          />
+        </View>
+
+        <View style={[styles.section, styles.dansMarges]}>
           <Text style={styles.etiquette}>Où</Text>
           <View style={styles.lieu}>
             <IconeLieu couleur={Couleurs.rouge} taille={22} />
@@ -348,19 +312,21 @@ export default function Creer() {
               </Text>
               <Text style={styles.aide} numberOfLines={1}>
                 {lieu.estMaPosition
-                  ? ["Près de toi", lieu.commune].filter(Boolean).join(" · ")
-                  : "Lieu par défaut"}
+                  ? ['Près de toi', lieu.commune].filter(Boolean).join(' · ')
+                  : 'Lieu par défaut'}
               </Text>
             </View>
+            {!lieu.estMaPosition && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={utiliserMaPosition}
+                hitSlop={6}
+                style={({ pressed }) => [styles.maPosition, pressed && { opacity: 0.7 }]}>
+                <IconeRecentrer couleur={Couleurs.encre} taille={18} />
+                <Text style={styles.maPositionTexte}>Ma position</Text>
+              </Pressable>
+            )}
           </View>
-          {!lieu.estMaPosition && (
-            <Bouton
-              titre="Utiliser ma position"
-              variante="secondaire"
-              Icone={IconeRecentrer}
-              onPress={utiliserMaPosition}
-            />
-          )}
           <TextInput
             value={precision}
             onChangeText={setPrecision}
@@ -372,42 +338,8 @@ export default function Creer() {
           />
         </View>
 
-        <View style={styles.ligne}>
-          <View style={styles.textes}>
-            <Text style={styles.etiquette}>Joueurs</Text>
-            <Text style={styles.aide}>Toi compris</Text>
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Un joueur de moins"
-            onPress={() => changerJoueurs(-1)}
-            style={({ pressed }) => [
-              styles.rond,
-              pressed && { backgroundColor: Couleurs.beige },
-            ]}
-          >
-            <IconeMoins couleur={Couleurs.encre} taille={20} />
-          </Pressable>
-          <Text style={styles.nombre} accessibilityLabel={`${joueurs} joueurs`}>
-            {joueurs}
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Un joueur de plus"
-            onPress={() => changerJoueurs(1)}
-            style={({ pressed }) => [
-              styles.rond,
-              pressed && { backgroundColor: Couleurs.beige },
-            ]}
-          >
-            <IconeCreer couleur={Couleurs.encre} taille={20} />
-          </Pressable>
-        </View>
-
-        <View style={styles.ligne}>
-          <Text style={[styles.etiquette, styles.textes]}>
-            Débutants bienvenus
-          </Text>
+        <View style={[styles.ligne, styles.dansMarges]}>
+          <Text style={[styles.etiquette, styles.textes]}>Débutants bienvenus</Text>
           <Switch
             value={debutants}
             onValueChange={(valeur) => {
@@ -419,11 +351,7 @@ export default function Creer() {
           />
         </View>
 
-        <View style={styles.fin}>
-          <Text style={styles.resume}>
-            {fiche.nom} · {creneau.titre.toLowerCase()} · {nomLieu} · {joueurs}{" "}
-            joueurs
-          </Text>
+        <View style={styles.dansMarges}>
           <Bouton titre="Publier la session" onPress={publier} />
         </View>
       </ScrollView>
@@ -433,85 +361,72 @@ export default function Creer() {
 
 const styles = StyleSheet.create({
   fond: { flex: 1, backgroundColor: Couleurs.fond },
-  titre: {
-    fontFamily: Polices.titre,
-    fontSize: Tailles.titreEcran,
-    color: Couleurs.encre,
-  },
+  marges: { paddingHorizontal: Espaces.marge, gap: 4 },
+  dansMarges: { marginHorizontal: Espaces.marge },
+  titre: { fontFamily: Polices.titre, fontSize: Tailles.titreEcran, color: Couleurs.encre },
+  phrase: { fontFamily: Polices.texteMoyen, fontSize: 15, color: Couleurs.texteSecondaire },
   section: { gap: 10 },
-  etiquette: {
-    fontFamily: Polices.texteDemi,
-    fontSize: 15,
-    color: Couleurs.encre,
-  },
+  etiquette: { fontFamily: Polices.texteDemi, fontSize: 15, color: Couleurs.encre },
   textes: { flex: 1, gap: 2 },
   fort: { fontFamily: Polices.texteDemi, fontSize: 15, color: Couleurs.encre },
-  aide: {
-    fontFamily: Polices.texte,
-    fontSize: Tailles.aide,
-    color: Couleurs.texteSecondaire,
-  },
+  aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: Couleurs.texteSecondaire },
+  ligne: { flexDirection: 'row', alignItems: 'baseline', gap: 8, minHeight: 24 },
+  efface: { opacity: 0.45 },
   relancer: {
     minHeight: 56,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
     backgroundColor: Couleurs.rougeDoux,
     borderRadius: 18,
     borderWidth: 1.5,
-    borderStyle: "dashed",
-    borderColor: "#E9A58F",
+    borderStyle: 'dashed',
+    borderColor: '#E9A58F',
   },
-  tuiles: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  tuile: {
-    height: 76,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-    backgroundColor: Couleurs.carte,
-    borderRadius: Rayons.bouton,
-    borderWidth: 1.5,
-    borderColor: Couleurs.trait,
-  },
-  tuileActive: {
-    backgroundColor: Couleurs.rougeDoux,
-    borderColor: Couleurs.rouge,
-  },
-  tuileTexte: {
-    fontFamily: Polices.texteMoyen,
-    fontSize: 13,
+  sport: { alignItems: 'center', gap: 4 },
+  sportNom: { fontFamily: Polices.texteMoyen, fontSize: 13, color: Couleurs.encre },
+  sportNomActif: { fontFamily: Polices.texteDemi, color: Couleurs.rougeTexte },
+  cadreSombre: { backgroundColor: Couleurs.encre, borderColor: Couleurs.encre, borderRadius: 22 },
+  choix: { fontFamily: Polices.texteMoyen, fontSize: 14, color: Couleurs.encre },
+  choixSombre: { fontFamily: Polices.texteDemi, color: Couleurs.carte },
+  heure: {
+    fontFamily: Polices.titreDemi,
+    fontSize: 20,
     color: Couleurs.encre,
+    fontVariant: ['tabular-nums'],
   },
-  puces: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  puce: {
-    height: Espaces.cibleTactile,
-    paddingHorizontal: 14,
-    justifyContent: "center",
-    backgroundColor: Couleurs.carte,
-    borderRadius: Rayons.pilule,
-    borderWidth: 1.5,
-    borderColor: Couleurs.trait,
-  },
-  puceActive: { backgroundColor: Couleurs.encre, borderColor: Couleurs.encre },
-  puceTexte: {
-    fontFamily: Polices.texteMoyen,
-    fontSize: 14,
+  heureActive: { fontFamily: Polices.titre, color: Couleurs.rougeTexte },
+  nombre: {
+    fontFamily: Polices.titreDemi,
+    fontSize: 24,
     color: Couleurs.encre,
+    fontVariant: ['tabular-nums'],
   },
+  nombreActif: { fontFamily: Polices.titre, fontSize: 30, color: Couleurs.rougeTexte },
   lieu: {
     minHeight: 60,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
     backgroundColor: Couleurs.carte,
     borderRadius: Rayons.bouton,
     borderWidth: 1.5,
     borderColor: Couleurs.trait,
   },
+  maPosition: {
+    height: 40,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Couleurs.fond,
+    borderRadius: Rayons.pilule,
+  },
+  maPositionTexte: { fontFamily: Polices.texteDemi, fontSize: 13, color: Couleurs.encre },
   champ: {
     height: 52,
     paddingHorizontal: 14,
@@ -522,36 +437,5 @@ const styles = StyleSheet.create({
     fontFamily: Polices.texte,
     fontSize: 15,
     color: Couleurs.encre,
-  },
-  ligne: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    minHeight: Espaces.cibleTactile,
-  },
-  rond: {
-    width: Espaces.cibleTactile,
-    height: Espaces.cibleTactile,
-    borderRadius: Espaces.cibleTactile / 2,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Couleurs.carte,
-    borderWidth: 1.5,
-    borderColor: Couleurs.trait,
-  },
-  nombre: {
-    minWidth: 30,
-    textAlign: "center",
-    fontFamily: Polices.titre,
-    fontSize: 24,
-    color: Couleurs.encre,
-    fontVariant: ["tabular-nums"],
-  },
-  fin: { gap: 8 },
-  resume: {
-    textAlign: "center",
-    fontFamily: Polices.texteMoyen,
-    fontSize: Tailles.aide,
-    color: Couleurs.texteSecondaire,
   },
 });
