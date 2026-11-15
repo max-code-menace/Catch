@@ -38,6 +38,8 @@ type Valeur = {
   annuler: (session: Session, ensuite?: () => void) => void;
   /** Sessions qui viennent de disparaître (plus aucun inscrit) : la carte les fait éclater puis les oublie */
   eclats: Eclat[];
+  /** « Je ne peux plus » depuis le rappel : annule la participation à cette session */
+  annulerParId: (id: string) => Promise<void>;
   /** Dernière participation annulée, tant que le toast « Annuler » est affiché */
   annulee: string | null;
   retablir: () => void;
@@ -306,6 +308,12 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
     );
   }
 
+  async function annulerParId(id: string) {
+    if (!compte) return;
+    await chercher(id);
+    await quitter(id);
+  }
+
   async function retablir() {
     if (!annulee) return;
     const id = annulee;
@@ -333,6 +341,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
         creer,
         derniereCreee: sessions.find((s) => s.id === idCreee) ?? null,
         annuler,
+        annulerParId,
         eclats,
         annulee,
         retablir,

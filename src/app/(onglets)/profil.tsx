@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Bouton } from '@/components/bouton';
 import { Aide, Ecran } from '@/components/ecran';
+import { IconeChevron } from '@/components/icones';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { useCompte } from '@/lib/compte';
 import { reglerVibrations, vibrationsActives, vibrer } from '@/lib/haptics';
@@ -47,6 +48,13 @@ function Reglages() {
         </View>
         <Text style={styles.aide}>Auto suit le réglage de ton téléphone.</Text>
       </View>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push('/notifications')}
+        style={({ pressed }) => [styles.carte, styles.ligne, pressed && { backgroundColor: c.beige }]}>
+        <Text style={styles.libelle}>Notifications</Text>
+        <IconeChevron couleur={c.texteSecondaire} taille={20} />
+      </Pressable>
       <View style={[styles.carte, styles.ligne]}>
         <Text style={styles.libelle}>Vibrations</Text>
         <Switch

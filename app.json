@@ -47,7 +47,8 @@
           "locationWhenInUsePermission": "Catch utilise ta position pour te montrer les sessions près de toi."
         }
       ],
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true,

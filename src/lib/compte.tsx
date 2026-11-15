@@ -4,6 +4,7 @@ import type { Session as SessionSupabase } from '@supabase/supabase-js';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { createContext, use, useEffect, useState } from 'react';
 
+import { oublierAppareil } from '@/lib/notifications';
 import { supabase } from '@/lib/supabase';
 
 export type Compte = { id: string; prenom: string | null };
@@ -129,6 +130,8 @@ export function FournisseurCompte({ children }: { children: React.ReactNode }) {
   async function deconnecter() {
     if (!supabase) return PAS_BRANCHEE;
     try {
+      // Avant de partir : ce téléphone ne doit plus recevoir les notifications de ce compte
+      await oublierAppareil();
       const { error } = await supabase.auth.signOut();
       return message(error);
     } catch {

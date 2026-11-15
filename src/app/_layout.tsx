@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { GestionNotifications } from '@/components/gestion-notifications';
 import { ToastAnnulation } from '@/components/toast-annulation';
 import { FournisseurCompte } from '@/lib/compte';
 import { FournisseurSessions } from '@/lib/sessions';
@@ -38,12 +39,14 @@ function Navigation() {
             <Stack.Screen name="(onglets)" />
             <Stack.Screen name="session/[id]" />
             <Stack.Screen name="connexion" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="notifications" />
             <Stack.Screen
               name="catchee/[id]"
               options={{ animation: 'fade', gestureEnabled: false }}
             />
           </Stack>
           <ToastAnnulation />
+          <GestionNotifications />
         </FournisseurSessions>
       </FournisseurCompte>
     </>
