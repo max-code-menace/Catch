@@ -1,0 +1,130 @@
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { SlideInDown, SlideOutDown } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { Avatars } from '@/components/avatars';
+import { BadgeSession } from '@/components/badge-session';
+import { Balle } from '@/components/balle';
+import { Bouton } from '@/components/bouton';
+import { BoutonCatch } from '@/components/bouton-catch';
+import { PictoSport } from '@/components/picto-sport';
+import { BarreNavigation, Couleurs, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
+import type { Session } from '@/donnees/sessions';
+import { estEnDirect, heure, placesLibres, quand, texteDistance, textePlaces } from '@/lib/formats';
+
+type Props = {
+  session: Session;
+  /** Distance en mètres depuis l'utilisateur (ou le centre de la zone) */
+  distance: number;
+  catchee: boolean;
+  /** Toucher la fiche ouvre le détail de la session */
+  onOuvrir: () => void;
+  /** Renvoie `false` si le Catch ne peut pas partir tout de suite (connexion à faire) */
+  onDemande: () => boolean;
+  onCatch: () => void;
+  onAnnuler: () => void;
+};
+
+/** Fiche de la session choisie sur la carte, posée au-dessus de la barre de navigation. */
+export function FicheSession({ session, distance, catchee, onOuvrir, onDemande, onCatch, onAnnuler }: Props) {
+  const { bottom } = useSafeAreaInsets();
+  const enDirect = estEnDirect(session);
+  const complet = placesLibres(session) === 0;
+  const avecBadge = enDirect || placesLibres(session) === 1;
+  const bas = Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur + 12;
+
+  return (
+    <Animated.View
+      entering={SlideInDown.duration(Durees.emphasized)}
+      exiting={SlideOutDown.duration(Durees.standard)}
+      style={[styles.fiche, { bottom: bas }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${session.titre}, voir le détail`}
+        onPress={onOuvrir}
+        style={styles.resume}>
+        <View style={styles.ligne}>
+          {avecBadge ? (
+            <BadgeSession session={session} />
+          ) : (
+            <Text style={styles.quand}>{quand(session.debut)}</Text>
+          )}
+          <Text style={styles.aide}>
+            {enDirect ? `Jusqu'à ${heure(session.fin)} · ` : ''}
+            {texteDistance(distance)}
+          </Text>
+        </View>
+
+        <View style={styles.ligne}>
+          <View style={styles.titreZone}>
+            <View style={styles.picto}>
+              <PictoSport sport={session.sport} taille={30} />
+            </View>
+            <Text style={styles.titre} numberOfLines={1}>
+              {session.titre}
+            </Text>
+          </View>
+          <Avatars initiales={session.inscrits} />
+        </View>
+
+        <Text style={styles.aide}>
+          {session.lieu}, {session.commune} · {textePlaces(session)}
+        </Text>
+      </Pressable>
+
+      {catchee ? (
+        <View>
+          <View style={styles.confirmation}>
+            <Balle taille={18} />
+            <Text style={styles.confirmationTexte}>Tu l’as catchée !</Text>
+          </View>
+          <Bouton titre="Annuler ma participation" variante="lien" onPress={onAnnuler} />
+        </View>
+      ) : (
+        <BoutonCatch complet={complet} onDemande={onDemande} onCatch={onCatch} />
+      )}
+    </Animated.View>
+  );
+}
+
+const styles = StyleSheet.create({
+  fiche: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    padding: 16,
+    gap: 10,
+    backgroundColor: Couleurs.carte,
+    borderRadius: Rayons.carte,
+    borderWidth: 1,
+    borderColor: Couleurs.trait,
+    boxShadow: '0 8px 24px rgba(28, 20, 18, 0.14)',
+  },
+  ligne: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  quand: { fontFamily: Polices.texteDemi, fontSize: 14, color: Couleurs.encre },
+  aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: Couleurs.texteSecondaire },
+  titreZone: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  picto: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: Couleurs.beige,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titre: {
+    flex: 1,
+    fontFamily: Polices.titre,
+    fontSize: Tailles.titreSession,
+    color: Couleurs.encre,
+  },
+  resume: { gap: 10 },
+  confirmation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingTop: 4,
+  },
+  confirmationTexte: { fontFamily: Polices.titre, fontSize: 20, color: Couleurs.encre },
+});

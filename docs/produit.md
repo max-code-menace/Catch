@@ -35,6 +35,19 @@ Une app de rencontres sportives meurt si personne ne voit de session à la premi
 - **Obligations stores** : bouton signaler / bloquer, contact visible et suppression de compte dès la v1, dans l'app et par un lien web (exigé par Google Play).
 - **Niveau d'exigence** : la v1 est un vrai produit, fini et fiable sur ce qu'il fait. On n'ajoute pas de variantes expérimentales (phrase à trous, grille à peindre, balayage).
 
+## Rendre Catch amusant
+
+Le fun, c'est le terrain, pas l'écran. L'app donne envie d'y aller, fête le moment où on s'engage et fait revenir après. On récompense le fait de jouer, jamais le fait d'ouvrir l'app.
+
+- **Le Catch est un vrai geste** : balle qui vole et qu'on attrape, rebond, vibration, « Tu l'as catchée ! ». C'est le moment signature, à soigner à fond (étape 4).
+- **Une carte qui bouge** : pastilles « En direct » qui pulsent, « il manque 1 » qui ressort, avatars des inscrits visibles.
+- **« Il manque 1 joueur » comme mission** : celui qui catche sauve la session. Notification dédiée (étape 8).
+- **L'après-session** : écran « C'était bien ? » avec un tap pour remercier un joueur, bouton « Rejouer avec eux » qui recrée la session la semaine suivante, et les personnes avec qui on a joué visibles sur le profil.
+- **Un profil qui raconte une histoire** : sessions jouées, sports essayés, personnes rencontrées, semaines d'affilée. Quelques badges liés à du vrai (premier Catch, premier sport nouveau, 5 sessions complétées, Organisateur).
+- **Faire jouer les autres** : l'invitation est un défi avec la session en image, et l'organisateur est prévenu quand quelqu'un catche sa session.
+- **Un ton qui joue** : humour dans les états vides, le chargement et les notifications, dans les règles de `ux-writing.md`.
+- **À éviter** : classements entre joueurs (ça fait fuir les débutants), points et notifications de relance quotidiennes.
+
 ## Fonctionnalités prévues plus tard (v2)
 
 Badge « En direct » animé avancé, bouton « je cherche un joueur » avec notifications limitées, système anti-lapin complet, badge Organisateur, paiement dans l'app.
@@ -49,13 +62,13 @@ Badge « En direct » animé avancé, bouton « je cherche un joueur » avec not
 
 ## Plan de construction
 
-Une fonctionnalité à la fois, testée avant de passer à la suivante.
+Une fonctionnalité à la fois, testée avant de passer à la suivante. **Étape en cours : 6.** Les étapes 0 à 4 sont faites, avec des sessions fictives et un Catch gardé sur le téléphone. Étape 5 : la connexion par e-mail (code à 6 chiffres, puis prénom) marche sur téléphone ; Apple est configuré dans Supabase (identifiant `com.maxcodemenace.catch`) mais reste à tester dans un build EAS, car le bouton n'existe pas dans Expo Go ; Google reste à faire. Étape 6 : l’écran « Créer une session » est fait, avec un contrôle adapté à chaque choix (tuiles pour le sport, raccourcis puis jour et heure à glisser pour « Quand », bande à glisser pour les joueurs, carte avec épingle pour le lieu), puis les débutants et la publication après connexion. La session créée reste sur le téléphone : il reste à enregistrer les sessions et les Catchs dans Supabase.
 
-0. Installer les outils (Node.js LTS, Git, VS Code) et créer le projet : `npx create-expo-app@latest catch`
+0. Installer les outils (Node.js LTS, Git, VS Code) et créer le projet Expo (à la racine du dépôt)
 1. Squelette, barre de navigation flottante et design system (couleurs clair et sombre dès le départ)
 2. Carte des sessions
 3. Liste des sessions
-4. Détail d'une session et bouton Catch
+4. Détail d'une session et bouton Catch (avec l'animation signature du Catch)
 5. Connexion (Apple, Google, e-mail) au moment du Catch
 6. Créer une session (première création + pré-remplissage + « Relancer »)
 7. Lien d'invitation et page web

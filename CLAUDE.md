@@ -76,6 +76,10 @@ L'étape 2 est sur la branche `claude/quirky-brown-63j7wf` (pas encore fusionné
 
 Détail dans `docs/produit.md`. En bref : pas de compte pour regarder · direction Chaleur · mode sombre dès la v1 · barre flottante sur mesure · création pré-remplie avec une première création en 3 choix · annulation libre jusqu'à 3 h avant puis confirmation factuelle · messagerie interne avant le lancement public · 4 types de notifications, pas de résumé quotidien · célébration du Catch après la réponse du serveur · pas de paiement dans l'app · pas de variantes expérimentales · pas de dark patterns · la v1 est un vrai produit fini, pas une démo.
 
+## Code
+
+Projet Expo à la racine (voir `AGENTS.md` pour les règles Expo). Écrans dans `src/app/` (onglets dans `src/app/(onglets)/`, détail et confirmation par-dessus), sessions et Catchs partagés dans `src/lib/sessions.tsx`, composants dans `src/components/`, jetons du design system dans `src/constants/theme.ts`, vibrations dans `src/lib/haptics.ts`. Noms de fichiers, composants et variables en français. Vérifier avec `npx tsc --noEmit` avant de pousser.
+
 ## Façon de travailler
 
 Maxime dirige le produit et ne code pas. Claude code directement dans le repo, une fonctionnalité à la fois, teste, pousse, publie sur Expo, puis explique en une ou deux phrases ce qui a changé et ce qu'il faut regarder sur le téléphone. Réponses courtes, en français, ton décontracté, jargon expliqué. Maxime est sur Windows (souvent sans accès à son PC) et sur iPhone.

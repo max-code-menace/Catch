@@ -6,7 +6,26 @@ Lancement prévu en Brabant wallon / Bruxelles, d'abord avec un cercle d'amis, p
 
 ## État du projet
 
-Phase de conception terminée (novembre 2026) : idée challengée, parcours, wireframes, design haute fidélité des 11 écrans, système d'animation, audit des textes et pictos des sports. Le code de l'app est dans [mobile/](mobile/) : étapes 0 et 1 du plan faites (projet Expo, barre flottante, thème clair et sombre). Prochaine étape : la carte des sessions.
+Conception terminée (novembre 2026). Les étapes 0 à 4 du plan sont faites : squelette, barre de navigation flottante, design system, carte des sessions, liste avec filtres, détail d'une session, geste Catch (la balle attrapée dans le bouton), écran « Tu l'as catchée ! » et annulation de participation. Les sessions sont encore fictives (`src/donnees/sessions.ts`) et le Catch n'est pas enregistré : il disparaît quand on ferme l'app. Rien n'a encore été testé sur un vrai téléphone. Prochaine étape : la connexion au moment du Catch (étape 5).
+
+## Lancer l'app
+
+Dans un terminal ouvert dans le dossier du projet :
+
+```
+npm install
+npx expo start
+```
+
+Puis scanner le QR code avec l'app **Expo Go** (iPhone : avec l'appareil photo ; Android : depuis Expo Go). Le téléphone et le PC doivent être sur le même Wi-Fi.
+
+## Voir l'app sur son téléphone sans PC
+
+L'app est publiée sur le compte Expo `max-code-menace` ([projet catch](https://expo.dev/accounts/max-code-menace/projects/catch)). Dans **Expo Go**, connecté à ce compte, elle apparaît dans la liste des projets, branche `preview`. Pour republier après un changement :
+
+```
+npx eas-cli@latest update --branch preview --environment preview --platform ios --message "Ce qui a changé"
+```
 
 ## Où trouver quoi
 
@@ -16,6 +35,7 @@ Phase de conception terminée (novembre 2026) : idée challengée, parcours, wir
 | [docs/design-system.md](docs/design-system.md) | Couleurs, typo, navigation, composants, animations, vibrations |
 | [docs/ux-writing.md](docs/ux-writing.md) | Règles de rédaction, glossaire, textes manquants à écrire |
 | [docs/recherches.md](docs/recherches.md) | Résumé des recherches UX et animation qui ont guidé le design |
+| [src/](src/) | Le code de l'app : écrans dans `src/app/`, composants, design system dans `src/constants/theme.ts` |
 | [design/apercus/](design/apercus/) | Captures des écrans, des pictos et du système |
 | [design/pictos/](design/pictos/) | Les 10 pictos de sport en SVG, prêts pour l'app |
 | [design/canvas/](design/canvas/) | Sources du canvas de design et script qui les génère |

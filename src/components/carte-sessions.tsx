@@ -1,0 +1,67 @@
+import { useEffect, useRef } from 'react';
+import { Platform, StyleSheet } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
+
+import { PastilleSession } from '@/components/pastille-session';
+import { WAVRE, type Coordonnees, type Session } from '@/donnees/sessions';
+import { estEnDirect } from '@/lib/formats';
+
+export type PropsCarte = {
+  sessions: Session[];
+  idChoisie: string | null;
+  onChoisir: (id: string | null) => void;
+  /** Change pour recentrer la carte sur un point */
+  cible: (Coordonnees & { cle: number }) | null;
+  montrerPosition: boolean;
+};
+
+const ZOOM = { latitudeDelta: 0.11, longitudeDelta: 0.11 };
+
+/** Carte plein écran avec une pastille par session. */
+export function CarteSessions({ sessions, idChoisie, onChoisir, cible, montrerPosition }: PropsCarte) {
+  const carte = useRef<MapView>(null);
+
+  useEffect(() => {
+    if (cible) {
+      carte.current?.animateToRegion(
+        { latitude: cible.latitude, longitude: cible.longitude, ...ZOOM },
+        400,
+      );
+    }
+  }, [cible]);
+
+  return (
+    <MapView
+      ref={carte}
+      style={StyleSheet.absoluteFill}
+      initialRegion={{ ...WAVRE, ...ZOOM }}
+      mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
+      showsUserLocation={montrerPosition}
+      showsMyLocationButton={false}
+      showsPointsOfInterests={false}
+      showsCompass={false}
+      toolbarEnabled={false}
+      pitchEnabled={false}
+      rotateEnabled={false}
+      onPress={() => onChoisir(null)}>
+      {sessions.map((session) => {
+        const choisie = session.id === idChoisie;
+        return (
+          <Marker
+            key={session.id}
+            coordinate={session.position}
+            anchor={{ x: 0.5, y: 0.5 }}
+            // Android fige les marqueurs en image : on ne les redessine que s'ils bougent
+            tracksViewChanges={choisie || estEnDirect(session)}
+            zIndex={choisie ? 2 : 1}
+            onPress={(e) => {
+              e.stopPropagation();
+              onChoisir(session.id);
+            }}>
+            <PastilleSession session={session} choisie={choisie} />
+          </Marker>
+        );
+      })}
+    </MapView>
+  );
+}
