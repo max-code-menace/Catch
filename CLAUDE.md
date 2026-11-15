@@ -7,17 +7,19 @@ App mobile (Expo + Supabase) pour faire du sport et rencontrer des gens près de
 - `docs/produit.md` : décisions produit, choix techniques, plan de construction
 - `docs/design-system.md` : couleurs clair et sombre, typo, navigation, animations, vibrations
 - `docs/ux-writing.md` : ton, règle du mot « catch », glossaire
-- `docs/recherches.md` : résumé des recherches UX
-- `mobile/AGENTS.md` : règles Expo (ne pas se fier à sa mémoire, lire la doc de la version installée)
+- `docs/recherches.md` : résumé des recherches UX et de l'audit concurrents
+- `AGENTS.md` : règles Expo (ne pas se fier à sa mémoire, lire la doc de la version installée)
 
 ## Où est quoi
 
 | Dossier | Contenu |
 | --- | --- |
-| `mobile/` | **L'app** (Expo SDK 58, expo-router, TypeScript) |
+| racine (`src/`, `app.json`, `package.json`…) | **L'app** (Expo SDK 58, expo-router, TypeScript). Il n'y a qu'une seule app : l'ancien dossier `mobile/` a été supprimé |
 | `docs/` | Décisions et règles |
 | `design/` | **Design de référence** (direction « Chaleur ») : captures dans `apercus/`, pictos SVG dans `pictos/` |
 | `design/laboratoire-ux/` | Analyse de patterns UX (sources dans `src/`). 10 corrections d'audit pas encore appliquées |
+| `emails/` | Modèles d'e-mails de connexion (code à 6 chiffres, bienvenue) |
+| `supabase/migrations/` | SQL appliqué à la base |
 | `maquettes-liquid-glass/` | Ancienne piste (verre gris). **Ne pas suivre** |
 
 Les fichiers `design/canvas/*.dc.html` sont générés par `design/canvas/generer_design.py` : modifier le script, pas les fichiers générés.
@@ -26,47 +28,54 @@ Les fichiers `design/canvas/*.dc.html` sont générés par `design/canvas/genere
 
 Plan complet dans `docs/produit.md`.
 
-- [x] 0. Projet Expo créé dans `mobile/`
-- [x] 1. Squelette, barre flottante à 4 onglets, thème clair et sombre, module de vibrations
-- [ ] 2. Carte des sessions ← **prochaine étape**
-- [ ] 3. Liste · 4. Détail et bouton Catch · 5. Connexion · 6. Créer · 7. Lien d'invitation
-- [ ] 8. Notifications · 9. Messagerie interne · 10. Signalement, blocage, suppression de compte · 11. Tests
+- [x] 0. Projet Expo
+- [x] 1. Squelette, barre flottante à 4 onglets, thème clair et sombre (réglage Auto / Clair / Sombre et Vibrations dans Profil)
+- [x] 2. Carte des sessions · 3. Liste avec filtres · 4. Détail, geste Catch, « Tu l'as catchée ! », annulation
+- [~] 5. Connexion : e-mail (code à 6 chiffres puis prénom) fait et branché sur Supabase. Apple configuré mais à tester dans un build EAS (bouton masqué dans Expo Go). Google à faire
+- [~] 6. Créer une session : écran fait (tuiles, roulettes, lieu sur la carte). **La session créée reste sur le téléphone**
+- [ ] **Prochaine étape : brancher les vraies données.** Les sessions affichées sont encore **fictives** (`src/donnees/sessions.ts`) et les Catchs ne sont pas enregistrés. Il faut : lire les sessions depuis Supabase, y enregistrer les sessions créées et les Catchs, supprimer les sessions fictives, afficher l'état « Rien à 5 km » quand il n'y a rien. Maxime ne veut **aucune fausse session** sur la carte
+- [ ] 7. Lien d'invitation · 8. Notifications · 9. Messagerie interne · 10. Signalement, blocage, suppression de compte · 11. Tests
 
-En attente d'une réponse de Maxime :
-- Fond de carte : Apple Plans sur iPhone + Google Maps sur Android (recommandé) ?
-- L'étape 1 s'ouvre-t-elle bien dans Expo Go sur son iPhone ? (pas encore confirmé)
+**Supabase** : projet `fwhewavlrbujnwfbgcdf` (eu-central-1). Sert déjà à la connexion. Une table `sessions` existe (lecture publique, vide, personne ne peut encore y écrire) : elle a été créée pour une carte refaite par erreur dans `mobile/`, son schéma est à adapter au type `Session` de l'app quand on branche les données.
 
-Pas encore fait : icône et écran de démarrage (ceux d'Expo par défaut), Supabase (aucun projet créé), aucun test sur vrai téléphone.
+Le 15 novembre, une session avait reconstruit l'app de zéro dans `mobile/` sans voir cette version plus avancée. Tout a été regroupé ici ; de `mobile/` on a repris le mode sombre et les réglages du Profil. Si un jour `main` semble en retard sur ce que Maxime décrit, **regarder les autres branches avant de coder**.
 
-## Structure de `mobile/`
+À confirmer par Maxime : le plan de `docs/produit.md` garde les étapes 8 à 11 décidées en dernier ; l'« après-session » (« C'était bien ? », « Rejouer avec eux ») de la section « Rendre Catch amusant » n'a pas encore d'étape.
 
-- `src/app/_layout.tsx` : polices, thème, pile de navigation
-- `src/app/(tabs)/` : les 4 onglets (`creer`, `index` = Carte, `messages`, `profil`). Seul Profil a du contenu (Apparence, Vibrations)
-- `src/components/tab-bar.tsx` : barre flottante sur mesure (`expo-router/ui`)
-- `src/components/` : `ecran`, `texte`, `pressable-scale`
-- `src/theme/tokens.ts` : couleurs, polices, rayons, ressorts. **Aucune couleur en dur dans un écran**
-- `src/theme/theme-context.tsx` : `useTheme()` donne `c` (couleurs) et le réglage Auto / Clair / Sombre
-- `src/lib/haptics.ts` : `vibrer()`, seul endroit qui déclenche une vibration
+Pas encore fait : icône et écran de démarrage (ceux d'Expo par défaut), clé Google Maps pour Android (nécessaire pour un build hors Expo Go).
 
-Règles de code : React Compiler est actif, donc avec Reanimated écrire `valeur.set()` / `valeur.get()` et pas `.value`. Installer un paquet avec `npx expo install`. Avant chaque commit : `npx tsc --noEmit` et `npx expo lint` dans `mobile/`.
+## Structure de `src/`
+
+- `app/_layout.tsx` : polices, thème, pile de navigation. `app/(onglets)/` : `creer`, `index` (Carte + Liste), `messages`, `profil`. Par-dessus : `session/[id]` (détail), `connexion`, `catchee/[id]`
+- `components/` : `carte-sessions` (react-native-maps : Apple Plans sur iPhone, Google Maps sur Android), `pastille-session`, `fiche-session`, `liste-sessions`, `bouton-catch`, `choix-lieu`, `roulette`, `barre-haut`, `barre-navigation`… Les fichiers `.web.tsx` remplacent les cartes par un fond uni, pour vérifier dans un navigateur
+- `constants/theme.ts` : palettes `clair` et `sombre`, polices, rayons, ressorts. `constants/carte.ts` : thème du fond de carte
+- `lib/theme.tsx` : `useCouleurs()`, `useTheme()`, `useStyles(creerStyles)`. `lib/sessions.tsx` : sessions et Catchs partagés. `lib/compte.tsx` + `lib/supabase.ts` : connexion. `lib/haptics.ts` : seul endroit qui déclenche une vibration
+- `donnees/` : pictos (générés par `scripts/generer_pictos.py`), sports, sessions fictives (à supprimer)
+
+Règles de code :
+- Noms de fichiers, composants et variables en français.
+- **Aucune couleur en dur dans un écran.** Chaque fichier déclare `const creerStyles = (c: Palette) => StyleSheet.create({…})` et chaque composant fait `const styles = useStyles(creerStyles)` ; pour une couleur hors styles, `const c = useCouleurs()`. Sur du rouge on écrit en `c.surRouge`, sur un fond encre en `c.surEncre` (jamais `c.carte` comme couleur de texte).
+- React Compiler est actif : avec Reanimated écrire `valeur.set()` / `valeur.get()`, pas `.value`.
+- Installer un paquet avec `npx expo install`. Avant chaque commit : `npx tsc --noEmit` et `npx expo lint`.
 
 ## Tester et publier
 
 - Compte Expo : `max-code-menace`, projet `catch` (ID `f78ef305-c7a4-4272-944a-be41255b2319`).
-- Maxime teste sur **iPhone avec Expo Go**, sans PC. Après chaque étape, publier :
-  `npx eas-cli@latest update --branch main --message "…" --platform ios --environment development --non-interactive` (dans `mobile/`)
+- Maxime teste sur **iPhone avec Expo Go**, sans PC. Après chaque étape, publier sur le canal `main` :
+  `npx eas-cli@latest update --branch main --message "…" --platform ios --environment development --non-interactive`
+  (le canal `preview` contient d'anciennes publications, ne plus l'utiliser)
 - La version d'exécution doit rester `sdkVersion` dans `app.json` (nécessaire pour Expo Go).
-- Vérifier soi-même avant de publier : `npx expo start --web` puis captures en clair et en sombre.
+- Vérifier soi-même avant de publier : `npx expo start --web` puis captures de chaque écran en clair et en sombre (Playwright, `colorScheme`). Le bac à sable n'atteint pas Supabase.
+- Accès Expo : l'environnement cloud « catch » contient le jeton (injecté vers `api.expo.dev`). Si la session tourne sur un autre environnement, basculer dessus (`switch_environment`), puis lancer les commandes EAS avec `EXPO_TOKEN=dummy` devant. Ne jamais faire coller un jeton dans la conversation. La doc `docs.expo.dev` n'est pas joignable : lire les types dans `node_modules/`.
 - Les notifications push ne marchent pas dans Expo Go sur Android : build de développement à partir de l'étape 8.
-- Si la session n'est pas connectée à Expo, demander un accès à Maxime, ne jamais lui faire coller un jeton dans la conversation.
 
 ## Git
 
-Le travail est sur la branche `ccr-30ebed49-o1vbis`. Pousser après chaque étape (les sessions cloud sont effacées). Pas de pull request sans que Maxime le demande.
+Tout le travail doit finir dans `main` (les sessions cloud repartent de `main` et sont effacées). Pousser après chaque étape. Pas de pull request sans que Maxime le demande.
 
 ## Décisions à ne pas rediscuter
 
-Détail dans `docs/produit.md`. En bref : pas de compte pour regarder · direction Chaleur · mode sombre dès la v1 · barre flottante sur mesure · création pré-remplie avec une première création en 3 choix · annulation libre jusqu'à 3 h avant puis confirmation factuelle · messagerie interne avant le lancement public · 4 types de notifications, pas de résumé quotidien · célébration du Catch après la réponse du serveur · pas de paiement dans l'app · pas de variantes expérimentales · pas de dark patterns · la v1 est un vrai produit fini, pas une démo.
+Détail dans `docs/produit.md`. En bref : pas de compte pour regarder · direction Chaleur · mode sombre dès la v1 · barre flottante sur mesure · création pré-remplie avec une première création en 3 choix · annulation libre jusqu'à 3 h avant puis confirmation factuelle · messagerie interne avant le lancement public · 4 types de notifications, pas de résumé quotidien · célébration du Catch après la réponse du serveur · pas de paiement dans l'app · pas de variantes expérimentales · pas de dark patterns · pas de fausses sessions · la v1 est un vrai produit fini, pas une démo.
 
 ## Façon de travailler
 

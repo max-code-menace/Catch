@@ -1,0 +1,59 @@
+// Toutes les vibrations de l'app passent par ici (voir docs/design-system.md).
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
+import { Platform } from 'react-native';
+
+const CLE = 'catch.vibrations';
+let actives = true;
+
+// On relit le réglage enregistré au démarrage
+AsyncStorage.getItem(CLE)
+  .then((v) => {
+    if (v === '0') actives = false;
+  })
+  .catch(() => {});
+
+export function vibrationsActives() {
+  return actives;
+}
+
+/** Réglage « Vibrations » du profil, gardé sur le téléphone. */
+export function reglerVibrations(valeur: boolean) {
+  actives = valeur;
+  AsyncStorage.setItem(CLE, valeur ? '1' : '0').catch(() => {});
+}
+
+function jouer(ios: () => Promise<void>, android: Haptics.AndroidHaptics) {
+  if (!actives || Platform.OS === 'web') return;
+  const action =
+    Platform.OS === 'android' ? Haptics.performAndroidHapticsAsync(android) : ios();
+  action.catch(() => {});
+}
+
+export const vibrer = {
+  /** Pastille, filtre, stepper */
+  selection: () => jouer(() => Haptics.selectionAsync(), Haptics.AndroidHaptics.Segment_Tick),
+  /** Appui sur Catch */
+  appuiCatch: () =>
+    jouer(
+      () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium),
+      Haptics.AndroidHaptics.Virtual_Key,
+    ),
+  /** Catch confirmé, session publiée */
+  succes: () =>
+    jouer(
+      () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success),
+      Haptics.AndroidHaptics.Confirm,
+    ),
+  /** Session complète, butée */
+  avertissement: () =>
+    jouer(
+      () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning),
+      Haptics.AndroidHaptics.Reject,
+    ),
+  erreur: () =>
+    jouer(
+      () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error),
+      Haptics.AndroidHaptics.Reject,
+    ),
+};
