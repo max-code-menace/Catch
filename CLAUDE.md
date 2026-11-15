@@ -20,7 +20,6 @@ App mobile (Expo + Supabase) pour faire du sport et rencontrer des gens près de
 | `design/laboratoire-ux/` | Analyse de patterns UX (sources dans `src/`). 10 corrections d'audit pas encore appliquées |
 | `emails/` | Modèles d'e-mails de connexion (code à 6 chiffres, bienvenue) |
 | `supabase/migrations/` | SQL appliqué à la base |
-| `maquettes-liquid-glass/` | Ancienne piste (verre gris). **Ne pas suivre** |
 
 Les fichiers `design/canvas/*.dc.html` sont générés par `design/canvas/generer_design.py` : modifier le script, pas les fichiers générés.
 
@@ -40,7 +39,7 @@ Plan complet dans `docs/produit.md`.
 
 Le 15 novembre, une session avait reconstruit l'app de zéro dans `mobile/` sans voir cette version plus avancée. Tout a été regroupé ici ; de `mobile/` on a repris le mode sombre et les réglages du Profil. Si un jour `main` semble en retard sur ce que Maxime décrit, **regarder les autres branches avant de coder**.
 
-À confirmer par Maxime : le plan de `docs/produit.md` garde les étapes 8 à 11 décidées en dernier ; l'« après-session » (« C'était bien ? », « Rejouer avec eux ») de la section « Rendre Catch amusant » n'a pas encore d'étape.
+**Un seul plan** : celui de `docs/produit.md` (direction Chaleur). L'ancienne piste « liquid glass » (verre gris, étapes A à Z, équipe de trois) a été retirée du dépôt le 15 novembre à la demande de Maxime ; elle reste dans l'historique Git, ne pas la ressortir. Les idées « fun » et celles de l'audit concurrents sont rangées dans « Idées pas encore décidées » de `docs/produit.md` : ne pas les construire sans son accord.
 
 Pas encore fait : icône et écran de démarrage (ceux d'Expo par défaut), clé Google Maps pour Android (nécessaire pour un build hors Expo Go).
 

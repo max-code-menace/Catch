@@ -35,22 +35,24 @@ Une app de rencontres sportives meurt si personne ne voit de session à la premi
 - **Obligations stores** : bouton signaler / bloquer, contact visible et suppression de compte dès la v1, dans l'app et par un lien web (exigé par Google Play).
 - **Niveau d'exigence** : la v1 est un vrai produit, fini et fiable sur ce qu'il fait. On n'ajoute pas de variantes expérimentales (phrase à trous, grille à peindre, balayage).
 
-## Rendre Catch amusant
-
-Le fun, c'est le terrain, pas l'écran. L'app donne envie d'y aller, fête le moment où on s'engage et fait revenir après. On récompense le fait de jouer, jamais le fait d'ouvrir l'app.
-
-- **Le Catch est un vrai geste** : balle qui vole et qu'on attrape, rebond, vibration, « Tu l'as catchée ! ». C'est le moment signature, à soigner à fond (étape 4).
-- **Une carte qui bouge** : pastilles « En direct » qui pulsent, « il manque 1 » qui ressort, avatars des inscrits visibles.
-- **« Il manque 1 joueur » comme mission** : celui qui catche sauve la session. Notification dédiée (étape 8).
-- **L'après-session** : écran « C'était bien ? » avec un tap pour remercier un joueur, bouton « Rejouer avec eux » qui recrée la session la semaine suivante, et les personnes avec qui on a joué visibles sur le profil.
-- **Un profil qui raconte une histoire** : sessions jouées, sports essayés, personnes rencontrées, semaines d'affilée. Quelques badges liés à du vrai (premier Catch, premier sport nouveau, 5 sessions complétées, Organisateur).
-- **Faire jouer les autres** : l'invitation est un défi avec la session en image, et l'organisateur est prévenu quand quelqu'un catche sa session.
-- **Un ton qui joue** : humour dans les états vides, le chargement et les notifications, dans les règles de `ux-writing.md`.
-- **À éviter** : classements entre joueurs (ça fait fuir les débutants), points et notifications de relance quotidiennes.
-
 ## Fonctionnalités prévues plus tard (v2)
 
 Badge « En direct » animé avancé, bouton « je cherche un joueur » avec notifications limitées, système anti-lapin complet, badge Organisateur, paiement dans l'app.
+
+## Idées pas encore décidées
+
+À ne pas construire sans l'accord de Maxime. Elles ne font pas partie du plan de construction.
+
+Principe : le fun, c'est le terrain, pas l'écran. On récompense le fait de jouer, jamais le fait d'ouvrir l'app.
+
+- **« Il manque 1 joueur » comme mission** : celui qui catche sauve la session.
+- **L'après-session** : écran « C'était bien ? » avec un appui pour remercier un joueur, bouton « Rejouer avec eux » qui recrée la session la semaine suivante.
+- **Un profil qui raconte une histoire** : sessions jouées, sports essayés, personnes rencontrées, quelques badges liés à du vrai (premier Catch, premier sport nouveau, 5 sessions complétées).
+- **Invitation en forme de défi**, avec la session en image.
+- **Un ton qui joue** : humour dans les états vides et le chargement, dans les règles de `ux-writing.md`.
+- **Propositions de l'audit concurrents** (voir `recherches.md`) : sessions qui se répètent, liste d'attente, « je viens avec 1 pote », minimum de joueurs.
+
+Écarté : classements entre joueurs, points, niveaux, séries de jours ou de semaines d'affilée, notifications de relance, notifications en plus des 4 types décidés.
 
 ## Choix techniques
 
@@ -68,7 +70,7 @@ Une fonctionnalité à la fois, testée avant de passer à la suivante. L'avance
 1. Squelette, barre de navigation flottante et design system (couleurs clair et sombre dès le départ)
 2. Carte des sessions
 3. Liste des sessions
-4. Détail d'une session et bouton Catch (avec l'animation signature du Catch)
+4. Détail d'une session et bouton Catch (avec l'animation du Catch : la balle attrapée dans le bouton)
 5. Connexion (Apple, Google, e-mail) au moment du Catch
 6. Créer une session (première création + pré-remplissage + « Relancer »)
 7. Lien d'invitation et page web
@@ -79,4 +81,4 @@ Une fonctionnalité à la fois, testée avant de passer à la suivante. L'avance
 
 ## Comment Maxime veut travailler
 
-Maxime dirige le produit et ne code pas lui-même. Avancer étape par étape, une fonctionnalité à la fois, avec du code complet prêt à copier, les commandes exactes, une explication en une ou deux phrases par partie, et corriger directement les erreurs qu'il colle. Réponses courtes, en français, ton décontracté.
+Maxime dirige le produit et ne code pas. Claude code directement dans le dépôt, une fonctionnalité à la fois, teste, pousse, publie sur Expo, puis explique en une ou deux phrases ce qui a changé et ce qu'il faut regarder sur le téléphone. Réponses courtes, en français, ton décontracté.
