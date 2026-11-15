@@ -20,6 +20,7 @@ import { Durees, Espaces, Polices, Rayons, Ressorts, Tailles } from '@/constants
 import { annulationLibre, quandPhrase, texteAttente } from '@/lib/formats';
 import { inviter } from '@/lib/invitation';
 import { ouvrirItineraire } from '@/lib/itineraire';
+import { activerNotifications, permissionNotifications, type Permission } from '@/lib/notifications';
 import { useSessions } from '@/lib/sessions';
 import { useStyles, type Palette } from '@/lib/theme';
 
@@ -67,6 +68,10 @@ export default function Catchee() {
   const session = sessions.find((s) => s.id === id);
   // Vérifié une seule fois à l'ouverture : après « Annuler ma participation », c'est le retour qui ferme l'écran
   const [catcheeAuDepart] = useState(() => estCatchee(id));
+  const [permission, setPermission] = useState<Permission | null>(null);
+  useEffect(() => {
+    permissionNotifications().then(setPermission);
+  }, []);
 
   // Le titre arrive juste après la balle
   const titre = useSharedValue(0);
@@ -103,6 +108,19 @@ export default function Catchee() {
             <Avatars initiales={session.inscrits.filter((nom) => nom !== 'Toi')} max={4} />
             <Text style={styles.attenteTexte}>{texteAttente(session)}</Text>
           </View>
+
+          {/* Les notifications ne sont demandées qu'ici, après un Catch, et seulement si on ne l'a jamais fait */}
+          {permission === 'a-demander' && (
+            <View style={styles.rappel}>
+              <Text style={styles.rappelTitre}>Un rappel 3h avant ?</Text>
+              <Text style={styles.aide}>Tu réponds « Je viens » ou « Je ne peux plus » en un appui.</Text>
+              <Bouton
+                titre="Activer le rappel"
+                variante="secondaire"
+                onPress={async () => setPermission(await activerNotifications(true))}
+              />
+            </View>
+          )}
         </Animated.View>
       </View>
 
@@ -176,6 +194,17 @@ const creerStyles = (c: Palette) =>
     },
     attenteTexte: { fontFamily: Polices.texteMoyen, fontSize: 14, color: c.encre },
     actions: { gap: 10, paddingBottom: 16 },
+    rappel: {
+      alignSelf: 'stretch',
+      marginTop: 8,
+      padding: 16,
+      gap: 8,
+      backgroundColor: c.carte,
+      borderRadius: Rayons.carte,
+      borderWidth: 1,
+      borderColor: c.trait,
+    },
+    rappelTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre, textAlign: 'center' },
     annulation: { alignItems: 'center', paddingTop: 4 },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
   });
