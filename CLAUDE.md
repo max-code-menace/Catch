@@ -44,6 +44,13 @@ Le 15 novembre, une session avait reconstruit l'app de zéro dans `mobile/` sans
 
 Pas encore fait : icône et écran de démarrage (ceux d'Expo par défaut), clé Google Maps pour Android (nécessaire pour un build hors Expo Go).
 
+## À faire par Maxime (à lui rappeler de temps en temps)
+
+Noté le 15 novembre à sa demande, pour ne pas oublier. Claude ne peut pas le faire à sa place (suppressions bloquées dans les sessions cloud).
+
+- [ ] Supprimer les vieilles branches sur GitHub (page « Branches » du dépôt) : `ccr-0c4ac0e0-q6kyl6`, `ccr-30ebed49-o1vbis`, `claude/affectionate-fermi-9ydvvu`, `claude/parallel-work-mobile-bshf1m`, `docs/conception-v1`, `maquettes/liquid-glass`. Tout leur contenu est dans `main`.
+- [ ] Supprimer la table vide `sessions_ancienne` sur le site Supabase (Table Editor).
+
 ## Structure de `src/`
 
 - `app/_layout.tsx` : polices, thème, pile de navigation. `app/(onglets)/` : `creer`, `index` (Carte + Liste), `messages`, `profil`. Par-dessus : `session/[id]` (détail), `connexion`, `catchee/[id]`
