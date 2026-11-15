@@ -9,6 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.maxcodemenace.catch",
       "usesAppleSignIn": true
     },
     "android": {
