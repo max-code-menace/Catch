@@ -24,6 +24,7 @@ Tutoiement partout, phrases courtes, aucun jargon. Pas de promesse qu'on ne peut
 | Places libres | Ce qui reste à prendre | places (seul) |
 | Inscrits | Total de personnes déjà dans la session | joueurs (pour un total) |
 | Jouent | Uniquement pour une session en direct | inscrits (en direct) |
+| Il nous manque X joueurs | Phrase de l'écran Créer (X réglable) | il manque (dans Créer) |
 | Joueurs | Nombre maximum choisi à la création | places (dans Créer) |
 | Débutants bienvenus | Toujours cette formule | tous niveaux |
 | Organisée par | Créateur de la session | par, hôte |
@@ -42,6 +43,7 @@ Ces textes sont rédigés mais n'ont pas encore d'écran :
 - **Suppression de compte** : dialogue « Supprimer ton compte ? … C'est définitif. »
 - **Notifications** : rappel 3h avant avec « Je viens » / « Je ne peux plus », nouveau message, joueur manquant, nouvelle session de ton sport (1 par jour maximum).
 - **États vides** : Messages, Profil sans session à venir.
-- **Première utilisation** : une bulle sur la carte, une sur Créer.
+- **Première utilisation** : une bulle sur la carte, une sur « Créer une session ».
+- **Premier Catch** : « Tu joues à quoi ? / On te prévient quand il manque du monde près de toi. Tu pourras changer plus tard. » avec « Passer ».
 
 Le détail de chaque texte est dans l'audit.
