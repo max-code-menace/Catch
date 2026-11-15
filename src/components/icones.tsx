@@ -145,3 +145,12 @@ export function IconeSansReseau(props: Props) {
     </Base>
   );
 }
+
+export function IconeInviter(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M12 15V4M8 8l4-4 4 4" />
+      <Path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" />
+    </Base>
+  );
+}

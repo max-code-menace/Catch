@@ -1,6 +1,6 @@
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   useAnimatedStyle,
@@ -15,12 +15,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatars } from '@/components/avatars';
 import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
-import { IconeItineraire } from '@/components/icones';
+import { IconeInviter, IconeItineraire } from '@/components/icones';
 import { Durees, Espaces, Polices, Rayons, Ressorts, Tailles } from '@/constants/theme';
 import { annulationLibre, quandPhrase, texteAttente } from '@/lib/formats';
+import { inviter } from '@/lib/invitation';
 import { ouvrirItineraire } from '@/lib/itineraire';
 import { useSessions } from '@/lib/sessions';
 import { useStyles, type Palette } from '@/lib/theme';
+
+const surLeWeb = Platform.OS === 'web';
 
 const TAILLE_BALLE = 64;
 const CHUTE = -260;
@@ -85,7 +88,7 @@ export default function Catchee() {
       <View style={styles.haut}>
         <BalleQuiRebondit />
         <Animated.Text accessibilityRole="header" style={[styles.titre, styleTitre]}>
-          Tu l’as catchée !
+          {surLeWeb ? 'Tu as rejoint la session' : 'Tu l’as catchée !'}
         </Animated.Text>
 
         <Animated.View entering={FadeIn.delay(250).duration(Durees.standard)} style={styles.resume}>
@@ -104,12 +107,22 @@ export default function Catchee() {
       </View>
 
       <Animated.View entering={FadeIn.delay(350).duration(Durees.standard)} style={styles.actions}>
-        <Bouton titre="Retour à la carte" onPress={() => router.dismissAll()} />
+        {/* Sur la page web d'invitation, il n'y a pas de carte où revenir ni de feuille de partage */}
+        {!surLeWeb && <Bouton titre="Inviter un pote" Icone={IconeInviter} onPress={() => inviter(session)} />}
         <Bouton
           titre="Itinéraire"
           variante="secondaire"
           Icone={IconeItineraire}
           onPress={() => ouvrirItineraire(session.position)}
+        />
+        <Bouton
+          titre={surLeWeb ? 'Voir la session' : 'Retour à la carte'}
+          variante="secondaire"
+          onPress={() =>
+            surLeWeb
+              ? router.replace({ pathname: '/session/[id]', params: { id: session.id } })
+              : router.dismissAll()
+          }
         />
         <View style={styles.annulation}>
           <Bouton

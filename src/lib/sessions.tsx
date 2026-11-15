@@ -25,6 +25,8 @@ type Valeur = {
   sessions: Session[];
   etat: EtatSessions;
   recharger: () => Promise<void>;
+  /** Va chercher une session précise (lien d'invitation) si elle n'est pas déjà là. Renvoie `false` si elle n'existe plus. */
+  chercher: (id: string) => Promise<boolean>;
   estCatchee: (id: string) => boolean;
   /** Publie une session : l'organisateur y est inscrit d'office. Renvoie son identifiant, ou `null` en cas d'échec. */
   creer: (nouvelle: NouvelleSession) => Promise<string | null>;
@@ -133,11 +135,34 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
         .order('debut')
         .limit(500);
       if (error) throw error;
-      setLues((data as Ligne[]).map(lire));
+      const recues = (data as Ligne[]).map(lire);
+      // Une session ouverte par un lien d'invitation peut commencer dans plus de 7 jours : on la garde
+      setLues((avant) => [
+        ...recues,
+        ...avant.filter((s) => s.debut >= dans7Jours && !recues.some((r) => r.id === s.id)),
+      ]);
       setEtat('pretes');
     } catch {
       // On garde ce qui est déjà affiché ; l'erreur n'est montrée que s'il n'y a rien à voir
       setEtat((avant) => (avant === 'pretes' ? 'pretes' : 'erreur'));
+    }
+  }, []);
+
+  const chercher = useCallback(async (id: string) => {
+    if (!supabase) return false;
+    try {
+      const { data, error } = await supabase
+        .from('sessions_visibles')
+        .select('*')
+        .eq('id', id)
+        .gt('fin', new Date().toISOString())
+        .maybeSingle();
+      if (error || !data) return false;
+      const trouvee = lire(data as Ligne);
+      setLues((liste) => [...liste.filter((s) => s.id !== id), trouvee]);
+      return true;
+    } catch {
+      return false;
     }
   }, []);
 
@@ -302,6 +327,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
         sessions,
         etat,
         recharger,
+        chercher,
         estCatchee,
         catcher,
         creer,

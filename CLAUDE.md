@@ -34,7 +34,8 @@ Plan complet dans `docs/produit.md`.
 - [~] 5. Connexion : e-mail (code à 6 chiffres puis prénom) fait et branché sur Supabase. Apple configuré mais à tester dans un build EAS (bouton masqué dans Expo Go). Google à faire
 - [x] 6. Créer une session : écran fait (tuiles, roulettes, lieu sur la carte), la session est publiée sur Supabase. Reste « première création en 3 choix » à vérifier
 - [x] Vraies données : plus aucune session d'exemple. Sessions, création, Catch et annulation passent par Supabase ; la carte affiche « Rien à 5 km pour l'instant » quand il n'y a rien, « Pas de réseau » si la lecture échoue. Le Catch n'est fêté qu'après la réponse du serveur. Une session que son dernier inscrit quitte disparaît tout de suite et éclate sur la carte (`PastilleQuiEclate`), idée de Maxime
-- [ ] 7. Lien d'invitation · 8. Notifications · 9. Messagerie interne · 10. Signalement, blocage, suppression de compte · 11. Tests
+- [x] 7. Lien d'invitation : bouton « Inviter » (fiche de la carte, détail, « Tu l'as catchée ! ») et page web https://catch-sport.expo.app/session/<id> avec « Rejoindre la session ». La page web est la version web de l'app : l'écran `session/[id]` s'y présente comme une invitation. Pas encore : vraie carte sur le web, « Ouvrir dans l'app » et liens qui ouvrent l'app directement (attendre un vrai build installable)
+- [ ] 8. Notifications ← **prochaine étape** · 9. Messagerie interne · 10. Signalement, blocage, suppression de compte · 11. Tests
 
 **Supabase** : projet `fwhewavlrbujnwfbgcdf` (eu-central-1). Tables `profils` (prénom, recopié automatiquement depuis le compte), `sessions`, `participations` (un Catch = une ligne) ; vue `sessions_visibles` lue par l'app ; fonction `catcher(p_session)` qui vérifie la place (renvoie `ok`, `complete`, `terminee`, `introuvable`). Lecture ouverte à tous, écriture réservée aux comptes connectés. SQL dans `supabase/migrations/`. La table `sessions_ancienne` (vide) est un reste inutilisé, à supprimer depuis le site Supabase. Les outils Supabase demandent une confirmation à Maxime pour tout SQL qui supprime (DROP, DELETE) et l'app iPhone ne l'affiche pas : écrire des migrations qui ne suppriment rien. Créer, catcher et annuler n'ont pas encore été testés contre la vraie base.
 
@@ -43,6 +44,13 @@ Le 15 novembre, une session avait reconstruit l'app de zéro dans `mobile/` sans
 **Un seul plan** : celui de `docs/produit.md` (direction Chaleur). L'ancienne piste « liquid glass » (verre gris, étapes A à Z, équipe de trois) a été retirée du dépôt le 15 novembre à la demande de Maxime ; elle reste dans l'historique Git, ne pas la ressortir. Le laboratoire UX (`design/laboratoire-ux/`) n'est **pas** un ancien plan : il fait partie du plan Chaleur et ne doit pas être supprimé. Les idées « fun » et celles de l'audit concurrents sont rangées dans « Idées pas encore décidées » de `docs/produit.md` : ne pas les construire sans son accord.
 
 Pas encore fait : icône et écran de démarrage (ceux d'Expo par défaut), clé Google Maps pour Android (nécessaire pour un build hors Expo Go).
+
+## À faire par Maxime (à lui rappeler de temps en temps)
+
+Noté le 15 novembre à sa demande, pour ne pas oublier. Claude ne peut pas le faire à sa place (suppressions bloquées dans les sessions cloud).
+
+- [ ] Supprimer les vieilles branches sur GitHub (page « Branches » du dépôt) : `ccr-0c4ac0e0-q6kyl6`, `ccr-30ebed49-o1vbis`, `claude/affectionate-fermi-9ydvvu`, `claude/parallel-work-mobile-bshf1m`, `docs/conception-v1`, `maquettes/liquid-glass`. Tout leur contenu est dans `main`.
+- [ ] Supprimer la table vide `sessions_ancienne` sur le site Supabase (Table Editor).
 
 ## Structure de `src/`
 
@@ -64,6 +72,7 @@ Règles de code :
 - Maxime teste sur **iPhone avec Expo Go**, sans PC. Après chaque étape, publier sur le canal `main` :
   `npx eas-cli@latest update --branch main --message "…" --platform ios --environment development --non-interactive`
   (le canal `preview` contient d'anciennes publications, ne plus l'utiliser)
+- **Site web (page d'invitation)** : après tout changement qui touche l'écran d'une session, la connexion ou le Catch, remettre le site en ligne : `npx expo export -p web` puis `npx eas-cli@latest deploy --prod --non-interactive`. Adresse dans `src/constants/liens.ts`. Le découpage du code par écran est désactivé sur le web (`asyncRoutes: false` dans `app.json`), sinon la page d'une session reste blanche. L'environnement cloud « catch » autorise `eas.expo.app` (envoi) et `catch-sport.expo.app` (vérification).
 - La version d'exécution doit rester `sdkVersion` dans `app.json` (nécessaire pour Expo Go).
 - Vérifier soi-même avant de publier : `npx expo start --web` puis captures de chaque écran en clair et en sombre (Playwright, `colorScheme`). Le bac à sable n'atteint pas Supabase : dans Playwright, simuler la réponse de `**/rest/v1/sessions_visibles**` (`page.route`) pour voir des sessions, sans jamais rien écrire dans la vraie base.
 - Accès Expo : l'environnement cloud « catch » contient le jeton (injecté vers `api.expo.dev`). Si la session tourne sur un autre environnement, basculer dessus (`switch_environment`), puis lancer les commandes EAS avec `EXPO_TOKEN=dummy` devant. Ne jamais faire coller un jeton dans la conversation. La doc `docs.expo.dev` n'est pas joignable : lire les types dans `node_modules/`.

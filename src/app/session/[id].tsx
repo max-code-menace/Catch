@@ -1,5 +1,6 @@
-import { Redirect, router, useLocalSearchParams } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ApercuCarte } from '@/components/apercu-carte';
@@ -11,6 +12,7 @@ import { BoutonCatch } from '@/components/bouton-catch';
 import {
   IconeCalendrier,
   IconeInfo,
+  IconeInviter,
   IconeLieu,
   IconeRetour,
 } from '@/components/icones';
@@ -27,6 +29,7 @@ import {
   textePlaces,
 } from '@/lib/formats';
 import { useCatch } from '@/lib/catch';
+import { inviter } from '@/lib/invitation';
 import { ouvrirItineraire } from '@/lib/itineraire';
 import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
@@ -68,11 +71,43 @@ export default function DetailSession() {
   const styles = useStyles(creerStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { top, bottom } = useSafeAreaInsets();
-  const { sessions, estCatchee, annuler, origine } = useSessions();
+  const { sessions, etat, chercher, estCatchee, annuler, origine } = useSessions();
   const { autoriser, envoyer, confirmer } = useCatch();
   const session = sessions.find((s) => s.id === id);
+  // Sur le web, cette page est celle d'un lien d'invitation : on parle à quelqu'un qui ne connaît pas l'app
+  const invitation = Platform.OS === 'web';
 
-  if (!session) return <Redirect href="/" />;
+  // Arrivée par un lien : la session n'est peut-être pas dans celles déjà lues, on va la chercher
+  const [introuvable, setIntrouvable] = useState(false);
+  const absente = !session && etat !== 'chargement';
+  useEffect(() => {
+    if (!absente) return;
+    let actif = true;
+    chercher(id).then((trouvee) => {
+      if (actif && !trouvee) setIntrouvable(true);
+    });
+    return () => {
+      actif = false;
+    };
+  }, [absente, chercher, id]);
+
+  if (!session) {
+    return (
+      <View style={[styles.ecran, styles.attente]}>
+        {introuvable ? (
+          <>
+            <Text accessibilityRole="header" style={[styles.titre, styles.titreSeul]}>
+              Cette session n’est plus disponible
+            </Text>
+            <Text style={styles.aide}>Elle est terminée ou a été annulée.</Text>
+            <Bouton titre="Voir les sessions" onPress={() => router.replace('/')} />
+          </>
+        ) : (
+          <Text style={styles.aide}>Recherche de la session…</Text>
+        )}
+      </View>
+    );
+  }
 
   const catchee = estCatchee(session.id);
   const enDirect = estEnDirect(session);
@@ -103,7 +138,9 @@ export default function DetailSession() {
             </Text>
           </View>
 
-          <Text style={styles.organisateur}>Organisée par {session.organisateur}</Text>
+          <Text style={styles.organisateur}>
+            {invitation ? `${session.organisateur} t’invite à jouer` : `Organisée par ${session.organisateur}`}
+          </Text>
 
           {session.debutantsBienvenus && (
             <View style={styles.pastille}>
@@ -116,7 +153,8 @@ export default function DetailSession() {
             <Ligne
               Icone={IconeLieu}
               titre={session.lieu}
-              detail={`${session.commune} · ${texteDistance(distance(origine, session.position))}`}>
+              // Sur la page web, on ne connaît pas la position de la personne : pas de distance
+              detail={invitation ? session.commune : `${session.commune} · ${texteDistance(distance(origine, session.position))}`}>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`Itinéraire vers ${session.lieu}`}
@@ -145,27 +183,46 @@ export default function DetailSession() {
         </View>
       </ScrollView>
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Retour"
-        onPress={retour}
-        hitSlop={4}
-        style={({ pressed }) => [styles.retour, { top: top + 8 }, pressed && styles.presse]}>
-        <IconeRetour couleur={c.encre} taille={22} />
-      </Pressable>
+      {/* Arrivé par un lien d'invitation : il n'y a pas d'écran précédent où revenir */}
+      {(!invitation || router.canGoBack()) && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Retour"
+          onPress={retour}
+          hitSlop={4}
+          style={({ pressed }) => [styles.retour, { top: top + 8 }, pressed && styles.presse]}>
+          <IconeRetour couleur={c.encre} taille={22} />
+        </Pressable>
+      )}
+
+      {invitation ? (
+        <Text accessibilityLabel="Catch" style={[styles.logo, { top: top + 16 }]}>
+          catch
+        </Text>
+      ) : (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Inviter"
+          onPress={() => inviter(session)}
+          hitSlop={4}
+          style={({ pressed }) => [styles.retour, styles.inviter, { top: top + 8 }, pressed && styles.presse]}>
+          <IconeInviter couleur={c.encre} taille={20} />
+        </Pressable>
+      )}
 
       <View style={[styles.bas, { paddingBottom: Math.max(bottom, 16) }]}>
         {catchee ? (
           <>
             <View style={styles.catchee}>
               <Balle taille={20} />
-              <Text style={styles.catcheeTexte}>Tu l’as catchée !</Text>
+              <Text style={styles.catcheeTexte}>{invitation ? 'Tu as rejoint la session' : 'Tu l’as catchée !'}</Text>
             </View>
             <Bouton titre="Annuler ma participation" variante="lien" onPress={() => annuler(session, nombre <= 1 ? retour : undefined)} />
           </>
         ) : (
           <>
             <BoutonCatch
+              titre={invitation ? 'Rejoindre la session' : 'Catch'}
               complet={libres === 0}
               onDemande={() => autoriser(session.id)}
               onEnvoi={() => envoyer(session.id)}
@@ -256,6 +313,16 @@ const creerStyles = (c: Palette) =>
       borderColor: c.trait,
     },
     placesTitre: { fontFamily: Polices.titre, fontSize: 20, color: c.rouge },
+    attente: { alignItems: 'center', justifyContent: 'center', gap: 12, padding: Espaces.marge },
+    inviter: { left: undefined, right: 16 },
+    titreSeul: { flex: 0, fontSize: 24, lineHeight: 30, textAlign: 'center' },
+    logo: {
+      position: 'absolute',
+      right: Espaces.marge,
+      fontFamily: Polices.titre,
+      fontSize: 22,
+      color: c.rouge,
+    },
     retour: {
       position: 'absolute',
       left: 16,
