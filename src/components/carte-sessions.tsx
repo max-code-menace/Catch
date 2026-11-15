@@ -3,13 +3,16 @@ import { Platform, StyleSheet } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
 import { themeCarte } from '@/constants/carte';
-import { PastilleSession } from '@/components/pastille-session';
+import { PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
 import { WAVRE, type Coordonnees, type Session } from '@/donnees/sessions';
 import { estEnDirect } from '@/lib/formats';
+import type { Eclat } from '@/lib/sessions';
 import { useTheme } from '@/lib/theme';
 
 export type PropsCarte = {
   sessions: Session[];
+  /** Sessions qui viennent de disparaître : elles éclatent sur place */
+  eclats: Eclat[];
   idChoisie: string | null;
   onChoisir: (id: string | null) => void;
   /** Change pour recentrer la carte sur un point */
@@ -20,7 +23,7 @@ export type PropsCarte = {
 const ZOOM = { latitudeDelta: 0.11, longitudeDelta: 0.11 };
 
 /** Carte plein écran avec une pastille par session. */
-export function CarteSessions({ sessions, idChoisie, onChoisir, cible, montrerPosition }: PropsCarte) {
+export function CarteSessions({ sessions, eclats, idChoisie, onChoisir, cible, montrerPosition }: PropsCarte) {
   const carte = useRef<MapView>(null);
   const { theme } = useTheme();
 
@@ -68,6 +71,17 @@ export function CarteSessions({ sessions, idChoisie, onChoisir, cible, montrerPo
           </Marker>
         );
       })}
+      {eclats.map(({ session, delai }) => (
+        <Marker
+          key={`eclat-${session.id}`}
+          coordinate={session.position}
+          anchor={{ x: 0.5, y: 0.5 }}
+          tracksViewChanges
+          tappable={false}
+          zIndex={3}>
+          <PastilleQuiEclate session={session} delai={delai} />
+        </Marker>
+      ))}
     </MapView>
   );
 }

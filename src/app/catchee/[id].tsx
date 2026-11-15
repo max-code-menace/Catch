@@ -115,7 +115,10 @@ export default function Catchee() {
           <Bouton
             titre="Annuler ma participation"
             variante="lien"
-            onPress={() => annuler(session, () => router.back())}
+            onPress={() =>
+              // Dernier inscrit : la session disparaît, on revient directement à la carte
+              annuler(session, () => (session.inscrits.length <= 1 ? router.dismissAll() : router.back()))
+            }
           />
           {annulationLibre(session) && <Text style={styles.aide}>Possible jusqu’à 3h avant</Text>}
         </View>

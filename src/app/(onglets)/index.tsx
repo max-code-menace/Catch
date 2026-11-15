@@ -26,7 +26,7 @@ const RAYON_MAX_KM = 30;
 
 export default function Carte() {
   const styles = useStyles(creerStyles);
-  const { sessions, etat, recharger, estCatchee, annuler, position, setPosition, origine } = useSessions();
+  const { sessions, eclats, etat, recharger, estCatchee, annuler, position, setPosition, origine } = useSessions();
   const { autoriser, envoyer, confirmer } = useCatch();
   const c = useCouleurs();
   const [cible, setCible] = useState<(Coordonnees & { cle: number; rayonKm?: number }) | null>(null);
@@ -95,6 +95,7 @@ export default function Carte() {
     <View style={styles.ecran}>
       <CarteSessions
         sessions={sessions}
+        eclats={eclats}
         idChoisie={idChoisie}
         onChoisir={choisir}
         cible={cible}
@@ -109,7 +110,8 @@ export default function Carte() {
           <Bouton titre="Réessayer" onPress={recharger} />
         </PanneauCarte>
       )}
-      {vue === 'carte' && rienIci && !choisie && (
+      {/* On laisse la session finir d'éclater avant d'afficher « Rien à 5 km » */}
+      {vue === 'carte' && rienIci && !choisie && eclats.length === 0 && (
         <PanneauCarte
           entete={<Balle taille={32} />}
           titre={`Rien à ${rayon} km pour l’instant`}
