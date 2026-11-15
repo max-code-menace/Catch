@@ -59,11 +59,11 @@ Tout le monde peut regarder, mais il faut un compte pour participer.
 | Organisateur | Le membre qui a créé la session | Modifier ou annuler la session, choisir les places et le niveau, retirer un participant | Gérer les sessions des autres |
 | Partenaire | Club, run crew, salle, association (compte vérifié) | Publier des événements réguliers avec un badge « Partenaire » | Voir les données des membres |
 | Responsable de ville | Un par ville | Valider les partenaires, traiter les signalements, voir les chiffres de sa ville | Agir sur une autre ville |
-| Admin | Math | Tout : réglages, toutes les villes, tous les comptes | — |
+| Admin | Maxime | Tout : réglages, toutes les villes, tous les comptes | — |
 
 Règle importante : la carte montre les sessions, jamais la position des personnes.
 
-**L'équipe :** Mathias s'occupe du marketing et de la vision, Math du code et de la vision, Loup des images, du style et du logo.
+**L'équipe :** Mathias s'occupe du marketing et de la vision, Maxime du code et de la vision, Loup des images, du style et du logo.
 
 ## Fonctions de la V1 et pour plus tard
 
@@ -185,7 +185,7 @@ Pistes pour plus tard :
 | Sessions réservées aux femmes | Oui |
 | Gratuit ou payant en V1 | Les deux |
 | Couleur principale | Pas encore décidée (orange par défaut dans les maquettes) |
-| Rôles | Mathias : marketing et vision · Math : code et vision · Loup : images, style, logo |
+| Rôles | Mathias : marketing et vision · Maxime : code et vision · Loup : images, style, logo |
 
 ## Sources
 

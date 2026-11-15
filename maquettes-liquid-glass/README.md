@@ -7,7 +7,7 @@ Catch est une appli mobile avec une carte : tu vois les parties de sport près d
 Le but n'est pas la performance : c'est de faire sortir les gens de chez eux, de les faire bouger et de leur faire rencontrer du monde, sans être une appli de drague.
 
 - **Villes de départ :** Bruxelles et Louvain-la-Neuve d'abord, puis Strasbourg et Delft
-- **Équipe :** Mathias (marketing et vision), Math (code et vision), Loup (images, style, logo)
+- **Équipe :** Mathias (marketing et vision), Maxime (code et vision), Loup (images, style, logo)
 - **État :** étape D (maquettes) — pas encore de code
 
 ## Ce qu'il y a dans ce dossier
