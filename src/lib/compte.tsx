@@ -21,6 +21,8 @@ type Valeur = {
   connecterApple: () => Resultat;
   enregistrerPrenom: (prenom: string) => Resultat;
   deconnecter: () => Resultat;
+  /** Efface le compte et tout ce qui va avec. Définitif. */
+  supprimerCompte: () => Resultat;
 };
 
 /** Renvoyé quand la personne ferme la fenêtre de connexion : rien à afficher */
@@ -139,9 +141,33 @@ export function FournisseurCompte({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function supprimerCompte() {
+    if (!supabase) return PAS_BRANCHEE;
+    try {
+      // Avant de partir : ce téléphone ne doit plus recevoir les notifications de ce compte
+      await oublierAppareil();
+      const { error } = await supabase.rpc('supprimer_mon_compte');
+      if (error) return message(error);
+      // Le compte n'existe plus côté serveur : on ferme aussi la connexion gardée sur le téléphone
+      await supabase.auth.signOut({ scope: 'local' });
+      return null;
+    } catch {
+      return ECHEC;
+    }
+  }
+
   return (
     <Contexte
-      value={{ compte, pret, envoyerCode, verifierCode, connecterApple, enregistrerPrenom, deconnecter }}>
+      value={{
+        compte,
+        pret,
+        envoyerCode,
+        verifierCode,
+        connecterApple,
+        enregistrerPrenom,
+        deconnecter,
+        supprimerCompte,
+      }}>
       {children}
     </Contexte>
   );
