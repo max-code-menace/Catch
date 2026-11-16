@@ -5,3 +5,7 @@ export const SITE = 'https://catch-sport.expo.app';
 export function lienSession(id: string) {
   return `${SITE}/session/${id}`;
 }
+
+// Adresse pour nous écrire (affichée dans Profil). Vide : la ligne « Nous contacter » est masquée. Provisoire, à remplacer par une adresse dédiée avant les stores.
+// À renseigner avant la publication sur les stores : le contact doit être visible.
+export const EMAIL_CONTACT = 'drauxmaxime@gmail.com';

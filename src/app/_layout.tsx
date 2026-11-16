@@ -43,6 +43,9 @@ function Navigation() {
             <Stack.Screen name="connexion" options={{ presentation: 'modal' }} />
             <Stack.Screen name="notifications" />
             <Stack.Screen name="messages/[id]" />
+            <Stack.Screen name="signaler" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="bloques" />
+            <Stack.Screen name="supprimer-compte" />
             <Stack.Screen
               name="catchee/[id]"
               options={{ animation: 'fade', gestureEnabled: false }}

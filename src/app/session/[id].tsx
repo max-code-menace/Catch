@@ -30,6 +30,7 @@ import {
   textePlaces,
 } from '@/lib/formats';
 import { useCatch } from '@/lib/catch';
+import { useCompte } from '@/lib/compte';
 import { inviter } from '@/lib/invitation';
 import { ouvrirItineraire } from '@/lib/itineraire';
 import { useSessions } from '@/lib/sessions';
@@ -74,6 +75,7 @@ export default function DetailSession() {
   const { top, bottom } = useSafeAreaInsets();
   const { sessions, etat, chercher, estCatchee, annuler, origine } = useSessions();
   const { autoriser, envoyer, confirmer } = useCatch();
+  const { compte } = useCompte();
   const session = sessions.find((s) => s.id === id);
   // Sur le web, cette page est celle d'un lien d'invitation : on parle à quelqu'un qui ne connaît pas l'app
   const invitation = Platform.OS === 'web';
@@ -181,6 +183,26 @@ export default function DetailSession() {
             </View>
             <Avatars initiales={session.inscrits} />
           </View>
+
+          {/* On ne se signale pas soi-même */}
+          {session.organisateurId !== compte?.id && (
+            <Bouton
+              titre="Signaler cette session"
+              variante="lien"
+              onPress={() =>
+                router.push({
+                  pathname: '/signaler',
+                  params: {
+                    cible: 'session',
+                    id: session.id,
+                    nom: session.titre,
+                    auteur: session.organisateurId,
+                    prenom: session.organisateur,
+                  },
+                })
+              }
+            />
+          )}
         </View>
       </ScrollView>
 

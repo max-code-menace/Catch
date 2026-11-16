@@ -1,14 +1,15 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Bouton } from '@/components/bouton';
 import { Aide, Ecran } from '@/components/ecran';
 import { IconeChevron } from '@/components/icones';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
+import { EMAIL_CONTACT } from '@/constants/liens';
 import { useCompte } from '@/lib/compte';
 import { reglerVibrations, vibrationsActives, vibrer } from '@/lib/haptics';
-import { useStyles, useTheme, type Apparence, type Palette } from '@/lib/theme';
+import { useCouleurs, useStyles, useTheme, type Apparence, type Palette } from '@/lib/theme';
 
 const APPARENCES: { valeur: Apparence; titre: string }[] = [
   { valeur: 'auto', titre: 'Auto' },
@@ -73,6 +74,36 @@ function Reglages() {
   );
 }
 
+/** Une ligne qui ouvre un écran ou un lien. */
+function LigneLien({ titre, onPress }: { titre: string; onPress: () => void }) {
+  const styles = useStyles(creerStyles);
+  const c = useCouleurs();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.carte, styles.ligne, pressed && { backgroundColor: c.beige }]}>
+      <Text style={styles.libelle}>{titre}</Text>
+      <IconeChevron couleur={c.texteSecondaire} taille={20} />
+    </Pressable>
+  );
+}
+
+/** Aide, sécurité et compte : le contact est visible même sans compte. */
+function Securite({ connecte }: { connecte: boolean }) {
+  const styles = useStyles(creerStyles);
+  return (
+    <View style={styles.reglages}>
+      <Text style={styles.section}>Aide et sécurité</Text>
+      {EMAIL_CONTACT ? (
+        <LigneLien titre="Nous contacter" onPress={() => Linking.openURL(`mailto:${EMAIL_CONTACT}`)} />
+      ) : null}
+      {connecte && <LigneLien titre="Personnes bloquées" onPress={() => router.push('/bloques')} />}
+      {connecte && <LigneLien titre="Supprimer mon compte" onPress={() => router.push('/supprimer-compte')} />}
+    </View>
+  );
+}
+
 export default function Profil() {
   const { compte, pret, deconnecter } = useCompte();
 
@@ -86,6 +117,7 @@ export default function Profil() {
           <Bouton titre="Me connecter" onPress={() => router.push('/connexion')} />
         </View>
         <Reglages />
+        <Securite connecte={false} />
       </Ecran>
     );
   }
@@ -94,6 +126,7 @@ export default function Profil() {
     <Ecran titre={compte.prenom ?? 'Profil'}>
       <Aide>Tes sessions à venir s’afficheront ici.</Aide>
       <Reglages />
+      <Securite connecte />
       <View>
         <Bouton titre="Me déconnecter" variante="secondaire" onPress={() => deconnecter()} />
       </View>

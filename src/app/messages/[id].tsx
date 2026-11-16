@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -19,6 +20,7 @@ import { useCompte } from '@/lib/compte';
 import { heure, quand } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { ouvrirItineraire } from '@/lib/itineraire';
+import { bloquer, demander } from '@/lib/moderation';
 import {
   ecouterMessages,
   envoyerMessage,
@@ -30,14 +32,31 @@ import {
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 /** Une bulle : à droite en rouge pour moi, à gauche avec le prénom pour les autres. */
-function Bulle({ message, deMoi, avecPrenom }: { message: Message; deMoi: boolean; avecPrenom: boolean }) {
+function Bulle({
+  message,
+  deMoi,
+  avecPrenom,
+  onOptions,
+}: {
+  message: Message;
+  deMoi: boolean;
+  avecPrenom: boolean;
+  /** Appui long sur le message d'un autre : signaler ou bloquer */
+  onOptions: (message: Message) => void;
+}) {
   const styles = useStyles(creerStyles);
   return (
     <View style={[styles.rangee, deMoi && styles.rangeeMoi]}>
       {avecPrenom && <Text style={styles.prenom}>{message.prenom || 'Quelqu’un'}</Text>}
-      <View style={[styles.bulle, deMoi ? styles.bulleMoi : styles.bulleAutre, message.enAttente && styles.enAttente]}>
+      <Pressable
+        accessibilityHint={deMoi ? undefined : 'Appui long pour signaler ou bloquer'}
+        accessibilityActions={deMoi ? undefined : [{ name: 'longpress', label: 'Signaler ou bloquer' }]}
+        onAccessibilityAction={() => onOptions(message)}
+        onLongPress={deMoi ? undefined : () => onOptions(message)}
+        delayLongPress={350}
+        style={[styles.bulle, deMoi ? styles.bulleMoi : styles.bulleAutre, message.enAttente && styles.enAttente]}>
         <Text style={[styles.bulleTexte, deMoi && styles.bulleTexteMoi]}>{message.texte}</Text>
-      </View>
+      </Pressable>
     </View>
   );
 }
@@ -87,6 +106,49 @@ export default function ConversationSession() {
     if (conversation) marquerLue(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, nombre, !!conversation]);
+
+  function options(message: Message) {
+    vibrer.selection();
+    const prenom = message.prenom || 'cette personne';
+    const signaler = () =>
+      router.push({
+        pathname: '/signaler',
+        params: {
+          cible: 'message',
+          id: message.id,
+          nom: `« ${message.texte.slice(0, 80)} »`,
+          auteur: message.auteurId,
+          prenom: message.prenom,
+        },
+      });
+    const bloquerLui = () =>
+      demander({
+        titre: `Bloquer ${prenom} ?`,
+        texte: 'Tu ne verras plus ses sessions ni ses messages. Tu peux débloquer depuis Profil.',
+        confirmer: 'Bloquer',
+        destructif: true,
+        onConfirmer: async () => {
+          const echec = await bloquer(message.auteurId);
+          if (echec) {
+            setEchecEnvoi(false);
+            vibrer.erreur();
+            return;
+          }
+          recharger();
+          relire();
+        },
+      });
+    if (Platform.OS === 'web') {
+      // Pas de menu natif sur le web : on passe directement au signalement
+      signaler();
+      return;
+    }
+    Alert.alert(prenom, message.texte.slice(0, 120), [
+      { text: 'Signaler ce message', onPress: signaler },
+      { text: `Bloquer ${prenom}`, style: 'destructive', onPress: bloquerLui },
+      { text: 'Annuler', style: 'cancel' },
+    ]);
+  }
 
   async function envoyer() {
     const propre = texte.trim();
@@ -193,6 +255,7 @@ export default function ConversationSession() {
         ListHeaderComponent={
           <Text style={styles.systeme}>
             Tu as rejoint la session · {quandMessage(conversation.inscritLe)}
+            {'\n'}Appui long sur un message pour le signaler ou bloquer son auteur
           </Text>
         }
         ListEmptyComponent={
@@ -212,6 +275,7 @@ export default function ConversationSession() {
               message={item}
               deMoi={deMoi}
               avecPrenom={!deMoi && precedent?.auteurId !== item.auteurId}
+              onOptions={options}
             />
           );
         }}
