@@ -30,7 +30,13 @@ import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 const MINUTE = 60_000;
-const DUREE = 90;
+/** Durées proposées, en minutes */
+const DUREES = [
+  { minutes: 60, titre: '1h' },
+  { minutes: 90, titre: '1h30' },
+  { minutes: 120, titre: '2h' },
+  { minutes: 180, titre: '3h' },
+];
 const NOMBRES = Array.from({ length: 29 }, (_, i) => i + 2); // de 2 à 30 joueurs
 const JOURS = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'];
 /** « Maintenant », ou une heure de la journée en minutes depuis minuit */
@@ -80,7 +86,9 @@ export default function Creer() {
   const { compte } = useCompte();
   const { creer, derniereCreee, position } = useSessions();
 
-  const ouverture = useMemo(() => new Date(), []);
+  // L'onglet reste ouvert en arrière-plan : « Aujourd'hui » et les heures proposées sont recalculés à chaque retour
+  const [ouverture, setOuverture] = useState(() => new Date());
+  useFocusEffect(useCallback(() => setOuverture(new Date()), []));
   const listeJours = useMemo(() => jours(ouverture), [ouverture]);
   // Par défaut : ce soir 19h s'il reste du temps, sinon demain 19h
   const encoreCeSoir = ouverture.getHours() * 60 + ouverture.getMinutes() < 18 * 60 + 30;
@@ -93,6 +101,9 @@ export default function Creer() {
   const [precision, setPrecision] = useState('');
   const [joueurs, setJoueurs] = useState(ficheSport('foot').joueurs);
   const [debutants, setDebutants] = useState(true);
+  const [duree, setDuree] = useState(90);
+  // Vrai après un « Publier » sans lieu choisi : on explique pourquoi la carte s'est ouverte
+  const [lieuDemande, setLieuDemande] = useState(false);
   const [enAttente, setEnAttente] = useState(false);
   const [envoi, setEnvoi] = useState(false);
   const [carteOuverte, setCarteOuverte] = useState(false);
@@ -102,9 +113,10 @@ export default function Creer() {
   const indexCreneau = Math.max(0, listeCreneaux.indexOf(creneau));
   const creneauChoisi = listeCreneaux[indexCreneau];
 
-  // Si la position est déjà connue (bouton « recentrer » de la carte), elle sert de lieu par défaut
+  // Si la position est déjà connue, la carte du lieu s'ouvrira autour de soi.
+  // Ce n'est qu'un point de départ : le lieu reste à choisir, on ne publie jamais sa propre position sans le vouloir.
   useEffect(() => {
-    if (position && !lieu.choisi) nommer(position).then(setLieu);
+    if (position && !lieu.choisi) nommer(position).then((proche) => setLieu({ ...proche, choisi: false }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [position]);
 
@@ -142,6 +154,7 @@ export default function Creer() {
   const maintenant =
     raccourci === 'maintenant' || (raccourci === 'autre' && creneauChoisi === 'maintenant');
   const texteQuand = maintenant ? 'maintenant' : quand(debutChoisi(), ouverture).toLowerCase();
+  const texteDuree = DUREES.find((d) => d.minutes === duree)?.titre ?? '1h30';
   const raccourcis: { cle: Raccourci; titre: string }[] = [
     { cle: 'maintenant', titre: 'Maintenant' },
     ...(encoreCeSoir ? [{ cle: 'soir' as const, titre: 'Ce soir 19h' }] : []),
@@ -160,7 +173,7 @@ export default function Creer() {
       commune: lieu.commune,
       position: lieu.position,
       debut,
-      fin: new Date(debut.getTime() + DUREE * MINUTE),
+      fin: new Date(debut.getTime() + duree * MINUTE),
       joueurs,
       debutantsBienvenus: debutants,
     });
@@ -171,10 +184,21 @@ export default function Creer() {
       return;
     }
     vibrer.succes();
+    // Le formulaire repart de zéro : revenir ici ne publie pas la même session une deuxième fois
+    setPrecision('');
+    setLieu((avant) => ({ ...avant, choisi: false }));
+    setLieuDemande(false);
     router.push({ pathname: '/session/[id]', params: { id } });
   }
 
   function publier() {
+    // Pas de lieu par défaut publié par mégarde : on ouvre la carte pour le choisir
+    if (!lieu.choisi) {
+      vibrer.avertissement();
+      setLieuDemande(true);
+      setCarteOuverte(true);
+      return;
+    }
     if (compte?.prenom) {
       envoyer();
       return;
@@ -210,7 +234,7 @@ export default function Creer() {
           </Text>
           {/* La phrase se réécrit toute seule pendant qu'on fait glisser les choix */}
           <Text style={styles.phrase}>
-            {fiche.nom} · {texteQuand} · {joueurs} joueurs
+            {fiche.nom} · {texteQuand} · {texteDuree} · {joueurs} joueurs
           </Text>
         </View>
 
@@ -323,6 +347,28 @@ export default function Creer() {
         </View>
 
         <View style={styles.section}>
+          <Text style={[styles.etiquette, styles.dansMarges]}>Durée</Text>
+          <View accessibilityRole="radiogroup" style={[styles.puces, styles.dansMarges]}>
+            {DUREES.map(({ minutes, titre }) => {
+              const actif = minutes === duree;
+              return (
+                <Pressable
+                  key={minutes}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: actif }}
+                  onPress={() => {
+                    if (!actif) vibrer.selection();
+                    setDuree(minutes);
+                  }}
+                  style={[styles.puce, actif && styles.puceActive]}>
+                  <Text style={[styles.puceTexte, actif && { color: c.surEncre }]}>{titre}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.section}>
           <View style={[styles.ligne, styles.dansMarges]}>
             <Text style={styles.etiquette}>Joueurs</Text>
             <Text style={styles.aide}>toi compris</Text>
@@ -346,7 +392,7 @@ export default function Creer() {
           <Text style={styles.etiquette}>Où</Text>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Lieu : ${lieu.nom}. Choisir sur la carte`}
+            accessibilityLabel={lieu.choisi ? `Lieu : ${lieu.nom}. Changer` : 'Choisir le lieu sur la carte'}
             onPress={() => setCarteOuverte(true)}
             style={({ pressed }) => [styles.lieu, pressed && { opacity: 0.85 }]}>
             <View style={styles.apercu}>
@@ -358,10 +404,10 @@ export default function Creer() {
             <View style={styles.lieuBas}>
               <View style={styles.textes}>
                 <Text style={styles.fort} numberOfLines={1}>
-                  {lieu.nom}
+                  {lieu.choisi ? lieu.nom : 'Lieu à choisir'}
                 </Text>
-                <Text style={styles.aide} numberOfLines={1}>
-                  {lieu.choisi ? lieu.commune || 'Lieu choisi' : 'Lieu par défaut'}
+                <Text style={[styles.aide, lieuDemande && !lieu.choisi && { color: c.rougeTexte }]} numberOfLines={1}>
+                  {lieu.choisi ? lieu.commune || 'Lieu choisi' : 'Place l’épingle là où vous jouez'}
                 </Text>
               </View>
               <Text style={styles.changer}>{lieu.choisi ? 'Changer' : 'Choisir sur la carte'}</Text>
@@ -401,6 +447,7 @@ export default function Creer() {
           depart={lieu}
           onFermer={() => setCarteOuverte(false)}
           onChoisir={(choisi) => {
+            setLieuDemande(false);
             setLieu(choisi);
             setCarteOuverte(false);
           }}
