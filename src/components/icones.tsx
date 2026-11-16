@@ -162,3 +162,11 @@ export function IconeChevron(props: Props) {
     </Base>
   );
 }
+
+export function IconeEnvoyer(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M4 12 20 4l-6 16-3-7z" />
+    </Base>
+  );
+}

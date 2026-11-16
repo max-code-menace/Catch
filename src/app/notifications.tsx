@@ -170,6 +170,13 @@ export default function ReglagesNotifications() {
                 />
                 <View style={styles.trait} />
                 <Ligne
+                  titre="Nouveaux messages"
+                  detail="Quand quelqu’un écrit dans une de tes sessions."
+                  valeur={reglages.message}
+                  onChange={(message) => changer({ ...reglages, message })}
+                />
+                <View style={styles.trait} />
+                <Ligne
                   titre="Nouvelles sessions de mes sports"
                   detail="Une par jour au maximum."
                   valeur={reglages.nouvelleSession}

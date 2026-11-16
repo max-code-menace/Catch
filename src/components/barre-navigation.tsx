@@ -20,9 +20,11 @@ type OngletProps = Omit<TabTriggerSlotProps, 'ref'> & {
   ref?: React.Ref<any>;
   titre: string;
   Icone: Icone;
+  /** Nombre affiché en pastille sur l'icône (messages non lus) */
+  pastille?: number;
 };
 
-export function Onglet({ titre, Icone, isFocused, onPressIn, onPressOut, style, ...props }: OngletProps) {
+export function Onglet({ titre, Icone, pastille = 0, isFocused, onPressIn, onPressOut, style, ...props }: OngletProps) {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const echelle = useSharedValue(1);
@@ -40,6 +42,7 @@ export function Onglet({ titre, Icone, isFocused, onPressIn, onPressOut, style, 
     <PressableAnime
       accessibilityRole="tab"
       accessibilityState={{ selected: !!isFocused }}
+      accessibilityLabel={pastille > 0 ? `${titre}, ${pastille} non lus` : titre}
       onPressIn={(e) => {
         echelle.set(withSpring(0.96, Ressorts.snappy));
         onPressIn?.(e);
@@ -53,6 +56,11 @@ export function Onglet({ titre, Icone, isFocused, onPressIn, onPressOut, style, 
       <Animated.View style={[styles.fondActif, styleFond]} />
       <View>
         <Icone couleur={couleur} taille={22} />
+        {pastille > 0 && (
+          <View style={styles.pastille}>
+            <Text style={styles.pastilleTexte}>{pastille > 9 ? '9+' : pastille}</Text>
+          </View>
+        )}
       </View>
       <Text style={[styles.titre, { color: couleur }]}>{titre}</Text>
     </PressableAnime>
@@ -89,6 +97,21 @@ const creerStyles = (c: Palette) =>
       gap: 2,
       borderRadius: Rayons.pilule,
     },
+    pastille: {
+      position: 'absolute',
+      top: -5,
+      right: -10,
+      minWidth: 18,
+      height: 18,
+      paddingHorizontal: 4,
+      borderRadius: Rayons.pilule,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.rouge,
+      borderWidth: 2,
+      borderColor: c.carte,
+    },
+    pastilleTexte: { fontFamily: Polices.texteDemi, fontSize: 10, lineHeight: 12, color: c.surRouge },
     fondActif: {
       position: 'absolute',
       top: 0,

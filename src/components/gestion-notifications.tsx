@@ -10,6 +10,7 @@ import {
   activerNotifications,
   preparerNotifications,
 } from '@/lib/notifications';
+import { useMessages } from '@/lib/messages';
 import { useSessions } from '@/lib/sessions';
 
 /**
@@ -26,9 +27,12 @@ export function GestionNotifications() {
     if (idCompte) activerNotifications(false);
   }, [idCompte]);
 
+  const { recharger } = useMessages();
   const annuler = useRef(annulerParId);
+  const relire = useRef(recharger);
   useEffect(() => {
     annuler.current = annulerParId;
+    relire.current = recharger;
   });
 
   useEffect(() => {
@@ -36,8 +40,13 @@ export function GestionNotifications() {
     preparerNotifications();
 
     function reagir(reponse: Notifications.NotificationResponse) {
-      const session = reponse.notification.request.content.data?.session;
+      const { session, type } = reponse.notification.request.content.data ?? {};
       if (typeof session !== 'string') return;
+      // Nouveau message : on ouvre la conversation
+      if (type === 'message') {
+        router.push({ pathname: '/messages/[id]', params: { id: session } });
+        return;
+      }
       // « Je viens » : rien à faire, la place est gardée
       if (reponse.actionIdentifier === ACTION_VIENS) return;
       router.push({ pathname: '/session/[id]', params: { id: session } });
@@ -51,7 +60,12 @@ export function GestionNotifications() {
       reagir(derniere);
     }
     const ecoute = Notifications.addNotificationResponseReceivedListener(reagir);
-    return () => ecoute.remove();
+    // Une notification arrive pendant que l'app est ouverte : les non lus se mettent à jour
+    const reception = Notifications.addNotificationReceivedListener(() => relire.current());
+    return () => {
+      ecoute.remove();
+      reception.remove();
+    };
   }, []);
 
   return null;
