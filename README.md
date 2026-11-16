@@ -21,7 +21,7 @@ Puis scanner le QR code avec l'app **Expo Go** (iPhone : avec l'appareil photo ;
 
 ## Voir l'app sur son téléphone sans PC
 
-L'app est publiée sur le compte Expo `max-code-menace` ([projet catch](https://expo.dev/accounts/max-code-menace/projects/catch)). Dans **Expo Go**, connecté à ce compte, elle apparaît dans la liste des projets, branche `main`. Pour republier après un changement :
+L'app est publiée sur l'organisation Expo `catch-sport-team` ([projet catch](https://expo.dev/accounts/catch-sport-team/projects/catch)). Pour la voir, il faut être **membre de l'organisation** (invitation depuis expo.dev, onglet Members) et connecté à ce compte dans **Expo Go** : elle apparaît dans la liste des projets, branche `main`. Pour republier après un changement :
 
 ```
 npx eas-cli@latest update --branch main --environment development --platform ios --message "Ce qui a changé"
