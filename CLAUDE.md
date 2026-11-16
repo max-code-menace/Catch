@@ -69,7 +69,7 @@ Règles de code :
 
 ## Tester et publier
 
-- Compte Expo : `max-code-menace`, projet `catch` (ID `f78ef305-c7a4-4272-944a-be41255b2319`).
+- Compte Expo : organisation `catch-sport-team` (le projet a été transféré le 16 novembre depuis le compte personnel `max-code-menace`, pour pouvoir inviter les amis de Maxime), projet `catch` (ID `f78ef305-c7a4-4272-944a-be41255b2319`). Le projet est privé : pour l'ouvrir dans Expo Go il faut être membre de l'organisation. Les amis qui codent peuvent aussi simplement cloner le dépôt et lancer `npx expo start`.
 - Maxime teste sur **iPhone avec Expo Go**, sans PC. Après chaque étape, publier sur le canal `main` :
   `npx eas-cli@latest update --branch main --message "…" --platform ios --environment development --non-interactive`
   (le canal `preview` contient d'anciennes publications, ne plus l'utiliser)
