@@ -10,7 +10,7 @@ Concurrents existants (GAMUP, Wiinup, Sportmate…) : aucun ne s'est imposé en 
 
 Une app de rencontres sportives meurt si personne ne voit de session à la première ouverture. Le travail principal n'est pas le code, c'est de remplir la carte au départ :
 
-- Lancer une seule zone à la fois (Brabant wallon / Bruxelles), puis ville par ville.
+- Lancer une seule zone à la fois : Bruxelles d'abord (décidé le 16 novembre 2026), puis ville par ville.
 - Les potes de Maxime sont les premiers utilisateurs et créent 3 à 5 sessions par semaine, même celles qu'ils feraient de toute façon.
 - Ne jamais afficher un écran vide : élargir le rayon, montrer les 7 prochains jours, proposer de créer la première session ou d'être prévenu.
 - Ne jamais gonfler la carte avec de fausses sessions.

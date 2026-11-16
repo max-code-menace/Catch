@@ -1,6 +1,6 @@
 # Catch — contexte pour Claude
 
-App mobile (Expo + Supabase) pour faire du sport et rencontrer des gens près de chez soi. Lancement local : Brabant wallon / Bruxelles. Équipe d'une personne.
+App mobile (Expo + Supabase) pour faire du sport et rencontrer des gens près de chez soi. Lancement local : **Bruxelles d'abord** (première ville testée, décidé le 16 novembre), puis ville par ville. Équipe d'une personne.
 
 ## À lire d'abord
 
@@ -24,7 +24,19 @@ App mobile (Expo + Supabase) pour faire du sport et rencontrer des gens près de
 
 Les fichiers `design/canvas/*.dc.html` sont générés par `design/canvas/generer_design.py` : modifier le script, pas les fichiers générés.
 
-## Où en est l'app (mis à jour le 15 novembre 2026)
+## Où en est l'app (mis à jour le 16 novembre 2026)
+
+**Audit du 16 novembre et corrections** (branche `claude/remaining-tasks-ab5558`). **Rien de tout ça n'a été essayé sur un vrai téléphone** : seuls le contrôle des types, le lint, les tests et la construction du site web ont tourné.
+- **Zone** : Bruxelles (`NOM_ZONE` et `CENTRE_ZONE` dans `src/donnees/sessions.ts`, plus aucun « Wavre » en dur). L'en-tête dit « Bruxelles · 5 km », ou « Autour de toi · 5 km » quand la position est connue. Si la position a déjà été autorisée, la carte s'ouvre autour de soi sans rien demander. La liste montre les mêmes sessions que la carte (même rayon) et se rafraîchit en tirant vers le bas.
+- **Profil** : « Tes sessions à venir » (celles où on est inscrit), déconnexion avec confirmation, liens Confidentialité et Conditions.
+- **Créer** : le lieu doit être choisi sur la carte (plus de lieu par défaut publiable, et jamais sa propre position sans le vouloir), durée au choix (1h, 1h30, 2h, 3h), formulaire remis à zéro après publication.
+- **Organisateur** : « Annuler la session » (pour tout le monde, après confirmation) et « Modifier » (écran `modifier/[id]` : jour, heure, joueurs, lieu). Les inscrits reçoivent la notification « changement sur ma session » (4ᵉ type, réglable). L'organisateur ne « quitte » plus sa session. Supprimer son compte prévient aussi les inscrits de ses sessions.
+- **Confidentialité et conditions** : écrans `confidentialite` et `conditions`, aussi sur le site (`/confidentialite`, `/conditions`). Textes écrits par Claude : **à faire relire par Maxime** (âge minimum fixé à 16 ans, à confirmer). Si l'app collecte autre chose, mettre le texte à jour.
+- **Garde-fous** (base) : 6 sessions créées par 24 h, 20 messages par minute, 20 signalements par 24 h. Chaque signalement envoie une notification aux comptes de `private.moderateurs` (le compte de Maxime y est). Sans compte, on ne lit plus que la vue `sessions_visibles` (initiales des inscrits, pas d'identifiants) : cette vue lit les tables avec ses propres droits, exprès — le conseil de sécurité Supabase « Security Definer View » est attendu. « Nouvelle session d'un sport suivi » : seulement à moins de 15 km de la zone enregistrée avec les réglages.
+- **Messages système** : `src/lib/alerte.ts` (`prevenir`, `demander`) remplace `Alert`, qui ne fait rien sur le web.
+- **Tests** : `npm test` (Node 24, `tests/formats.test.mjs`). Vérifications GitHub sur chaque pull request : `.github/workflows/verifier.yml` (types, lint, tests). La publication automatique (`publier.yml`, branche `claude/loving-maxwell-mn6c6u`) n'est pas reprise : elle demande un secret Expo, à décider avec Maxime.
+- Migrations `20261116010000_organisateur.sql` et `20261116020000_garde_fous.sql` : **appliquées à la base le 16 novembre**.
+- **Pas fait** : connexion Google, test d'Apple, adresse de contact dédiée (toujours l'adresse provisoire), nettoyage automatique des sessions vides et des jetons push morts, retrait des paquets inutilisés (`@expo/ui`, `expo-glass-effect`, `expo-image`, `expo-symbols`, `expo-web-browser` : vérifier d'abord qu'expo-router n'en a pas besoin), ombres et tailles de texte encore en dur.
 
 Plan complet dans `docs/produit.md`.
 

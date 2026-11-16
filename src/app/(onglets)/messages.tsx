@@ -84,6 +84,15 @@ export default function Messages() {
     );
   }
 
+  // Première lecture en cours : pas de liste vide trompeuse
+  if (etat === 'chargement' && conversations.length === 0) {
+    return (
+      <Ecran titre="Messages">
+        <Aide>Chargement de tes conversations…</Aide>
+      </Ecran>
+    );
+  }
+
   if (etat === 'pretes' && conversations.length === 0) {
     return (
       <Ecran titre="Messages">

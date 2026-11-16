@@ -2,7 +2,7 @@
 
 Catch fait sortir les gens de chez eux : on ouvre l'app, on voit les sessions de sport autour de soi (foot, badminton, escalade, spikeball…) et on en rejoint une en appuyant sur **Catch**. Pas de niveau à justifier, les débutants sont les bienvenus.
 
-Lancement prévu en Brabant wallon / Bruxelles, d'abord avec un cercle d'amis, puis ville par ville.
+Lancement prévu à Bruxelles, d'abord avec un cercle d'amis, puis ville par ville.
 
 ## État du projet
 

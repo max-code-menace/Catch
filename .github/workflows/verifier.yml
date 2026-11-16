@@ -1,0 +1,20 @@
+name: Vérifier le code
+
+# Se lance sur chaque pull request : le code doit passer le contrôle des types, le lint et les tests.
+on:
+  pull_request:
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # Node 24 : il lit directement le TypeScript, ce dont les tests ont besoin
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx expo lint
+      - run: npm test

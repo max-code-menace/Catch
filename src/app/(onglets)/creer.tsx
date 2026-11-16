@@ -82,7 +82,9 @@ export default function Creer() {
   const { top, bottom } = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   // Tous les sports d'un coup d'œil : 5 tuiles par ligne, 8 px entre elles
-  const largeurTuile = Math.floor((width - 2 * Espaces.marge - 4 * 8) / 5);
+  // 4 par ligne sur les petits téléphones, pour que « Badminton » ne soit pas coupé
+  const parLigne = width < 360 ? 4 : 5;
+  const largeurTuile = Math.floor((width - 2 * Espaces.marge - (parLigne - 1) * 8) / parLigne);
   const { compte } = useCompte();
   const { creer, derniereCreee, position } = useSessions();
 
