@@ -166,7 +166,7 @@ export default function Creer() {
     if (envoi) return;
     setEnvoi(true);
     const debut = debutChoisi();
-    const id = await creer({
+    const resultat = await creer({
       sport,
       titre: fiche.nom,
       lieu: nomLieu,
@@ -178,11 +178,17 @@ export default function Creer() {
       debutantsBienvenus: debutants,
     });
     setEnvoi(false);
-    if (!id) {
+    if (!resultat || resultat === 'limite') {
       vibrer.erreur();
-      prevenir('Session pas publiée', 'Ça n’a pas marché. Vérifie ta connexion et réessaie.');
+      prevenir(
+        'Session pas publiée',
+        resultat === 'limite'
+          ? 'Tu as déjà créé 6 sessions ces dernières 24 heures. Réessaie demain.'
+          : 'Ça n’a pas marché. Vérifie ta connexion et réessaie.',
+      );
       return;
     }
+    const { id } = resultat;
     vibrer.succes();
     // Le formulaire repart de zéro : revenir ici ne publie pas la même session une deuxième fois
     setPrecision('');

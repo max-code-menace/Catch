@@ -170,6 +170,17 @@ export default function Connexion() {
                 }}
               />
             </View>
+            <Text style={styles.mention}>
+              En continuant, tu acceptes les{' '}
+              <Text accessibilityRole="link" style={styles.lien} onPress={() => router.push('/conditions')}>
+                conditions d’utilisation
+              </Text>{' '}
+              et la{' '}
+              <Text accessibilityRole="link" style={styles.lien} onPress={() => router.push('/confidentialite')}>
+                politique de confidentialité
+              </Text>
+              .
+            </Text>
           </>
         )}
 
@@ -354,6 +365,15 @@ const creerStyles = (c: Palette) =>
     },
     champCode: { fontFamily: Polices.titre, fontSize: 28, letterSpacing: 8, textAlign: 'center' },
     inactif: { opacity: 0.45 },
+    mention: {
+      marginTop: 8,
+      fontFamily: Polices.texte,
+      fontSize: Tailles.aide,
+      lineHeight: 20,
+      color: c.texteSecondaire,
+      textAlign: 'center',
+    },
+    lien: { fontFamily: Polices.texteDemi, color: c.rougeTexte },
     erreur: {
       fontFamily: Polices.texteMoyen,
       fontSize: 14,

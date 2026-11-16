@@ -103,6 +103,8 @@ function Securite({ connecte }: { connecte: boolean }) {
         <LigneLien titre="Nous contacter" onPress={() => Linking.openURL(`mailto:${EMAIL_CONTACT}`)} />
       ) : null}
       {connecte && <LigneLien titre="Personnes bloquées" onPress={() => router.push('/bloques')} />}
+      <LigneLien titre="Confidentialité" onPress={() => router.push('/confidentialite')} />
+      <LigneLien titre="Conditions d’utilisation" onPress={() => router.push('/conditions')} />
       {connecte && <LigneLien titre="Supprimer mon compte" onPress={() => router.push('/supprimer-compte')} />}
     </View>
   );

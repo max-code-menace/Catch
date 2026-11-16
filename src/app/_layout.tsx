@@ -47,6 +47,8 @@ function Navigation() {
             <Stack.Screen name="signaler" options={{ presentation: 'modal' }} />
             <Stack.Screen name="bloques" />
             <Stack.Screen name="supprimer-compte" />
+            <Stack.Screen name="confidentialite" />
+            <Stack.Screen name="conditions" />
             <Stack.Screen
               name="catchee/[id]"
               options={{ animation: 'fade', gestureEnabled: false }}

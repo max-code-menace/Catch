@@ -8,6 +8,7 @@ import { IconeRetour } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Sport } from '@/donnees/pictos';
+import { NOM_ZONE } from '@/donnees/sessions';
 import { SPORTS } from '@/donnees/sports';
 import { useCompte } from '@/lib/compte';
 import { vibrer } from '@/lib/haptics';
@@ -19,6 +20,7 @@ import {
   type Permission,
   type Reglages,
 } from '@/lib/notifications';
+import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 /** Une ligne avec un interrupteur : titre, précision, et le réglage à droite. */
@@ -61,6 +63,7 @@ export default function ReglagesNotifications() {
   const styles = useStyles(creerStyles);
   const { top, bottom } = useSafeAreaInsets();
   const { compte } = useCompte();
+  const { origine, position } = useSessions();
   const idCompte = compte?.id;
   const [permission, setPermission] = useState<Permission | null>(null);
   const [reglages, setReglages] = useState<Reglages | null>(null);
@@ -90,7 +93,7 @@ export default function ReglagesNotifications() {
     const avant = reglages;
     setReglages(suivants);
     setEchec(false);
-    if (!(await enregistrerReglages(idCompte, suivants))) {
+    if (!(await enregistrerReglages(idCompte, suivants, origine))) {
       setReglages(avant);
       setEchec(true);
       vibrer.erreur();
@@ -185,7 +188,7 @@ export default function ReglagesNotifications() {
                 <View style={styles.trait} />
                 <Ligne
                   titre="Nouvelles sessions de mes sports"
-                  detail="Une par jour au maximum."
+                  detail={`Une par jour au maximum, à moins de 15 km ${position ? 'de toi' : `du centre de ${NOM_ZONE}`}.`}
                   valeur={reglages.nouvelleSession}
                   onChange={(nouvelleSession) => changer({ ...reglages, nouvelleSession })}
                 />

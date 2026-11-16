@@ -38,8 +38,11 @@ type Valeur = {
   estOrganisee: (id: string) => boolean;
   /** L'organisateur change l'horaire, le lieu ou le nombre de joueurs : les inscrits sont prévenus */
   modifier: (id: string, modification: Modification) => Promise<ResultatModification>;
-  /** Publie une session : l'organisateur y est inscrit d'office. Renvoie son identifiant, ou `null` en cas d'échec. */
-  creer: (nouvelle: NouvelleSession) => Promise<string | null>;
+  /**
+   * Publie une session : l'organisateur y est inscrit d'office. Renvoie son identifiant.
+   * Sinon `limite` (trop de sessions créées aujourd'hui) ou `null` (pas de réseau, panne).
+   */
+  creer: (nouvelle: NouvelleSession) => Promise<{ id: string } | 'limite' | null>;
   /** Dernière session créée depuis ce téléphone, pour « Relancer ta dernière session » */
   derniereCreee: Session | null;
   /** Demande la place au serveur : on ne fête le Catch que s'il répond `ok` */
@@ -242,7 +245,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
     }
   }
 
-  async function creer(nouvelle: NouvelleSession) {
+  async function creer(nouvelle: NouvelleSession): Promise<{ id: string } | 'limite' | null> {
     if (!supabase || !compte) return null;
     try {
       const { data, error } = await supabase
@@ -263,10 +266,11 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
         })
         .select('id')
         .single();
+      if (error?.message.includes('limite_sessions')) return 'limite';
       if (error || !data) return null;
       await recharger();
       setIdCreee(data.id);
-      return data.id as string;
+      return { id: data.id as string };
     } catch {
       return null;
     }

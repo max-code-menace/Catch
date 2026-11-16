@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Bouton } from '@/components/bouton';
 import { IconeEnvoyer, IconeLieu, IconeRetour } from '@/components/icones';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
+import { prevenir } from '@/lib/alerte';
 import { useCompte } from '@/lib/compte';
 import { heure, quand } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
@@ -130,8 +131,8 @@ export default function ConversationSession() {
         onConfirmer: async () => {
           const echec = await bloquer(message.auteurId);
           if (echec) {
-            setEchecEnvoi(false);
             vibrer.erreur();
+            prevenir('Blocage impossible', echec);
             return;
           }
           recharger();

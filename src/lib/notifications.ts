@@ -5,6 +5,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import type { Sport } from '@/donnees/pictos';
+import type { Coordonnees } from '@/donnees/sessions';
 import { supabase } from '@/lib/supabase';
 
 /** `a-demander` : la question n'a pas encore été posée. `indisponible` : navigateur, simulateur, Expo Go sur Android. */
@@ -130,8 +131,12 @@ export async function lireReglages(): Promise<Reglages | null> {
   }
 }
 
-/** Renvoie `false` si les réglages n'ont pas pu être enregistrés. */
-export async function enregistrerReglages(joueurId: string, reglages: Reglages) {
+/**
+ * Renvoie `false` si les réglages n'ont pas pu être enregistrés.
+ * `zone` : le centre de sa zone (sa position si elle est connue, sinon le centre de la zone de lancement),
+ * pour n'être prévenu que des nouvelles sessions proches.
+ */
+export async function enregistrerReglages(joueurId: string, reglages: Reglages, zone: Coordonnees) {
   if (!supabase) return false;
   const valeurs = {
     rappel: reglages.rappel,
@@ -139,6 +144,9 @@ export async function enregistrerReglages(joueurId: string, reglages: Reglages) 
     changement: reglages.changement,
     nouvelle_session: reglages.nouvelleSession,
     sports: reglages.sports,
+    // Arrondi à ~1 km : assez pour « près de chez toi », pas assez pour retrouver une adresse
+    zone_lat: Math.round(zone.latitude * 100) / 100,
+    zone_lng: Math.round(zone.longitude * 100) / 100,
   };
   try {
     const modif = await supabase
