@@ -27,6 +27,21 @@ L'app est publiée sur l'organisation Expo `catch-sport-team` ([projet catch](ht
 npx eas-cli@latest update --branch main --environment development --platform ios --message "Ce qui a changé"
 ```
 
+## Travailler à plusieurs
+
+1. Chacun clone le dépôt, fait `npm install` puis `npx expo start`, et scanne le QR code avec Expo Go.
+2. Chacun travaille sur **sa propre branche** (jamais directement sur `main`) et ouvre une **pull request**.
+3. Sur chaque pull request, GitHub vérifie le code (`.github/workflows/verifier.yml` : types + lint) et publie une version de test sur un canal `pr-<numéro>` ; le lien à ouvrir dans Expo Go est posté en commentaire.
+4. Quand la pull request est fusionnée dans `main`, la nouvelle version est publiée automatiquement sur le canal `main` (`.github/workflows/publier.yml`).
+
+### Publication automatique : réglage unique (propriétaire du dépôt)
+
+1. Sur expo.dev, dans l'organisation `catch-sport-team` : **Access tokens > Create token**, rôle Developer, copier le jeton.
+2. Sur GitHub : dépôt > **Settings > Secrets and variables > Actions > New repository secret**. Nom : `EXPO_TOKEN`, valeur : le jeton.
+3. Conseillé : **Settings > Rules > Rulesets** : exiger une pull request pour modifier `main`.
+
+Ne jamais coller ce jeton dans une conversation ni dans le code.
+
 ## Où trouver quoi
 
 | Dossier / lien | Contenu |

@@ -1,0 +1,75 @@
+name: Publier sur Expo
+
+# - Quand une branche est fusionnée dans main : publie sur le canal « main » (celui que Maxime ouvre dans Expo Go).
+# - Sur une pull request : publie sur un canal de test « pr-<numéro> » et poste le lien en commentaire,
+#   pour essayer la modification dans Expo Go sans toucher à « main ».
+#
+# Il faut le secret GitHub EXPO_TOKEN (voir README, partie « Publication automatique »).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Une seule publication à la fois par branche : la plus récente remplace l'ancienne.
+concurrency:
+  group: publier-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    # Les pull requests venant de copies externes n'ont pas accès au secret : on les saute.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Publier sur main
+        if: github.event_name == 'push'
+        env:
+          MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          npx eas-cli@latest update --branch main --message "${MESSAGE%%$'\n'*}" \
+            --platform ios --environment development --non-interactive
+
+      - name: Publier un test pour la pull request
+        if: github.event_name == 'pull_request'
+        id: test
+        run: |
+          npx eas-cli@latest update --branch "pr-${{ github.event.number }}" \
+            --message "PR #${{ github.event.number }}" \
+            --platform ios --environment development --non-interactive --json > sortie.json
+          echo "groupe=$(jq -r '.[0].group' sortie.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Poster le lien dans la pull request
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const groupe = '${{ steps.test.outputs.groupe }}';
+            const projet = 'f78ef305-c7a4-4272-944a-be41255b2319';
+            const corps = [
+              '**Test dans Expo Go** (dernière version de cette PR)',
+              '',
+              `- Lien direct (à coller dans Safari) : \`exp://u.expo.dev/${projet}/group/${groupe}\``,
+              '- Il faut être membre de l’organisation Expo `catch-sport-team` et connecté dans Expo Go.',
+            ].join('\n');
+            const { data: commentaires } = await github.rest.issues.listComments({
+              ...context.repo, issue_number: context.issue.number,
+            });
+            const ancien = commentaires.find(c => c.body.startsWith('**Test dans Expo Go**'));
+            if (ancien) {
+              await github.rest.issues.updateComment({ ...context.repo, comment_id: ancien.id, body: corps });
+            } else {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number, body: corps });
+            }
