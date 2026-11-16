@@ -4,7 +4,7 @@ import MapView, { Marker } from 'react-native-maps';
 
 import { themeCarte } from '@/constants/carte';
 import { PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
-import { WAVRE, type Coordonnees, type Session } from '@/donnees/sessions';
+import { CENTRE_ZONE, type Coordonnees, type Session } from '@/donnees/sessions';
 import { estEnDirect } from '@/lib/formats';
 import type { Eclat } from '@/lib/sessions';
 import { useTheme } from '@/lib/theme';
@@ -43,7 +43,7 @@ export function CarteSessions({ sessions, eclats, idChoisie, onChoisir, cible, m
       ref={carte}
       style={StyleSheet.absoluteFill}
       {...themeCarte(theme)}
-      initialRegion={{ ...WAVRE, ...ZOOM }}
+      initialRegion={{ ...CENTRE_ZONE, ...ZOOM }}
       mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
       showsUserLocation={montrerPosition}
       showsMyLocationButton={false}

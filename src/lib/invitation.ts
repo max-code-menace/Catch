@@ -5,7 +5,7 @@ import { lienSession } from '@/constants/liens';
 import type { Session } from '@/donnees/sessions';
 import { quandPhrase } from '@/lib/formats';
 
-/** « Foot jeudi 19h, Parc de la Source (Wavre) » */
+/** « Foot jeudi 19h, Parc du Cinquantenaire (Bruxelles) » */
 function resume(session: Session) {
   const lieu = session.commune ? `${session.lieu} (${session.commune})` : session.lieu;
   return `${session.titre} ${quandPhrase(session)}, ${lieu}`;

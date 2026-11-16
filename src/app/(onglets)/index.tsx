@@ -1,4 +1,3 @@
-import * as Location from 'expo-location';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -12,10 +11,11 @@ import { FicheSession } from '@/components/fiche-session';
 import { IconeCreer, IconeSansReseau } from '@/components/icones';
 import { ListeSessions } from '@/components/liste-sessions';
 import { PanneauCarte } from '@/components/panneau-carte';
-import { WAVRE, type Coordonnees, type Session } from '@/donnees/sessions';
+import { CENTRE_ZONE, NOM_ZONE, type Coordonnees, type Session } from '@/donnees/sessions';
 import { useCatch } from '@/lib/catch';
-import { distance, estEnDirect } from '@/lib/formats';
+import { distance } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
+import { maPosition } from '@/lib/lieux';
 import { useSessions } from '@/lib/sessions';
 import { Polices, Rayons, Tailles } from '@/constants/theme';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
@@ -42,14 +42,18 @@ export default function Carte() {
   }, [etat]);
   const [vue, setVue] = useState<Vue>('carte');
 
-  // À l'ouverture : la session en direct la plus proche est déjà choisie
-  const [idChoisie, setIdChoisie] = useState<string | null>(() => {
-    const enDirect = sessions
-      .filter((s) => estEnDirect(s))
-      .sort((a, b) => distance(WAVRE, a.position) - distance(WAVRE, b.position));
-    return enDirect[0]?.id ?? null;
-  });
+  const [idChoisie, setIdChoisie] = useState<string | null>(null);
   const choisie = sessions.find((s) => s.id === idChoisie);
+
+  // Position déjà autorisée lors d'une visite précédente : la carte s'ouvre autour de soi, sans rien demander
+  useEffect(() => {
+    maPosition(false).then((point) => {
+      if (!point) return;
+      setPosition(point);
+      setCible({ ...point, cle: Date.now() });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Les sessions sont relues chaque fois qu'on revient sur l'onglet
   useFocusEffect(
@@ -69,23 +73,27 @@ export default function Carte() {
     setIdChoisie(id);
   }
 
-  // La position n'est demandée qu'au moment où on appuie sur « recentrer »
+  // La question de la position n'est posée qu'au moment où on appuie sur « recentrer »
   async function recentrer() {
-    let point = WAVRE;
-    try {
-      const { granted } = await Location.requestForegroundPermissionsAsync();
-      if (granted) {
-        const lieu =
-          (await Location.getLastKnownPositionAsync()) ?? (await Location.getCurrentPositionAsync());
-        point = { latitude: lieu.coords.latitude, longitude: lieu.coords.longitude };
-        setPosition(point);
-      }
-    } catch {
-      // Position indisponible : on recentre sur la zone
-    }
+    const point = await maPosition();
+    if (point) setPosition(point);
     setRayon(RAYON_KM);
-    setCible({ ...point, cle: Date.now() });
+    // Position refusée ou indisponible : on recentre sur la zone
+    setCible({ ...(point ?? CENTRE_ZONE), cle: Date.now() });
   }
+
+  function voirPlusLoin(km: number) {
+    vibrer.selection();
+    setRayon(km);
+    setCible({ ...origine, cle: Date.now(), rayonKm: km });
+  }
+  const titrePlusLoin = rayonElargi
+    ? plusLoin.length > 1
+      ? `Voir les ${plusLoin.length} sessions à ${rayonElargi} km`
+      : `Voir la session à ${rayonElargi} km`
+    : null;
+  // La liste montre les mêmes sessions que la carte : celles du rayon, les plus proches d'abord à heure égale
+  const dansLeRayon = sessions.filter((_, i) => distancesKm[i] <= rayon);
 
   function ouvrir(session: Session) {
     router.push({ pathname: '/session/[id]', params: { id: session.id } });
@@ -101,7 +109,19 @@ export default function Carte() {
         cible={cible}
         montrerPosition={position !== null}
       />
-      {vue === 'liste' && <ListeSessions sessions={sessions} origine={origine} onOuvrir={ouvrir} />}
+      {vue === 'liste' && (
+        <ListeSessions
+          sessions={dansLeRayon}
+          origine={origine}
+          onOuvrir={ouvrir}
+          onRafraichir={recharger}
+          plusLoin={
+            rayonElargi && titrePlusLoin
+              ? { titre: titrePlusLoin, onPress: () => voirPlusLoin(rayonElargi) }
+              : undefined
+          }
+        />
+      )}
       {etat === 'erreur' && (
         <PanneauCarte
           entete={<IconeSansReseau couleur={c.encre} taille={32} />}
@@ -117,20 +137,8 @@ export default function Carte() {
           titre={`Rien à ${rayon} km pour l’instant`}
           texte="Crée la première session ici, pour toi et les joueurs du coin.">
           <Bouton titre="Créer une session" Icone={IconeCreer} onPress={() => router.navigate('/creer')} />
-          {rayonElargi && (
-            <Bouton
-              variante="secondaire"
-              titre={
-                plusLoin.length > 1
-                  ? `Voir les ${plusLoin.length} sessions à ${rayonElargi} km`
-                  : `Voir la session à ${rayonElargi} km`
-              }
-              onPress={() => {
-                vibrer.selection();
-                setRayon(rayonElargi);
-                setCible({ ...origine, cle: Date.now(), rayonKm: rayonElargi });
-              }}
-            />
+          {rayonElargi && titrePlusLoin && (
+            <Bouton variante="secondaire" titre={titrePlusLoin} onPress={() => voirPlusLoin(rayonElargi)} />
           )}
         </PanneauCarte>
       )}
@@ -140,7 +148,7 @@ export default function Carte() {
         </View>
       )}
       <BarreHaut
-        zone={`Wavre · ${rayon} km`}
+        zone={`${position ? 'Autour de toi' : NOM_ZONE} · ${rayon} km`}
         vue={vue}
         onBasculer={() => setVue(vue === 'carte' ? 'liste' : 'carte')}
         onRecentrer={() => {

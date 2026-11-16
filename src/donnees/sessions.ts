@@ -28,4 +28,7 @@ export type Session = {
   aSavoir?: { titre: string; detail: string };
 };
 
-export const WAVRE: Coordonnees = { latitude: 50.7167, longitude: 4.6111 };
+/** La zone de lancement : Bruxelles. La carte s'ouvre là tant qu'on ne connaît pas la position. */
+export const NOM_ZONE = 'Bruxelles';
+/** Centre de la zone : la Grand-Place */
+export const CENTRE_ZONE: Coordonnees = { latitude: 50.8467, longitude: 4.3525 };

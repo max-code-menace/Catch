@@ -4,15 +4,15 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { PropsCarte } from '@/components/carte-sessions';
 import { PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
-import { WAVRE, type Session } from '@/donnees/sessions';
+import { CENTRE_ZONE, type Session } from '@/donnees/sessions';
 import { useStyles, type Palette } from '@/lib/theme';
 
 const ETENDUE = 0.13;
 
 function placer(session: Session) {
   return {
-    x: 50 + ((session.position.longitude - WAVRE.longitude) / (ETENDUE * 1.6)) * 50,
-    y: 42 - ((session.position.latitude - WAVRE.latitude) / ETENDUE) * 50,
+    x: 50 + ((session.position.longitude - CENTRE_ZONE.longitude) / (ETENDUE * 1.6)) * 50,
+    y: 42 - ((session.position.latitude - CENTRE_ZONE.latitude) / ETENDUE) * 50,
   };
 }
 

@@ -1,7 +1,7 @@
 // Le lieu d'une session en cours de création : un point sur la carte et son nom.
 import * as Location from 'expo-location';
 
-import { WAVRE, type Coordonnees } from '@/donnees/sessions';
+import { CENTRE_ZONE, type Coordonnees } from '@/donnees/sessions';
 
 export type Lieu = {
   position: Coordonnees;
@@ -12,9 +12,9 @@ export type Lieu = {
 };
 
 export const LIEU_PAR_DEFAUT: Lieu = {
-  position: WAVRE,
-  nom: 'Centre de Wavre',
-  commune: 'Wavre',
+  position: CENTRE_ZONE,
+  nom: 'Centre de Bruxelles',
+  commune: 'Bruxelles',
   choisi: false,
 };
 
@@ -33,10 +33,15 @@ export async function nommer(position: Coordonnees): Promise<Lieu> {
   }
 }
 
-/** La position du téléphone, ou `null` si elle est refusée ou indisponible. */
-export async function maPosition(): Promise<Coordonnees | null> {
+/**
+ * La position du téléphone, ou `null` si elle est refusée ou indisponible.
+ * `demander` à faux : on ne pose pas la question du système, la position n'est lue que si elle est déjà autorisée.
+ */
+export async function maPosition(demander = true): Promise<Coordonnees | null> {
   try {
-    const { granted } = await Location.requestForegroundPermissionsAsync();
+    const { granted } = demander
+      ? await Location.requestForegroundPermissionsAsync()
+      : await Location.getForegroundPermissionsAsync();
     if (!granted) return null;
     const trouve =
       (await Location.getLastKnownPositionAsync()) ?? (await Location.getCurrentPositionAsync());

@@ -4,7 +4,7 @@ import { createContext, use, useCallback, useEffect, useState } from 'react';
 import { Alert, AppState, Platform } from 'react-native';
 
 import type { Sport } from '@/donnees/pictos';
-import { WAVRE, type Coordonnees, type Session } from '@/donnees/sessions';
+import { CENTRE_ZONE, type Coordonnees, type Session } from '@/donnees/sessions';
 import { ficheSport } from '@/donnees/sports';
 import { useCompte } from '@/lib/compte';
 import { annulationLibre, estEnDirect } from '@/lib/formats';
@@ -348,7 +348,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
         oublierAnnulation: () => setAnnulee(null),
         position,
         setPosition,
-        origine: position ?? WAVRE,
+        origine: position ?? CENTRE_ZONE,
       }}>
       {children}
     </Contexte>

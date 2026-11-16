@@ -10,6 +10,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BadgeSession } from '@/components/badge-session';
+import { Bouton } from '@/components/bouton';
 import { HAUTEUR_BARRE_HAUT } from '@/components/barre-haut';
 import { PictoSport } from '@/components/picto-sport';
 import {
@@ -107,14 +108,19 @@ type Props = {
   sessions: Session[];
   origine: Coordonnees;
   onOuvrir: (session: Session) => void;
+  /** Tirer la liste vers le bas relit les sessions */
+  onRafraichir: () => Promise<void>;
+  /** Rien dans le rayon, mais des sessions un peu plus loin : le bouton pour aller les voir */
+  plusLoin?: { titre: string; onPress: () => void };
 };
 
-/** Liste des sessions, posée par-dessus la carte : en direct d'abord, puis par date. */
-export function ListeSessions({ sessions, origine, onOuvrir }: Props) {
+/** Liste des sessions du rayon, posée par-dessus la carte : par date, et à la même heure la plus proche d'abord. */
+export function ListeSessions({ sessions, origine, onOuvrir, onRafraichir, plusLoin }: Props) {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const { top, bottom } = useSafeAreaInsets();
   const [filtre, setFiltre] = useState<Filtre>('toutes');
+  const [relecture, setRelecture] = useState(false);
 
   const visibles = sessions
     .filter((s) => {
@@ -122,7 +128,11 @@ export function ListeSessions({ sessions, origine, onOuvrir }: Props) {
       if (filtre === 'manque') return !estEnDirect(s) && placesLibres(s) === 1;
       return true;
     })
-    .sort((a, b) => a.debut.getTime() - b.debut.getTime());
+    .sort(
+      (a, b) =>
+        a.debut.getTime() - b.debut.getTime() ||
+        distance(origine, a.position) - distance(origine, b.position),
+    );
 
   return (
     <Animated.View
@@ -160,7 +170,21 @@ export function ListeSessions({ sessions, origine, onOuvrir }: Props) {
             })}
           </View>
         }
-        ListEmptyComponent={<Text style={styles.vide}>{VIDES[filtre]}</Text>}
+        refreshing={relecture}
+        onRefresh={async () => {
+          setRelecture(true);
+          await onRafraichir();
+          setRelecture(false);
+        }}
+        progressViewOffset={top + HAUTEUR_BARRE_HAUT}
+        ListEmptyComponent={
+          <View style={styles.videZone}>
+            <Text style={styles.vide}>{VIDES[filtre]}</Text>
+            {filtre === 'toutes' && plusLoin && (
+              <Bouton variante="secondaire" titre={plusLoin.titre} onPress={plusLoin.onPress} />
+            )}
+          </View>
+        }
         renderItem={({ item }) => (
           <CarteSession session={item} origine={origine} onPress={() => onOuvrir(item)} />
         )}
@@ -217,6 +241,7 @@ const creerStyles = (c: Palette) =>
     titre: { fontFamily: Polices.titreDemi, fontSize: 19, color: c.encre },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     resume: { fontFamily: Polices.texteMoyen, fontSize: Tailles.aide, color: c.encre },
+    videZone: { gap: 16 },
     vide: {
       paddingTop: 48,
       textAlign: 'center',
