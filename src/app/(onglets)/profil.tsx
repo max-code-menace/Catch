@@ -111,7 +111,7 @@ export default function Profil() {
 
   if (!compte) {
     return (
-      <Ecran titre="Profil">
+      <Ecran titre="Profil" defile>
         <Aide>Connecte-toi pour catcher des sessions et retrouver celles qui t’attendent.</Aide>
         <View>
           <Bouton titre="Me connecter" onPress={() => router.push('/connexion')} />
@@ -123,7 +123,7 @@ export default function Profil() {
   }
 
   return (
-    <Ecran titre={compte.prenom ?? 'Profil'}>
+    <Ecran titre={compte.prenom ?? 'Profil'} defile>
       <Aide>Tes sessions à venir s’afficheront ici.</Aide>
       <Reglages />
       <Securite connecte />
