@@ -127,12 +127,21 @@ export default function Catchee() {
       <Animated.View entering={FadeIn.delay(350).duration(Durees.standard)} style={styles.actions}>
         {/* Sur la page web d'invitation, il n'y a pas de carte où revenir ni de feuille de partage */}
         {!surLeWeb && <Bouton titre="Inviter un pote" Icone={IconeInviter} onPress={() => inviter(session)} />}
-        <Bouton
-          titre="Itinéraire"
-          variante="secondaire"
-          Icone={IconeItineraire}
-          onPress={() => ouvrirItineraire(session.position)}
-        />
+        <View style={styles.duo}>
+          <Bouton
+            titre="Écrire au groupe"
+            variante="secondaire"
+            style={styles.demi}
+            onPress={() => router.push({ pathname: '/messages/[id]', params: { id: session.id } })}
+          />
+          <Bouton
+            titre="Itinéraire"
+            variante="secondaire"
+            Icone={IconeItineraire}
+            style={styles.demi}
+            onPress={() => ouvrirItineraire(session.position)}
+          />
+        </View>
         <Bouton
           titre={surLeWeb ? 'Voir la session' : 'Retour à la carte'}
           variante="secondaire"
@@ -205,6 +214,8 @@ const creerStyles = (c: Palette) =>
       borderColor: c.trait,
     },
     rappelTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre, textAlign: 'center' },
+    duo: { flexDirection: 'row', gap: 8 },
+    demi: { flex: 1, paddingHorizontal: 10 },
     annulation: { alignItems: 'center', paddingTop: 4 },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
   });

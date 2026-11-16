@@ -10,9 +10,9 @@ import { supabase } from '@/lib/supabase';
 /** `a-demander` : la question n'a pas encore été posée. `indisponible` : navigateur, simulateur, Expo Go sur Android. */
 export type Permission = 'accordee' | 'refusee' | 'a-demander' | 'indisponible';
 
-export type Reglages = { rappel: boolean; nouvelleSession: boolean; sports: Sport[] };
+export type Reglages = { rappel: boolean; message: boolean; nouvelleSession: boolean; sports: Sport[] };
 
-export const REGLAGES_PAR_DEFAUT: Reglages = { rappel: true, nouvelleSession: false, sports: [] };
+export const REGLAGES_PAR_DEFAUT: Reglages = { rappel: true, message: true, nouvelleSession: false, sports: [] };
 
 /** Les deux réponses du rappel 3h avant */
 export const ACTION_VIENS = 'viens';
@@ -101,11 +101,11 @@ export async function lireReglages(): Promise<Reglages | null> {
   try {
     const { data, error } = await supabase
       .from('reglages_notifications')
-      .select('rappel, nouvelle_session, sports')
+      .select('rappel, message, nouvelle_session, sports')
       .maybeSingle();
     if (error) return null;
     if (!data) return REGLAGES_PAR_DEFAUT;
-    return { rappel: data.rappel, nouvelleSession: data.nouvelle_session, sports: data.sports as Sport[] };
+    return { rappel: data.rappel, message: data.message, nouvelleSession: data.nouvelle_session, sports: data.sports as Sport[] };
   } catch {
     return null;
   }
@@ -116,6 +116,7 @@ export async function enregistrerReglages(joueurId: string, reglages: Reglages) 
   if (!supabase) return false;
   const valeurs = {
     rappel: reglages.rappel,
+    message: reglages.message,
     nouvelle_session: reglages.nouvelleSession,
     sports: reglages.sports,
   };

@@ -14,6 +14,7 @@ import {
   IconeInfo,
   IconeInviter,
   IconeLieu,
+  IconeMessages,
   IconeRetour,
 } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
@@ -217,6 +218,12 @@ export default function DetailSession() {
               <Balle taille={20} />
               <Text style={styles.catcheeTexte}>{invitation ? 'Tu as rejoint la session' : 'Tu l’as catchée !'}</Text>
             </View>
+            <Bouton
+              titre="Écrire au groupe"
+              variante="secondaire"
+              Icone={IconeMessages}
+              onPress={() => router.push({ pathname: '/messages/[id]', params: { id: session.id } })}
+            />
             <Bouton titre="Annuler ma participation" variante="lien" onPress={() => annuler(session, nombre <= 1 ? retour : undefined)} />
           </>
         ) : (

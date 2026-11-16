@@ -3,11 +3,13 @@ import { StyleSheet } from 'react-native';
 
 import { Onglet, useStyleBarre } from '@/components/barre-navigation';
 import { IconeCarte, IconeCreer, IconeMessages, IconeProfil } from '@/components/icones';
+import { useMessages } from '@/lib/messages';
 import { useStyles, type Palette } from '@/lib/theme';
 
 export default function Onglets() {
   const styles = useStyles(creerStyles);
   const styleBarre = useStyleBarre();
+  const { nonLus } = useMessages();
 
   return (
     <Tabs style={styles.racine}>
@@ -21,7 +23,7 @@ export default function Onglets() {
           <Onglet titre="Carte" Icone={IconeCarte} />
         </TabTrigger>
         <TabTrigger name="messages" href="/messages" asChild>
-          <Onglet titre="Messages" Icone={IconeMessages} />
+          <Onglet titre="Messages" Icone={IconeMessages} pastille={nonLus} />
         </TabTrigger>
         <TabTrigger name="profil" href="/profil" asChild>
           <Onglet titre="Profil" Icone={IconeProfil} />

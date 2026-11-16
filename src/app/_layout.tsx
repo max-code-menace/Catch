@@ -15,6 +15,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { GestionNotifications } from '@/components/gestion-notifications';
 import { ToastAnnulation } from '@/components/toast-annulation';
 import { FournisseurCompte } from '@/lib/compte';
+import { FournisseurMessages } from '@/lib/messages';
 import { FournisseurSessions } from '@/lib/sessions';
 import { FournisseurTheme, useStyles, useTheme, type Palette } from '@/lib/theme';
 
@@ -34,12 +35,14 @@ function Navigation() {
       <StatusBar style={theme === 'sombre' ? 'light' : 'dark'} />
       <FournisseurCompte>
         <FournisseurSessions>
+         <FournisseurMessages>
           {/* Les onglets en dessous ; le détail et la confirmation passent par-dessus, sans la barre */}
           <Stack screenOptions={{ headerShown: false, contentStyle: styles.racine }}>
             <Stack.Screen name="(onglets)" />
             <Stack.Screen name="session/[id]" />
             <Stack.Screen name="connexion" options={{ presentation: 'modal' }} />
             <Stack.Screen name="notifications" />
+            <Stack.Screen name="messages/[id]" />
             <Stack.Screen
               name="catchee/[id]"
               options={{ animation: 'fade', gestureEnabled: false }}
@@ -47,6 +50,7 @@ function Navigation() {
           </Stack>
           <ToastAnnulation />
           <GestionNotifications />
+         </FournisseurMessages>
         </FournisseurSessions>
       </FournisseurCompte>
     </>
