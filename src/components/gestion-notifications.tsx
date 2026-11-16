@@ -19,7 +19,7 @@ import { useSessions } from '@/lib/sessions';
  */
 export function GestionNotifications() {
   const { compte } = useCompte();
-  const { annulerParId } = useSessions();
+  const { annulerParId, recharger: rechargerSessions } = useSessions();
   const idCompte = compte?.id;
 
   // Déjà autorisées : on garde le jeton du téléphone à jour, sans rien demander
@@ -29,11 +29,25 @@ export function GestionNotifications() {
 
   const { recharger } = useMessages();
   const annuler = useRef(annulerParId);
+  const compteConnu = useRef(!!idCompte);
+  useEffect(() => {
+    compteConnu.current = !!idCompte;
+  }, [idCompte]);
   const relire = useRef(recharger);
+  const relireSessions = useRef(rechargerSessions);
+  // « Je ne peux plus » touché alors que l'app était fermée : on attend que le compte soit relu pour annuler
+  const aAnnuler = useRef<string | null>(null);
   useEffect(() => {
     annuler.current = annulerParId;
     relire.current = recharger;
+    relireSessions.current = rechargerSessions;
   });
+  useEffect(() => {
+    if (!idCompte || !aAnnuler.current) return;
+    const session = aAnnuler.current;
+    aAnnuler.current = null;
+    annuler.current(session);
+  }, [idCompte]);
 
   useEffect(() => {
     if (Platform.OS === 'web') return;
@@ -50,7 +64,10 @@ export function GestionNotifications() {
       // « Je viens » : rien à faire, la place est gardée
       if (reponse.actionIdentifier === ACTION_VIENS) return;
       router.push({ pathname: '/session/[id]', params: { id: session } });
-      if (reponse.actionIdentifier === ACTION_PEUX_PLUS) annuler.current(session);
+      if (reponse.actionIdentifier === ACTION_PEUX_PLUS) {
+        if (compteConnu.current) annuler.current(session);
+        else aAnnuler.current = session;
+      }
     }
 
     // L'app a été ouverte en touchant une notification
@@ -61,7 +78,11 @@ export function GestionNotifications() {
     }
     const ecoute = Notifications.addNotificationResponseReceivedListener(reagir);
     // Une notification arrive pendant que l'app est ouverte : les non lus se mettent à jour
-    const reception = Notifications.addNotificationReceivedListener(() => relire.current());
+    const reception = Notifications.addNotificationReceivedListener(() => {
+      relire.current();
+      // Une session a pu changer ou être annulée
+      relireSessions.current();
+    });
     return () => {
       ecoute.remove();
       reception.remove();

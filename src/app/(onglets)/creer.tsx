@@ -1,7 +1,6 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -22,6 +21,7 @@ import { Roulette } from '@/components/roulette';
 import { BarreNavigation, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Sport } from '@/donnees/pictos';
 import { SPORTS, ficheSport } from '@/donnees/sports';
+import { prevenir } from '@/lib/alerte';
 import { useCompte } from '@/lib/compte';
 import { heure, quand } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
@@ -180,7 +180,7 @@ export default function Creer() {
     setEnvoi(false);
     if (!id) {
       vibrer.erreur();
-      Alert.alert('Session pas publiée', 'Ça n’a pas marché. Vérifie ta connexion et réessaie.');
+      prevenir('Session pas publiée', 'Ça n’a pas marché. Vérifie ta connexion et réessaie.');
       return;
     }
     vibrer.succes();

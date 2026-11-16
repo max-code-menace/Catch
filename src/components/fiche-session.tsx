@@ -20,6 +20,8 @@ type Props = {
   /** Distance en mètres depuis l'utilisateur (ou le centre de la zone) */
   distance: number;
   catchee: boolean;
+  /** C'est ma session : « Annuler » l'annule pour tout le monde */
+  organisee: boolean;
   /** Toucher la fiche ouvre le détail de la session */
   onOuvrir: () => void;
   /** Renvoie `false` si le Catch ne peut pas partir tout de suite (connexion à faire) */
@@ -30,7 +32,7 @@ type Props = {
 };
 
 /** Fiche de la session choisie sur la carte, posée au-dessus de la barre de navigation. */
-export function FicheSession({ session, distance, catchee, onOuvrir, onDemande, onEnvoi, onCatch, onAnnuler }: Props) {
+export function FicheSession({ session, distance, catchee, organisee, onOuvrir, onDemande, onEnvoi, onCatch, onAnnuler }: Props) {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const { bottom } = useSafeAreaInsets();
@@ -81,13 +83,17 @@ export function FicheSession({ session, distance, catchee, onOuvrir, onDemande, 
       {catchee && (
         <View style={styles.confirmation}>
           <Balle taille={18} />
-          <Text style={styles.confirmationTexte}>Tu l’as catchée !</Text>
+          <Text style={styles.confirmationTexte}>{organisee ? 'C’est ta session' : 'Tu l’as catchée !'}</Text>
         </View>
       )}
       <View style={styles.actions}>
         <View style={styles.action}>
           {catchee ? (
-            <Bouton titre="Annuler ma participation" variante="lien" onPress={onAnnuler} />
+            <Bouton
+              titre={organisee ? 'Annuler la session' : 'Annuler ma participation'}
+              variante="lien"
+              onPress={onAnnuler}
+            />
           ) : (
             <BoutonCatch complet={complet} onDemande={onDemande} onEnvoi={onEnvoi} onCatch={onCatch} />
           )}

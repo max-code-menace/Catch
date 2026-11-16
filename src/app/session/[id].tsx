@@ -113,6 +113,7 @@ export default function DetailSession() {
   }
 
   const catchee = estCatchee(session.id);
+  const organisee = session.organisateurId === compte?.id;
   const enDirect = estEnDirect(session);
   const libres = placesLibres(session);
   const nombre = session.inscrits.length;
@@ -238,15 +239,33 @@ export default function DetailSession() {
           <>
             <View style={styles.catchee}>
               <Balle taille={20} />
-              <Text style={styles.catcheeTexte}>{invitation ? 'Tu as rejoint la session' : 'Tu l’as catchée !'}</Text>
+              <Text style={styles.catcheeTexte}>
+                {organisee ? 'C’est ta session' : invitation ? 'Tu as rejoint la session' : 'Tu l’as catchée !'}
+              </Text>
+            </View>
+            <View style={styles.duo}>
+              <Bouton
+                titre="Écrire au groupe"
+                variante="secondaire"
+                Icone={IconeMessages}
+                style={styles.demi}
+                onPress={() => router.push({ pathname: '/messages/[id]', params: { id: session.id } })}
+              />
+              {organisee && (
+                <Bouton
+                  titre="Modifier"
+                  variante="secondaire"
+                  style={styles.demi}
+                  onPress={() => router.push({ pathname: '/modifier/[id]', params: { id: session.id } })}
+                />
+              )}
             </View>
             <Bouton
-              titre="Écrire au groupe"
-              variante="secondaire"
-              Icone={IconeMessages}
-              onPress={() => router.push({ pathname: '/messages/[id]', params: { id: session.id } })}
+              titre={organisee ? 'Annuler la session' : 'Annuler ma participation'}
+              variante="lien"
+              // La session disparaît (organisateur, ou dernier inscrit) : on revient à l'écran précédent
+              onPress={() => annuler(session, organisee || nombre <= 1 ? retour : undefined)}
             />
-            <Bouton titre="Annuler ma participation" variante="lien" onPress={() => annuler(session, nombre <= 1 ? retour : undefined)} />
           </>
         ) : (
           <>
@@ -381,5 +400,7 @@ const creerStyles = (c: Palette) =>
       color: c.texteSecondaire,
     },
     catchee: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingTop: 4 },
+    duo: { flexDirection: 'row', gap: 8 },
+    demi: { flex: 1 },
     catcheeTexte: { fontFamily: Polices.titre, fontSize: 22, color: c.encre },
   });

@@ -1,11 +1,12 @@
 // Les sessions et les Catchs, partagés entre la carte, la liste, le détail et la confirmation.
 // Tout vient de Supabase : aucune session d'exemple. Tout le monde peut lire, il faut être connecté pour agir.
 import { createContext, use, useCallback, useEffect, useState } from 'react';
-import { Alert, AppState, Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 import type { Sport } from '@/donnees/pictos';
 import { CENTRE_ZONE, type Coordonnees, type Session } from '@/donnees/sessions';
 import { ficheSport } from '@/donnees/sports';
+import { demander, prevenir } from '@/lib/alerte';
 import { useCompte } from '@/lib/compte';
 import { annulationLibre, estEnDirect } from '@/lib/formats';
 import { supabase } from '@/lib/supabase';
@@ -21,6 +22,11 @@ export type EtatSessions = 'chargement' | 'pretes' | 'erreur';
 
 export type ResultatCatch = 'ok' | 'complete' | 'terminee' | 'erreur';
 
+/** Ce que l'organisateur peut changer après coup */
+export type Modification = Pick<Session, 'debut' | 'fin' | 'lieu' | 'commune' | 'position' | 'joueurs'>;
+/** `trop_petit` : moins de places que d'inscrits */
+export type ResultatModification = 'ok' | 'trop_petit' | 'erreur';
+
 type Valeur = {
   sessions: Session[];
   etat: EtatSessions;
@@ -28,13 +34,20 @@ type Valeur = {
   /** Va chercher une session précise (lien d'invitation) si elle n'est pas déjà là. Renvoie `false` si elle n'existe plus. */
   chercher: (id: string) => Promise<boolean>;
   estCatchee: (id: string) => boolean;
+  /** Vrai si le compte connecté organise cette session */
+  estOrganisee: (id: string) => boolean;
+  /** L'organisateur change l'horaire, le lieu ou le nombre de joueurs : les inscrits sont prévenus */
+  modifier: (id: string, modification: Modification) => Promise<ResultatModification>;
   /** Publie une session : l'organisateur y est inscrit d'office. Renvoie son identifiant, ou `null` en cas d'échec. */
   creer: (nouvelle: NouvelleSession) => Promise<string | null>;
   /** Dernière session créée depuis ce téléphone, pour « Relancer ta dernière session » */
   derniereCreee: Session | null;
   /** Demande la place au serveur : on ne fête le Catch que s'il répond `ok` */
   catcher: (id: string) => Promise<ResultatCatch>;
-  /** Annule tout de suite, ou demande d'abord si la session commence dans moins de 3h */
+  /**
+   * Annule ma participation : tout de suite, ou après confirmation si la session commence dans moins de 3h.
+   * Pour l'organisateur, c'est toute la session qui est annulée (toujours après confirmation).
+   */
   annuler: (session: Session, ensuite?: () => void) => void;
   /** Sessions qui viennent de disparaître (plus aucun inscrit) : la carte les fait éclater puis les oublie */
   eclats: Eclat[];
@@ -192,6 +205,10 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
     return !!moi && !!lues.find((s) => s.id === id)?.participants.some((p) => p.id === moi);
   }
 
+  function estOrganisee(id: string) {
+    return !!moi && lues.find((s) => s.id === id)?.organisateurId === moi;
+  }
+
   /** Ajoute ou retire « moi » d'une session sans attendre la relecture */
   function appliquer(id: string, inscrit: boolean) {
     if (!compte) return;
@@ -261,12 +278,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
     const session = sessions.find((s) => s.id === id);
     if (session && session.idsInscrits.every((inscrit) => inscrit === compte.id)) {
       // Depuis un autre écran, on attend d'être revenu sur la carte pour que ça se voie
-      const delai = ensuite ? 450 : 150;
-      setEclats((liste) => [...liste.filter((e) => e.session.id !== id), { session, delai }]);
-      setTimeout(
-        () => setEclats((liste) => liste.filter((e) => e.session.id !== id)),
-        delai + DUREE_ECLAT + 100,
-      );
+      eclater(session, ensuite ? 450 : 150);
     }
     // On agit tout de suite à l'écran, et on revient en arrière proprement si le serveur refuse
     appliquer(id, false);
@@ -282,35 +294,99 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
     } catch {
       appliquer(id, true);
       setAnnulee(null);
-      Alert.alert('Annulation impossible', 'Ça n’a pas marché. Vérifie ta connexion et réessaie.');
+      prevenir('Annulation impossible', 'Ça n’a pas marché. Vérifie ta connexion et réessaie.');
+    }
+  }
+
+  /** La session fait éclater sa pastille sur la carte, puis on l'oublie */
+  function eclater(session: Session, delai: number) {
+    setEclats((liste) => [...liste.filter((e) => e.session.id !== session.id), { session, delai }]);
+    setTimeout(
+      () => setEclats((liste) => liste.filter((e) => e.session.id !== session.id)),
+      delai + DUREE_ECLAT + 100,
+    );
+  }
+
+  /** L'organisateur annule sa session : elle disparaît pour tout le monde, les inscrits sont prévenus. */
+  async function annulerSession(session: Session, ensuite?: () => void) {
+    if (!supabase || !compte) return;
+    eclater(session, ensuite ? 450 : 150);
+    setLues((liste) => liste.filter((s) => s.id !== session.id));
+    ensuite?.();
+    try {
+      const { data, error } = await supabase.rpc('annuler_session', { p_session: session.id });
+      if (error || data !== 'ok') throw error ?? new Error(String(data));
+    } catch {
+      await recharger();
+      prevenir('Session pas annulée', 'Ça n’a pas marché. Vérifie ta connexion et réessaie.');
+    }
+  }
+
+  async function modifier(id: string, m: Modification): Promise<ResultatModification> {
+    if (!supabase || !compte) return 'erreur';
+    try {
+      const { data, error } = await supabase.rpc('modifier_session', {
+        p_session: id,
+        p_debut: m.debut.toISOString(),
+        p_fin: m.fin.toISOString(),
+        p_lieu: m.lieu,
+        p_commune: m.commune,
+        p_lat: m.position.latitude,
+        p_lng: m.position.longitude,
+        p_joueurs: m.joueurs,
+      });
+      if (error) return 'erreur';
+      if (data === 'ok') {
+        await chercher(id);
+        return 'ok';
+      }
+      return data === 'trop_petit' ? 'trop_petit' : 'erreur';
+    } catch {
+      return 'erreur';
     }
   }
 
   function annuler(session: Session, ensuite?: () => void) {
+    // L'organisateur ne quitte pas sa session : il l'annule pour tout le monde
+    if (compte && session.organisateurId === compte.id) {
+      const autres = session.idsInscrits.filter((inscrit) => inscrit !== compte.id).length;
+      demander({
+        titre: 'Annuler la session ?',
+        texte:
+          autres === 0
+            ? 'Elle disparaîtra de la carte.'
+            : autres === 1
+              ? 'Elle disparaîtra de la carte et la personne inscrite sera prévenue.'
+              : `Elle disparaîtra de la carte et les ${autres} inscrits seront prévenus.`,
+        confirmer: 'Annuler la session',
+        refuser: 'La garder',
+        destructif: true,
+        onConfirmer: () => annulerSession(session, ensuite),
+      });
+      return;
+    }
     // Annuler plutôt que confirmer : on ne demande que si c'est trop tard pour annuler librement
-    if (annulationLibre(session) || Platform.OS === 'web') {
+    if (annulationLibre(session)) {
       quitter(session.id, ensuite);
       return;
     }
-    Alert.alert(
-      'Annuler ta participation ?',
-      estEnDirect(session)
+    demander({
+      titre: 'Annuler ta participation ?',
+      texte: estEnDirect(session)
         ? 'La session a déjà commencé. Ta place sera libérée.'
         : 'La session commence dans moins de 3h. Ta place sera libérée.',
-      [
-        { text: 'Je viens', style: 'cancel' },
-        {
-          text: 'Annuler ma participation',
-          style: 'destructive',
-          onPress: () => quitter(session.id, ensuite),
-        },
-      ],
-    );
+      confirmer: 'Annuler ma participation',
+      refuser: 'Je viens',
+      destructif: true,
+      onConfirmer: () => quitter(session.id, ensuite),
+    });
   }
 
   async function annulerParId(id: string) {
     if (!compte) return;
     await chercher(id);
+    // L'organisateur qui répond « Je ne peux plus » : on lui ouvre sa session, à lui de l'annuler pour tout le monde
+    if (lues.find((s) => s.id === id)?.organisateurId === compte.id) return;
     await quitter(id);
   }
 
@@ -320,7 +396,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
     setAnnulee(null);
     const resultat = await catcher(id);
     if (resultat !== 'ok') {
-      Alert.alert(
+      prevenir(
         resultat === 'complete' ? 'La place vient d’être prise' : 'Ça n’a pas marché',
         resultat === 'complete'
           ? 'Quelqu’un a catché la session entre-temps.'
@@ -337,6 +413,8 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
         recharger,
         chercher,
         estCatchee,
+        estOrganisee,
+        modifier,
         catcher,
         creer,
         derniereCreee: sessions.find((s) => s.id === idCreee) ?? null,

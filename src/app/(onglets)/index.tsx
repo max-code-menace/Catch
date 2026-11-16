@@ -26,7 +26,8 @@ const RAYON_MAX_KM = 30;
 
 export default function Carte() {
   const styles = useStyles(creerStyles);
-  const { sessions, eclats, etat, recharger, estCatchee, annuler, position, setPosition, origine } = useSessions();
+  const { sessions, eclats, etat, recharger, estCatchee, estOrganisee, annuler, position, setPosition, origine } =
+    useSessions();
   const { autoriser, envoyer, confirmer } = useCatch();
   const c = useCouleurs();
   const [cible, setCible] = useState<(Coordonnees & { cle: number; rayonKm?: number }) | null>(null);
@@ -162,6 +163,7 @@ export default function Carte() {
           session={choisie}
           distance={distance(origine, choisie.position)}
           catchee={estCatchee(choisie.id)}
+          organisee={estOrganisee(choisie.id)}
           onOuvrir={() => ouvrir(choisie)}
           onDemande={() => autoriser(choisie.id)}
           onEnvoi={() => envoyer(choisie.id)}

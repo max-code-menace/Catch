@@ -112,7 +112,7 @@ export default function ReglagesNotifications() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Retour"
-          onPress={() => router.back()}
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/profil'))}
           hitSlop={4}
           style={({ pressed }) => [styles.retour, pressed && styles.presse]}>
           <IconeRetour couleur={c.encre} taille={22} />
@@ -174,6 +174,13 @@ export default function ReglagesNotifications() {
                   detail="Quand quelqu’un écrit dans une de tes sessions."
                   valeur={reglages.message}
                   onChange={(message) => changer({ ...reglages, message })}
+                />
+                <View style={styles.trait} />
+                <Ligne
+                  titre="Changements de mes sessions"
+                  detail="Nouvel horaire, nouveau lieu ou session annulée."
+                  valeur={reglages.changement}
+                  onChange={(changement) => changer({ ...reglages, changement })}
                 />
                 <View style={styles.trait} />
                 <Ligne

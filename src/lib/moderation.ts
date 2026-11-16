@@ -1,6 +1,4 @@
 // Signaler, bloquer, débloquer. Les signalements sont lus par l'équipe sur le site Supabase, jamais par l'app.
-import { Alert, Platform } from 'react-native';
-
 import { supabase } from '@/lib/supabase';
 
 export type Cible = 'session' | 'joueur' | 'message';
@@ -75,26 +73,5 @@ export async function lireBloques(): Promise<Bloque[] | null> {
   }
 }
 
-/** Une question avec deux réponses. `Alert` ne marche pas sur le web : on y utilise la fenêtre du navigateur. */
-export function demander({
-  titre,
-  texte,
-  confirmer,
-  destructif = false,
-  onConfirmer,
-}: {
-  titre: string;
-  texte: string;
-  confirmer: string;
-  destructif?: boolean;
-  onConfirmer: () => void;
-}) {
-  if (Platform.OS === 'web') {
-    if (window.confirm(`${titre}\n\n${texte}`)) onConfirmer();
-    return;
-  }
-  Alert.alert(titre, texte, [
-    { text: 'Annuler', style: 'cancel' },
-    { text: confirmer, style: destructif ? 'destructive' : 'default', onPress: onConfirmer },
-  ]);
-}
+// Les questions de confirmation vivent dans lib/alerte ; on les garde accessibles d'ici pour les écrans de modération
+export { demander } from '@/lib/alerte';

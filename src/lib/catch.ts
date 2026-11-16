@@ -1,17 +1,17 @@
 import { router } from 'expo-router';
-import { Alert } from 'react-native';
 
+import { prevenir } from '@/lib/alerte';
 import { useCompte } from '@/lib/compte';
 import { useSessions, type ResultatCatch } from '@/lib/sessions';
 
 /** Dit pourquoi un Catch n'a pas pu se faire : un titre, une phrase, pas de reproche. */
 export function expliquerEchec(resultat: Exclude<ResultatCatch, 'ok'>) {
   if (resultat === 'complete') {
-    Alert.alert('Session complète', 'La dernière place vient d’être prise.');
+    prevenir('Session complète', 'La dernière place vient d’être prise.');
   } else if (resultat === 'terminee') {
-    Alert.alert('Session terminée', 'Cette session n’est plus disponible.');
+    prevenir('Session terminée', 'Cette session n’est plus disponible.');
   } else {
-    Alert.alert('Ça n’a pas marché', 'Vérifie ta connexion et réessaie.');
+    prevenir('Ça n’a pas marché', 'Vérifie ta connexion et réessaie.');
   }
 }
 
