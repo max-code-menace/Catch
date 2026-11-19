@@ -8,6 +8,8 @@ import { useSessions, type ResultatCatch } from '@/lib/sessions';
 export function expliquerEchec(resultat: Exclude<ResultatCatch, 'ok'>) {
   if (resultat === 'complete') {
     prevenir('Session complète', 'La dernière place vient d’être prise.');
+  } else if (resultat === 'limite') {
+    prevenir('Tu as déjà 10 sessions à venir', 'Libère une place dans une autre session pour catcher celle-ci.');
   } else if (resultat === 'terminee') {
     prevenir('Session terminée', 'Cette session n’est plus disponible.');
   } else {

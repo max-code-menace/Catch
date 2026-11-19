@@ -21,7 +21,10 @@ export type NouvelleSession = Omit<
 /** `chargement` : première lecture en cours. `erreur` : rien n'a pu être lu (pas de réseau, panne). */
 export type EtatSessions = 'chargement' | 'pretes' | 'erreur';
 
-export type ResultatCatch = 'ok' | 'complete' | 'terminee' | 'erreur';
+/** `limite` : déjà 10 sessions à venir en même temps */
+export type ResultatRecherche = 'trouvee' | 'absente' | 'erreur';
+
+export type ResultatCatch = 'ok' | 'complete' | 'terminee' | 'limite' | 'erreur';
 
 /** Ce que l'organisateur peut changer après coup */
 export type Modification = Pick<Session, 'debut' | 'fin' | 'lieu' | 'commune' | 'position' | 'joueurs'>;
@@ -32,8 +35,11 @@ type Valeur = {
   sessions: Session[];
   etat: EtatSessions;
   recharger: () => Promise<void>;
-  /** Va chercher une session précise (lien d'invitation) si elle n'est pas déjà là. Renvoie `false` si elle n'existe plus. */
-  chercher: (id: string) => Promise<boolean>;
+  /**
+   * Va chercher une session précise (lien d'invitation) si elle n'est pas déjà là.
+   * `absente` : elle n'existe plus (terminée, annulée). `erreur` : pas de réseau, on ne sait pas.
+   */
+  chercher: (id: string) => Promise<ResultatRecherche>;
   estCatchee: (id: string) => boolean;
   /** Vrai si le compte connecté organise cette session */
   estOrganisee: (id: string) => boolean;
@@ -173,8 +179,9 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
     }
   }, []);
 
-  const chercher = useCallback(async (id: string) => {
-    if (!supabase) return false;
+  /** Relit une session sur le serveur : la session, `absente` si elle n'existe plus, `erreur` si on n'a pas pu savoir. */
+  const lireSession = useCallback(async (id: string): Promise<SessionLue | 'absente' | 'erreur'> => {
+    if (!supabase) return 'erreur';
     try {
       const { data, error } = await supabase
         .from('sessions_visibles')
@@ -182,14 +189,23 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
         .eq('id', id)
         .gt('fin', new Date().toISOString())
         .maybeSingle();
-      if (error || !data) return false;
+      if (error) return 'erreur';
+      if (!data) return 'absente';
       const trouvee = lire(data as Ligne);
       setLues((liste) => [...liste.filter((s) => s.id !== id), trouvee]);
-      return true;
+      return trouvee;
     } catch {
-      return false;
+      return 'erreur';
     }
   }, []);
+
+  const chercher = useCallback(
+    async (id: string): Promise<ResultatRecherche> => {
+      const resultat = await lireSession(id);
+      return typeof resultat === 'string' ? resultat : 'trouvee';
+    },
+    [lireSession],
+  );
 
   // Lecture à l'ouverture, puis chaque fois que l'app revient à l'écran
   useEffect(() => {
@@ -246,7 +262,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
         return 'ok';
       }
       recharger();
-      return data === 'complete' ? 'complete' : 'terminee';
+      return data === 'complete' || data === 'limite' ? data : 'terminee';
     } catch {
       return 'erreur';
     }
@@ -396,9 +412,15 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
 
   async function annulerParId(id: string) {
     if (!compte) return;
-    await chercher(id);
+    // On relit la session sur le serveur : la liste à l'écran n'est peut-être pas encore chargée (app fermée)
+    const session = await lireSession(id);
+    if (session === 'absente') return;
+    if (session === 'erreur') {
+      prevenir('Annulation impossible', 'Ça n’a pas marché. Vérifie ta connexion et réessaie depuis la session.');
+      return;
+    }
     // L'organisateur qui répond « Je ne peux plus » : on lui ouvre sa session, à lui de l'annuler pour tout le monde
-    if (lues.find((s) => s.id === id)?.organisateurId === compte.id) return;
+    if (session.organisateurId === compte.id) return;
     await quitter(id);
   }
 

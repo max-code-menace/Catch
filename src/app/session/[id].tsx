@@ -86,23 +86,40 @@ export default function DetailSession() {
   const invitation = Platform.OS === 'web';
 
   // Arrivée par un lien : la session n'est peut-être pas dans celles déjà lues, on va la chercher
-  const [introuvable, setIntrouvable] = useState(false);
+  // `absente` : elle n'existe plus. `erreur` : pas de réseau, on propose de réessayer.
+  const [recherche, setRecherche] = useState<'en-cours' | 'absente' | 'erreur'>('en-cours');
+  const [essai, setEssai] = useState(0);
   const absente = !session && etat !== 'chargement';
   useEffect(() => {
     if (!absente) return;
     let actif = true;
-    chercher(id).then((trouvee) => {
-      if (actif && !trouvee) setIntrouvable(true);
+    chercher(id).then((resultat) => {
+      if (!actif) return;
+      setRecherche(resultat === 'trouvee' ? 'en-cours' : resultat);
     });
     return () => {
       actif = false;
     };
-  }, [absente, chercher, id]);
+  }, [absente, chercher, id, essai]);
 
   if (!session) {
     return (
       <View style={[styles.ecran, styles.attente]}>
-        {introuvable ? (
+        {recherche === 'erreur' ? (
+          <>
+            <Text accessibilityRole="header" style={[styles.titre, styles.titreSeul]}>
+              Pas de réseau
+            </Text>
+            <Text style={styles.aide}>Impossible de charger la session. Vérifie ta connexion.</Text>
+            <Bouton
+              titre="Réessayer"
+              onPress={() => {
+                setRecherche('en-cours');
+                setEssai((n) => n + 1);
+              }}
+            />
+          </>
+        ) : recherche === 'absente' ? (
           <>
             <Text accessibilityRole="header" style={[styles.titre, styles.titreSeul]}>
               Cette session n’est plus disponible
