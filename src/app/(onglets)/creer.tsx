@@ -43,27 +43,15 @@ const DUREES = [
   { minutes: 120, titre: '2h' },
   { minutes: 180, titre: '3h' },
 ];
-/** Un jour à partir d'aujourd'hui (0 = aujourd'hui) et une heure en minutes depuis minuit */
-function dateDe(ecartJour: number, minutes: number) {
-  const date = new Date();
-  date.setDate(date.getDate() + ecartJour);
-  date.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
-  return date;
-}
-
-/** Bornes de « Autre » : du prochain quart d'heure jusqu'à 7 jours (la carte montre les 7 prochains jours) */
+/** Bornes de « Quand » : de la minute en cours jusqu'à 7 jours (la carte montre les 7 prochains jours) */
 function bornes(maintenant: Date) {
   const min = new Date(maintenant);
   min.setSeconds(0, 0);
-  min.setMinutes(Math.ceil((min.getMinutes() + 1) / 15) * 15);
   const max = new Date(maintenant);
   max.setDate(max.getDate() + 7);
   max.setHours(0, 0, 0, 0);
   return { min, max };
 }
-
-/** Les raccourcis de « Quand » : un appui suffit dans la plupart des cas */
-type Raccourci = 'maintenant' | 'soir' | 'demain' | 'autre';
 
 /** Ce qu'on retient de la dernière session publiée depuis ce téléphone : sert à pré-remplir et à « Relancer » */
 type Modele = { sport: Sport; joueurs: number; duree: number; debutants: boolean; lieu: Omit<Lieu, 'choisi'> };
@@ -85,8 +73,6 @@ export default function Creer() {
   const [ouverture, setOuverture] = useState(() => new Date());
   useFocusEffect(useCallback(() => setOuverture(new Date()), []));
   const { min: dateMin, max: dateMax } = useMemo(() => bornes(ouverture), [ouverture]);
-  // Par défaut : ce soir 19h s'il reste du temps, sinon demain 19h
-  const encoreCeSoir = ouverture.getHours() * 60 + ouverture.getMinutes() < 18 * 60 + 30;
 
   // Première création : rien n'est pré-rempli, 3 choix seulement (sport, quand, où). Ensuite tout l'est.
   // `undefined` le temps de relire le téléphone.
@@ -94,9 +80,9 @@ export default function Creer() {
   const premiereFois = modele === null;
   const [plusDOptions, setPlusDOptions] = useState(false);
   const [sport, setSport] = useState<Sport | null>(null);
-  const [raccourci, setRaccourci] = useState<Raccourci | null>(null);
-  // « Autre » : après-demain 19h pour commencer, puis le sélecteur du système
-  const [dateAutre, setDateAutre] = useState(() => dateDe(2, 19 * 60));
+  // Début choisi avec le sélecteur du système. `null` : maintenant, l'heure exacte du téléphone,
+  // qui suit l'horloge tant qu'on n'y touche pas (il suffit de valider)
+  const [debutChoisi, setDebutChoisi] = useState<Date | null>(null);
   const [lieu, setLieu] = useState<Lieu>(LIEU_PAR_DEFAUT);
   const [precision, setPrecision] = useState('');
   const [joueurs, setJoueurs] = useState(ficheSport('foot').joueurs);
@@ -130,7 +116,6 @@ export default function Creer() {
         setJoueurs(lu.joueurs);
         setDuree(lu.duree);
         setDebutants(lu.debutants);
-        setRaccourci(encoreCeSoir ? 'soir' : 'demain');
         setLieu({ ...lu.lieu, choisi: true });
       })
       .catch(() => setModele(null));
@@ -173,7 +158,6 @@ export default function Creer() {
     setDemandeTraitee(demandeLieu);
     setSport(cle);
     if (cle !== sport) setJoueurs(ficheSport(cle).joueurs);
-    if (!raccourci) setRaccourci(encoreCeSoir ? 'soir' : 'demain');
     setPrecision('');
     setLieuDemande(false);
     setLieu({ position: lieuVenu.position, nom: lieuVenu.nom, commune: lieuVenu.commune, choisi: true });
@@ -192,33 +176,28 @@ export default function Creer() {
     ...proches.filter((p) => p.lieu.id !== lieuConnu?.id),
   ].slice(0, 8);
   const nomLieu = precision.trim() || lieu.nom;
-  /** Le début de la session, d'après le raccourci ou la date choisie dans « Autre » */
-  function debutChoisi() {
-    if (raccourci === 'maintenant') return new Date();
-    if (raccourci === 'soir') return dateDe(0, 19 * 60);
-    if (raccourci === 'demain') return dateDe(1, 19 * 60);
-    return dateAutre;
+  // Ce que montre le sélecteur : l'heure choisie, sinon la minute où l'onglet a été ouvert
+  const debutAffiche = debutChoisi && debutChoisi > dateMin ? debutChoisi : dateMin;
+  // À moins de 5 minutes d'ici, c'est « maintenant »
+  const maintenant = debutAffiche.getTime() - dateMin.getTime() < 5 * MINUTE;
+  const texteQuand = maintenant ? 'maintenant' : quand(debutAffiche, ouverture).toLowerCase();
+  /** Le début de la session au moment de publier : jamais dans le passé */
+  function debutAPublier() {
+    const maintenant = new Date();
+    return debutChoisi && debutChoisi > maintenant ? debutChoisi : maintenant;
   }
-  const maintenant = raccourci === 'maintenant';
-  const texteQuand = maintenant ? 'maintenant' : quand(debutChoisi(), ouverture).toLowerCase();
   const texteDuree = DUREES.find((d) => d.minutes === duree)?.titre ?? '1h30';
   // Ce qu'il reste à choisir avant de pouvoir publier
-  const manque = [!sport && 'un sport', !raccourci && 'un moment', !lieu.choisi && 'un lieu'].filter(Boolean) as string[];
+  const manque = [!sport && 'un sport', !lieu.choisi && 'un lieu'].filter(Boolean) as string[];
   const recap =
-    sport && raccourci
+    sport
       ? `${fiche.nom} · ${texteQuand} · ${texteDuree} · ${joueurs} joueurs`
       : `Choisis ${manque.join(', ').replace(/, ([^,]*)$/, ' et $1')}`;
-  const raccourcis: { cle: Raccourci; titre: string }[] = [
-    { cle: 'maintenant', titre: 'Maintenant' },
-    ...(encoreCeSoir ? [{ cle: 'soir' as const, titre: 'Ce soir 19h' }] : []),
-    { cle: 'demain', titre: 'Demain 19h' },
-    { cle: 'autre', titre: 'Autre' },
-  ];
 
   async function envoyer() {
     if (envoi || !sport) return;
     setEnvoi(true);
-    const debut = debutChoisi();
+    const debut = debutAPublier();
     const resultat = await creer({
       sport,
       titre: fiche.nom,
@@ -255,14 +234,15 @@ export default function Creer() {
     AsyncStorage.setItem(CLE_MODELE, JSON.stringify(nouveau)).catch(() => {});
     // Le formulaire repart de zéro : revenir ici ne publie pas la même session une deuxième fois
     setPrecision('');
+    setDebutChoisi(null);
     setLieu((avant) => ({ ...avant, choisi: false }));
     setLieuDemande(false);
     router.push({ pathname: '/session/[id]', params: { id } });
   }
 
   function publier() {
-    // Sport ou moment pas encore choisi : la phrase du bas dit ce qui manque
-    if (!sport || !raccourci) {
+    // Sport pas encore choisi : la phrase du bas dit ce qui manque
+    if (!sport) {
       vibrer.avertissement();
       return;
     }
@@ -353,29 +333,16 @@ export default function Creer() {
 
         <View style={styles.section}>
           <Text maxFontSizeMultiplier={1.3} style={[styles.etiquette, styles.dansMarges]}>Quand</Text>
-          <View style={[styles.puces, styles.dansMarges]}>
-            {raccourcis.map(({ cle, titre }) => {
-              const actif = cle === raccourci;
-              return (
-                <Pressable
-                  key={cle}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: actif }}
-                  onPress={() => {
-                    if (!actif) vibrer.selection();
-                    setRaccourci(cle);
-                  }}
-                  style={[styles.puce, actif && styles.puceActive]}>
-                  <Text maxFontSizeMultiplier={1.3} style={[styles.puceTexte, actif && { color: c.surEncre }]}>{titre}</Text>
-                </Pressable>
-              );
-            })}
+          {/* L'heure exacte du téléphone par défaut : pour « maintenant », il suffit de valider */}
+          <View style={styles.dansMarges}>
+            <ChoixDateHeure
+              valeur={debutAffiche}
+              onChange={setDebutChoisi}
+              min={dateMin}
+              max={dateMax}
+              pasMinutes={1}
+            />
           </View>
-          {raccourci === 'autre' && (
-            <View style={styles.dansMarges}>
-              <ChoixDateHeure valeur={dateAutre} onChange={setDateAutre} min={dateMin} max={dateMax} />
-            </View>
-          )}
         </View>
 
         <View style={styles.section}>

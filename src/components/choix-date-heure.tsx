@@ -8,20 +8,19 @@ import { Bouton } from '@/components/bouton';
 import { heure } from '@/lib/formats';
 import { useCouleurs, useTheme } from '@/lib/theme';
 
-/** Les heures se choisissent au quart d'heure */
-const PAS_MINUTES = 15;
-
 type Props = {
   valeur: Date;
   onChange: (date: Date) => void;
   min: Date;
   max: Date;
+  /** Pas de la roue des minutes : au quart d'heure par défaut, à la minute pour « Créer » */
+  pasMinutes?: 1 | 15;
 };
 
-function auQuartDHeure(date: Date) {
+function arrondir(date: Date, pas: number) {
   const arrondie = new Date(date);
   arrondie.setSeconds(0, 0);
-  arrondie.setMinutes(Math.round(arrondie.getMinutes() / PAS_MINUTES) * PAS_MINUTES);
+  arrondie.setMinutes(Math.round(arrondie.getMinutes() / pas) * pas);
   return arrondie;
 }
 
@@ -30,7 +29,7 @@ function borner(date: Date, min: Date, max: Date) {
   return new Date(Math.min(Math.max(date.getTime(), min.getTime()), max.getTime()));
 }
 
-export function ChoixDateHeure({ valeur, onChange, min, max }: Props) {
+export function ChoixDateHeure({ valeur, onChange, min, max, pasMinutes = 15 }: Props) {
   const c = useCouleurs();
   const { theme } = useTheme();
 
@@ -42,7 +41,7 @@ export function ChoixDateHeure({ valeur, onChange, min, max }: Props) {
           mode="datetime"
           display="compact"
           locale="fr-FR"
-          minuteInterval={PAS_MINUTES}
+          minuteInterval={pasMinutes}
           minimumDate={min}
           maximumDate={max}
           accentColor={c.rouge}
@@ -65,7 +64,7 @@ export function ChoixDateHeure({ valeur, onChange, min, max }: Props) {
         const nouvelle = new Date(valeur);
         if (mode === 'date') nouvelle.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
         else nouvelle.setHours(date.getHours(), date.getMinutes());
-        onChange(borner(auQuartDHeure(nouvelle), min, max));
+        onChange(borner(arrondir(nouvelle, pasMinutes), min, max));
       },
     });
   }
