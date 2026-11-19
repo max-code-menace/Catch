@@ -4,6 +4,31 @@ Liste proposée par Claude le 19 novembre 2026, pour que Maxime choisisse. **Rie
 
 Aujourd'hui l'app en a 10 : Foot, Basket, Volley, Badminton, Spikeball, Tennis, Padel, Escalade, Rugby, Autre (`src/donnees/sports.ts`).
 
+## Sélection pour la v1 (proposée le 19 novembre, à valider par Maxime)
+
+16 sports + « Autre ». Le reste de cette page est gardé en réserve.
+
+| Sport | Où | Pourquoi |
+| --- | --- | --- |
+| Foot (mini-foot compris) | Terrain, salle | Le plus demandé, terrains publics partout |
+| Basket | Terrain | Beaucoup de terrains publics gratuits |
+| Volley (beach compris) | Salle, terrain | Très social, beach l'été |
+| Tennis | Terrain, salle | Il faut un partenaire |
+| Padel | Salle | Très demandé, il faut être 4 |
+| Badminton | Salle | Facile pour débutants |
+| Squash | Salle | Il faut un partenaire |
+| Ping-pong | Terrain | Tables publiques gratuites |
+| Escalade | Salle | En voie, il faut quelqu'un pour assurer |
+| Boxe | Salle | Très demandée ; cours ou entraînement, pas de combat entre inconnus |
+| Course à pied | Libre | Le plus simple à lancer |
+| Vélo | Libre | Sorties en groupe, Forêt de Soignes |
+| Ultimate frisbee | Libre | Convivial, n'importe quel parc |
+| Spikeball | Libre | Déjà là, au parc |
+| Pétanque | Terrain | 120 terrains publics recensés à Bruxelles |
+| Street workout | Terrain | Barres publiques gratuites |
+
+**Rugby** (déjà dans l'app) n'est pas dans la sélection : peu joué entre inconnus. À garder ou retirer, au choix de Maxime. Les lieux de chaque sport retenu sont dans `lieux-a-verifier.md`.
+
 **Où ça se joue** (voir « Lieux et événements » dans `produit.md`) :
 - **Terrain** : un terrain public précis (gratuit), qu'on affichera sur la carte
 - **Salle** : un lieu payant (club, salle, box), avec sa fiche
