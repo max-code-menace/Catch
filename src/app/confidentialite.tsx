@@ -60,6 +60,11 @@ export default function Confidentialite() {
           compte » du site : ton prénom, tes participations, tes messages, tes réglages et les sessions que tu
           organises sont effacés. Un signalement que tu as envoyé est conservé sans ton nom, le temps de le traiter.
         </Paragraphe>
+        <Paragraphe>
+          Une session et sa conversation sont effacées 30 jours après la fin de la session (7 jours si elle a été
+          annulée), sauf si un signalement est en cours de traitement. L’identifiant d’un téléphone qui ne reçoit
+          plus les notifications est oublié.
+        </Paragraphe>
       </Partie>
 
       <Partie titre="Tes droits">
