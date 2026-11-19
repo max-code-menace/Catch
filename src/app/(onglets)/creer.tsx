@@ -288,7 +288,7 @@ export default function Creer() {
             Créer une session
           </Text>
           {/* La phrase se réécrit toute seule pendant qu'on fait glisser les choix */}
-          <Text style={styles.phrase}>{premiereFois ? 'Trois choix et c’est publié.' : recap}</Text>
+          <Text style={styles.phrase}>{premiereFois ? 'Quatre choix et c’est publié.' : recap}</Text>
         </View>
 
         {modele && (
@@ -399,6 +399,26 @@ export default function Creer() {
           )}
         </View>
 
+        <View style={styles.section}>
+          <View style={[styles.ligne, styles.dansMarges]}>
+            <Text style={styles.etiquette}>Joueurs</Text>
+            <Text style={styles.aide}>toi compris</Text>
+          </View>
+          <Roulette
+            elements={NOMBRES}
+            index={NOMBRES.indexOf(joueurs)}
+            onChange={(i) => setJoueurs(NOMBRES[i])}
+            largeur={64}
+            hauteur={64}
+            cle={String}
+            etiquette="Nombre de joueurs"
+            valeur={`${joueurs} joueurs`}
+            rendre={(n, actif) => (
+              <Text style={[styles.nombre, actif ? styles.nombreActif : styles.efface]}>{n}</Text>
+            )}
+          />
+        </View>
+
         <View style={[styles.section, styles.dansMarges]}>
           <Text style={styles.etiquette}>Où</Text>
           <Pressable
@@ -438,7 +458,7 @@ export default function Creer() {
         {premiereFois && !plusDOptions ? (
           <View style={styles.dansMarges}>
             <Bouton
-              titre="Plus d’options : durée, joueurs"
+              titre="Plus d’options : durée, débutants"
               variante="lien"
               onPress={() => {
                 vibrer.selection();
@@ -468,26 +488,6 @@ export default function Creer() {
               );
             })}
           </View>
-        </View>
-
-        <View style={styles.section}>
-          <View style={[styles.ligne, styles.dansMarges]}>
-            <Text style={styles.etiquette}>Joueurs</Text>
-            <Text style={styles.aide}>toi compris</Text>
-          </View>
-          <Roulette
-            elements={NOMBRES}
-            index={NOMBRES.indexOf(joueurs)}
-            onChange={(i) => setJoueurs(NOMBRES[i])}
-            largeur={64}
-            hauteur={64}
-            cle={String}
-            etiquette="Nombre de joueurs"
-            valeur={`${joueurs} joueurs`}
-            rendre={(n, actif) => (
-              <Text style={[styles.nombre, actif ? styles.nombreActif : styles.efface]}>{n}</Text>
-            )}
-          />
         </View>
 
         <View style={[styles.ligne, styles.dansMarges]}>

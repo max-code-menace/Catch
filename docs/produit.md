@@ -30,7 +30,7 @@ Une app de rencontres sportives meurt si personne ne voit de session à la premi
 - **Notifications** : 4 types, réglables un par un, demandés après le premier Catch : rappel 3h avant (« Je viens » / « Je ne peux plus »), changement sur ma session, nouveau message, nouvelle session de mon sport (sur accord explicite, 1 par jour maximum). Pas de résumé quotidien.
 - **Catch** : la célébration « Tu l'as catchée ! » part après la réponse du serveur, pour ne jamais fêter une place déjà prise.
 - **Direction visuelle** : Chaleur (rouge et orange), avec mode sombre dès la v1 (automatique selon le téléphone, réglage dans Profil).
-- **Création** : la première fois, rien n'est pré-rempli : 3 choix seulement (sport, quand, où).
+- **Création** : la première fois, rien n'est pré-rempli : 4 choix (sport, quand, joueurs, où). Le nombre de joueurs reste toujours visible sous « Quand » (décidé par Maxime le 19 novembre : il change trop selon le sport et la session) ; durée et « Débutants bienvenus » sont derrière « Plus d'options ».
 - **Paiement** : prix indicatif payé sur place, pas de paiement dans l'app.
 - **Obligations stores** : bouton signaler / bloquer, contact visible et suppression de compte dès la v1, dans l'app et par un lien web (exigé par Google Play).
 - **Niveau d'exigence** : la v1 est un vrai produit, fini et fiable sur ce qu'il fait. On n'ajoute pas de variantes expérimentales (phrase à trous, grille à peindre, balayage).
