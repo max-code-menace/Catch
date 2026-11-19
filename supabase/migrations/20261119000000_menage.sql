@@ -14,6 +14,7 @@ create table private.envois_push (
   jetons text[] not null,
   envoye_le timestamptz not null default now()
 );
+alter table private.envois_push enable row level security;
 
 create or replace function private.pousser(p_joueurs uuid[], p_titre text, p_corps text, p_donnees jsonb, p_categorie text default null)
 returns void language plpgsql security definer set search_path = '' as $$
