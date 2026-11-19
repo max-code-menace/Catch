@@ -14,6 +14,32 @@ Une app de rencontres sportives meurt si personne ne voit de session à la premi
 - Les potes de Maxime sont les premiers utilisateurs et créent 3 à 5 sessions par semaine, même celles qu'ils feraient de toute façon.
 - Ne jamais afficher un écran vide : élargir le rayon, montrer les 7 prochains jours, proposer de créer la première session ou d'être prévenu.
 - Ne jamais gonfler la carte avec de fausses sessions.
+- Montrer ce qu'on peut faire même quand personne ne joue : les lieux et les événements (ci-dessous).
+
+## Lieux et événements (décidé le 19 novembre 2026)
+
+But : une carte jamais vide, sans fausses sessions. Règle de tri : chaque élément doit rapprocher la personne d'une partie en un appui ; sinon on ne le met pas. Une app utile même quand on la quitte (on file vers le site d'une salle) est une app qu'on rouvre.
+
+**Deux familles de sports**
+- **Sports à terrain** (foot, mini-foot, basket, tennis, pétanque, ping-pong, beach-volley, padel…) : ils se jouent à un endroit précis, on montre ces endroits.
+- **Sports libres** (brésilienne, spikeball, frisbee, course, yoga…) : partout, dans un parc, une placette, la rue. Pas de lieu à afficher, on pose le point où on veut, comme aujourd'hui.
+
+**À mettre**
+- **Terrains publics sur la carte** : petite pastille discrète avec le picto du sport, toujours sous les sessions (les sessions restent les plus visibles). Dézoomé, ils se regroupent (« 12 terrains »). Toucher un terrain : le sport, « gratuit », les sessions prévues là, et « Lancer un foot ici » qui ouvre Créer avec sport et lieu remplis.
+- **Salles payantes** (escalade, crossfit, padel…) : même pastille, marquée « payant », avec une petite fiche : nom, sports, adresse, lien vers leur site, sessions prévues là, « Lancer une session ici ».
+- **Créer** : avec un sport à terrain, l'étape « Où » met en avant les lieux de ce sport et on en touche un. On peut toujours poser son point ailleurs (un terrain peut manquer). On suggère, on ne bloque jamais.
+- **Événements** (20 km de Bruxelles, 24 h vélo…) : pastille différente (drapeau) au départ, visible seulement les 7 jours avant, comme les sessions. Fiche : nom, date, heure, lien officiel pour s'inscrire, « On y va ensemble » qui crée une vraie session au départ, rattachée à l'événement.
+- **Données** : terrains tirés d'OpenStreetMap puis nettoyés à la main (on retire le privé et les clubs fermés au public) ; salles et événements choisis à la main par Maxime et Claude, en commençant par Bruxelles.
+
+**À ne pas mettre**
+- Des lieux pour les sports libres (pas de « parc à spikeball »).
+- Photos, avis, notes, horaires d'ouverture (ils changent : on renvoie vers le site), réservation dans l'app, favoris de lieux.
+- Un onglet ou un agenda d'événements : ils vivent sur la carte, rien d'autre.
+- Des événements fermés (inscriptions closes, réservés à un club), le parcours complet, les résultats, les classements.
+- Tout ce qui laisse croire que des gens sont sur un lieu alors qu'aucune session n'y est prévue.
+- Un lieu mis en avant parce qu'il paie sans le dire : un partenaire est toujours marqué « partenaire » (pas de dark patterns).
+
+**Ordre** : d'abord les terrains et les salles (carte + Créer), ensuite les événements.
 
 ## Décisions prises
 
@@ -64,6 +90,7 @@ Principe : le fun, c'est le terrain, pas l'écran. On récompense le fait de jou
 - **Invitation en forme de défi**, avec la session en image.
 - **Un ton qui joue** : humour dans les états vides et le chargement, dans les règles de `ux-writing.md`.
 - **Propositions de l'audit concurrents** (voir `recherches.md`) : sessions qui se répètent, liste d'attente, « je viens avec 1 pote », minimum de joueurs.
+- **Partenariats avec les salles** (idée de Maxime, 19 novembre) : quand il y aura assez d'utilisateurs, mettre en avant des salles partenaires, toujours marquées « partenaire ». Rien à construire avant.
 
 Écarté : classements entre joueurs, points, niveaux, séries de jours ou de semaines d'affilée, notifications de relance, notifications en plus des 4 types décidés.
 
@@ -91,6 +118,8 @@ Une fonctionnalité à la fois, testée avant de passer à la suivante. L'avance
 9. Messagerie interne
 10. Signalement, blocage, suppression de compte (app + lien web)
 11. Tests : 5 potes, puis 5 inconnus du Brabant wallon, puis re-test après corrections. Indicateur : part des nouveaux qui jouent une session dans les 7 jours.
+12. Lieux : terrains publics et salles payantes sur la carte, fiche, « Lancer une session ici », suggestions dans Créer (voir « Lieux et événements »)
+13. Événements : drapeau au départ, fiche, « On y va ensemble »
 
 ## Comment Maxime veut travailler
 
