@@ -3,7 +3,7 @@ import { Modal, StyleSheet, Text, View } from 'react-native';
 
 import { Bouton } from '@/components/bouton';
 import type { PropsChoixLieu } from '@/components/choix-lieu';
-import { Espaces, Polices } from '@/constants/theme';
+import { Espaces, Polices, Tailles } from '@/constants/theme';
 import { useStyles, type Palette } from '@/lib/theme';
 
 export function ChoixLieu({ ouvert, depart, onFermer, onChoisir }: PropsChoixLieu) {
@@ -28,5 +28,5 @@ const creerStyles = (c: Palette) =>
       padding: Espaces.marge,
       backgroundColor: c.fond,
     },
-    texte: { fontFamily: Polices.texte, fontSize: 16, color: c.encre, textAlign: 'center' },
+    texte: { fontFamily: Polices.texte, fontSize: Tailles.texte, color: c.encre, textAlign: 'center' },
   });

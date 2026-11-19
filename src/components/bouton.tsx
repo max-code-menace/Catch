@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
-import { Espaces, Polices, Rayons, Ressorts } from '@/constants/theme';
+import { Espaces, Polices, Rayons, Ressorts, Tailles } from '@/constants/theme';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 const PressableAnime = Animated.createAnimatedComponent(Pressable);
@@ -65,5 +65,5 @@ const creerStyles = (c: Palette) =>
     principal: { backgroundColor: c.rouge },
     secondaire: { backgroundColor: c.carte, borderWidth: 1, borderColor: c.trait },
     lien: { minHeight: Espaces.cibleTactile },
-    texte: { fontFamily: Polices.texteDemi, fontSize: 16 },
+    texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte },
   });

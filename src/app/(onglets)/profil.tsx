@@ -234,7 +234,7 @@ const creerStyles = (c: Palette) =>
       borderColor: 'transparent',
     },
     optionActive: { backgroundColor: c.carte, borderColor: c.trait },
-    optionTexte: { fontFamily: Polices.texteMoyen, fontSize: 15, color: c.texteSecondaire },
+    optionTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.courant, color: c.texteSecondaire },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     session: { flexDirection: 'row', alignItems: 'center' },
     picto: {

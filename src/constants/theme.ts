@@ -28,6 +28,12 @@ export const Palettes = {
     surAvatar: '#1C1412',
     /** Fond de secours quand il n'y a pas de vraie carte (navigateur) */
     fondCarte: '#EFE9E2',
+    /** Ombres (boxShadow) : petite (pastilles, boutons sur la carte), normale (en-têtes), flottante (barre, fiches), vers le haut (panneaux du bas), forte (toast) */
+    ombrePetite: '0 2px 8px rgba(28, 20, 18, 0.14)',
+    ombre: '0 4px 16px rgba(28, 20, 18, 0.10)',
+    ombreFlottante: '0 8px 24px rgba(28, 20, 18, 0.14)',
+    ombreVersHaut: '0 -6px 24px rgba(28, 20, 18, 0.12)',
+    ombreForte: '0 8px 24px rgba(28, 20, 18, 0.24)',
   },
   sombre: {
     rouge: '#E8553A',
@@ -49,6 +55,12 @@ export const Palettes = {
     rondPicto: '#FFFFFF',
     surAvatar: '#1C1412',
     fondCarte: '#1B1614',
+    // Sur fond sombre, une ombre doit être noire et plus marquée pour se voir
+    ombrePetite: '0 2px 8px rgba(0, 0, 0, 0.40)',
+    ombre: '0 4px 16px rgba(0, 0, 0, 0.35)',
+    ombreFlottante: '0 8px 24px rgba(0, 0, 0, 0.45)',
+    ombreVersHaut: '0 -6px 24px rgba(0, 0, 0, 0.40)',
+    ombreForte: '0 8px 24px rgba(0, 0, 0, 0.55)',
   },
 } as const;
 
@@ -64,12 +76,26 @@ export const Polices = {
   texteDemi: 'Inter_600SemiBold',
 } as const;
 
+// Échelle des tailles de texte. Aucun fontSize écrit en chiffres dans un écran.
 export const Tailles = {
-  titreEcran: 28,
-  titreSession: 24,
-  texte: 16,
-  aide: 13,
+  /** Pastilles de compteur, initiales des avatars */
+  minuscule: 10,
+  /** Libellés de la barre d'onglets */
+  micro: 11,
   pastille: 12,
+  aide: 13,
+  petit: 14,
+  courant: 15,
+  texte: 16,
+  accent: 17,
+  titreCarte: 19,
+  sousTitre: 20,
+  titreMoyen: 22,
+  titreSession: 24,
+  titreEcran: 28,
+  grandNombre: 30,
+  titreDetail: 32,
+  celebration: 36,
 } as const;
 
 export const Espaces = {

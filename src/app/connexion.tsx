@@ -334,7 +334,7 @@ const creerStyles = (c: Palette) =>
       justifyContent: 'center',
     },
     rappelTextes: { flex: 1, gap: 2 },
-    rappelTitre: { fontFamily: Polices.texteDemi, fontSize: 15, color: c.encre },
+    rappelTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     titre: {
       marginTop: 12,
@@ -360,10 +360,10 @@ const creerStyles = (c: Palette) =>
       borderWidth: 1,
       borderColor: c.trait,
       fontFamily: Polices.texteMoyen,
-      fontSize: 17,
+      fontSize: Tailles.accent,
       color: c.encre,
     },
-    champCode: { fontFamily: Polices.titre, fontSize: 28, letterSpacing: 8, textAlign: 'center' },
+    champCode: { fontFamily: Polices.titre, fontSize: Tailles.titreEcran, letterSpacing: 8, textAlign: 'center' },
     inactif: { opacity: 0.45 },
     mention: {
       marginTop: 8,
@@ -376,7 +376,7 @@ const creerStyles = (c: Palette) =>
     lien: { fontFamily: Polices.texteDemi, color: c.rougeTexte },
     erreur: {
       fontFamily: Polices.texteMoyen,
-      fontSize: 14,
+      fontSize: Tailles.petit,
       lineHeight: 20,
       color: c.rougeTexte,
       textAlign: 'center',

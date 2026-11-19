@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Durees, Espaces, Polices, Rayons } from '@/constants/theme';
+import { Durees, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { useSessions } from '@/lib/sessions';
 import { useStyles, type Palette } from '@/lib/theme';
 
@@ -58,9 +58,9 @@ const creerStyles = (c: Palette) =>
       justifyContent: 'space-between',
       backgroundColor: c.encre,
       borderRadius: Rayons.pilule,
-      boxShadow: '0 8px 24px rgba(28, 20, 18, 0.24)',
+      boxShadow: c.ombreForte,
     },
-    texte: { fontFamily: Polices.texteMoyen, fontSize: 15, color: c.surEncre },
+    texte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.courant, color: c.surEncre },
     bouton: {
       height: 40,
       minWidth: Espaces.cibleTactile,
@@ -69,5 +69,5 @@ const creerStyles = (c: Palette) =>
       borderRadius: Rayons.pilule,
       backgroundColor: c.surEncreDoux,
     },
-    boutonTexte: { fontFamily: Polices.texteDemi, fontSize: 14, color: c.surEncre },
+    boutonTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.surEncre },
   });

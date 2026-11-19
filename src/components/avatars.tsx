@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Polices } from '@/constants/theme';
+import { Polices, Tailles } from '@/constants/theme';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 const TEINTES = ['#F5C3B5', '#FAD9B8', '#EFC9A4', '#E9D5C6'];
@@ -41,5 +41,5 @@ const creerStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    texte: { fontFamily: Polices.texteDemi, fontSize: 10, color: c.surAvatar },
+    texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.minuscule, color: c.surAvatar },
   });

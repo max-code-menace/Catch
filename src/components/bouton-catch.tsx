@@ -12,7 +12,7 @@ import Animated, {
 
 import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
-import { Durees, Polices, Rayons, Ressorts } from '@/constants/theme';
+import { Durees, Polices, Rayons, Ressorts, Tailles } from '@/constants/theme';
 import { vibrer } from '@/lib/haptics';
 import { useStyles, type Palette } from '@/lib/theme';
 
@@ -154,7 +154,7 @@ const creerStyles = (c: Palette) =>
       overflow: 'hidden',
     },
     fondAttrape: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: c.encre },
-    texte: { fontFamily: Polices.texteDemi, fontSize: 16, color: c.surRouge },
+    texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.surRouge },
     // Décalé pour laisser la place de la balle à gauche du mot
     texteAttrape: { paddingLeft: TAILLE_BALLE + 8 },
     balle: {

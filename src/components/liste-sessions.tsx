@@ -207,7 +207,7 @@ const creerStyles = (c: Palette) =>
       borderColor: c.trait,
     },
     filtreActif: { backgroundColor: c.encre, borderColor: c.encre },
-    filtreTexte: { fontFamily: Polices.texteDemi, fontSize: 13, color: c.encre },
+    filtreTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
     carte: {
       padding: 16,
       gap: 10,
@@ -238,7 +238,7 @@ const creerStyles = (c: Palette) =>
       justifyContent: 'center',
     },
     textes: { flex: 1, gap: 2 },
-    titre: { fontFamily: Polices.titreDemi, fontSize: 19, color: c.encre },
+    titre: { fontFamily: Polices.titreDemi, fontSize: Tailles.titreCarte, color: c.encre },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     resume: { fontFamily: Polices.texteMoyen, fontSize: Tailles.aide, color: c.encre },
     videZone: { gap: 16 },

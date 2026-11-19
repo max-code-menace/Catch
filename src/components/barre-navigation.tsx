@@ -9,7 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BarreNavigation as Mesures, Durees, Polices, Rayons, Ressorts } from '@/constants/theme';
+import { BarreNavigation as Mesures, Durees, Polices, Rayons, Ressorts, Tailles } from '@/constants/theme';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 const PressableAnime = Animated.createAnimatedComponent(Pressable);
@@ -88,7 +88,7 @@ const creerStyles = (c: Palette) =>
       borderRadius: Rayons.pilule,
       borderWidth: 1,
       borderColor: c.trait,
-      boxShadow: '0 8px 24px rgba(28, 20, 18, 0.12)',
+      boxShadow: c.ombreFlottante,
     },
     onglet: {
       flex: 1,
@@ -111,7 +111,7 @@ const creerStyles = (c: Palette) =>
       borderWidth: 2,
       borderColor: c.carte,
     },
-    pastilleTexte: { fontFamily: Polices.texteDemi, fontSize: 10, lineHeight: 12, color: c.surRouge },
+    pastilleTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.minuscule, lineHeight: 12, color: c.surRouge },
     fondActif: {
       position: 'absolute',
       top: 0,
@@ -121,5 +121,5 @@ const creerStyles = (c: Palette) =>
       backgroundColor: c.rouge,
       borderRadius: Rayons.pilule,
     },
-    titre: { fontFamily: Polices.texteMoyen, fontSize: 11 },
+    titre: { fontFamily: Polices.texteMoyen, fontSize: Tailles.micro },
   });

@@ -155,7 +155,7 @@ const creerStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: c.carte,
-      boxShadow: '0 2px 10px rgba(28,20,18,0.12)',
+      boxShadow: c.ombrePetite,
     },
     fiche: {
       position: 'absolute',
@@ -168,9 +168,9 @@ const creerStyles = (c: Palette) =>
       backgroundColor: c.carte,
       borderTopLeftRadius: 26,
       borderTopRightRadius: 26,
-      boxShadow: '0 -6px 24px rgba(28,20,18,0.12)',
+      boxShadow: c.ombreVersHaut,
     },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
-    nom: { fontFamily: Polices.titre, fontSize: 22, lineHeight: 28, color: c.encre },
+    nom: { fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, lineHeight: 28, color: c.encre },
     bouton: { marginTop: 14, borderRadius: Rayons.bouton },
   });

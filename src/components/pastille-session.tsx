@@ -140,7 +140,7 @@ const creerStyles = (c: Palette) =>
       height: 34,
       borderRadius: Rayons.pilule,
       borderWidth: 1,
-      boxShadow: '0 2px 6px rgba(28, 20, 18, 0.16)',
+      boxShadow: c.ombrePetite,
     },
     choisie: { borderWidth: 2 },
     picto: {

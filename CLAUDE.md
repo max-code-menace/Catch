@@ -18,7 +18,7 @@ App mobile (Expo + Supabase) pour faire du sport et rencontrer des gens près de
 | racine (`src/`, `app.json`, `package.json`…) | **L'app** (Expo SDK 58, expo-router, TypeScript). Il n'y a qu'une seule app : l'ancien dossier `mobile/` a été supprimé |
 | `docs/` | Décisions et règles |
 | `design/` | **Design de référence** (direction « Chaleur ») : captures dans `apercus/`, pictos SVG dans `pictos/` |
-| `design/laboratoire-ux/` | **Laboratoire UX, à garder et à consulter** : 40 patterns, une centaine de variantes jouables, une recommandation par pattern et une page Synthèse. C'est la réserve d'idées pour rendre l'app plus agréable. Sources dans `src/`, version publiée : https://claude.ai/artifact/XnGqqCVsjx5U1CSBRzKAHR. 10 corrections d'audit pas encore appliquées |
+| `design/laboratoire-ux/` | **Laboratoire UX, à garder et à consulter** : 40 patterns, une centaine de variantes jouables, une recommandation par pattern et une page Synthèse. C'est la réserve d'idées pour rendre l'app plus agréable. Sources dans `src/`, version publiée : https://claude.ai/artifact/XnGqqCVsjx5U1CSBRzKAHR. Les « 10 corrections d'audit » n'ont jamais été notées dans le dépôt (liste perdue avec une ancienne conversation) |
 | `emails/` | Modèles d'e-mails de connexion (code à 6 chiffres, bienvenue) |
 | `supabase/migrations/` | SQL appliqué à la base |
 
@@ -37,7 +37,8 @@ Les fichiers `design/canvas/*.dc.html` sont générés par `design/canvas/genere
 - **Tests** : `npm test` (Node 24, `tests/formats.test.mjs`). Vérifications GitHub sur chaque pull request : `.github/workflows/verifier.yml` (types, lint, tests). La publication automatique (`publier.yml`, branche `claude/loving-maxwell-mn6c6u`) n'est pas reprise : elle demande un secret Expo, à décider avec Maxime.
 - Migrations `20261116010000_organisateur.sql` et `20261116020000_garde_fous.sql` : **appliquées à la base le 16 novembre**.
 - **19 novembre** : Profil défile (publié sur Expo). Logo dans `design/logo/` (`logo-catch.png` détouré, `logo-catch-fond-blanc.png` original), pas encore utilisé dans l'app. Ménage automatique de la base : migration `20261119000000_menage.sql` (toutes les heures, tâche `catch-menage` : sessions vides, annulées 7 jours après la fin, toutes 30 jours après la fin sauf signalement en cours ; jetons push « DeviceNotRegistered » oubliés). Appliquée à la main par Maxime dans le SQL Editor le 19 novembre (vérifié : tâche en place, RLS sur `private.envois_push`). Texte Confidentialité mis à jour en conséquence et publié.
-- **Pas fait** : connexion Google, test d'Apple, adresse de contact dédiée (toujours l'adresse provisoire), retrait des paquets inutilisés (`@expo/ui`, `expo-glass-effect`, `expo-image`, `expo-symbols`, `expo-web-browser` : vérifier d'abord qu'expo-router n'en a pas besoin), ombres et tailles de texte encore en dur.
+- **Pas fait** : connexion Google, test d'Apple, adresse de contact dédiée (toujours l'adresse provisoire).
+- **Nettoyage du code (19 novembre)** : `expo-image`, `expo-web-browser`, `expo-glass-effect` retirés (`@expo/ui` et `expo-symbols` restent : expo-router s'en sert sur Android). Ombres dans la palette (`c.ombrePetite`, `c.ombre`, `c.ombreFlottante`, `c.ombreVersHaut`, `c.ombreForte`, plus marquées en sombre) et tailles de texte dans `Tailles` : plus aucun `boxShadow` ni `fontSize` en chiffres dans un écran.
 
 Plan complet dans `docs/produit.md`.
 
@@ -78,6 +79,7 @@ Noté le 15 novembre à sa demande, pour ne pas oublier. Claude ne peut pas le f
 Règles de code :
 - Noms de fichiers, composants et variables en français.
 - **Aucune couleur en dur dans un écran.** Chaque fichier déclare `const creerStyles = (c: Palette) => StyleSheet.create({…})` et chaque composant fait `const styles = useStyles(creerStyles)` ; pour une couleur hors styles, `const c = useCouleurs()`. Sur du rouge on écrit en `c.surRouge`, sur un fond encre en `c.surEncre` (jamais `c.carte` comme couleur de texte).
+- **Aucune taille de texte ni ombre en chiffres** : `fontSize: Tailles.…` et `boxShadow: c.ombre…` (échelle dans `constants/theme.ts`).
 - React Compiler est actif : avec Reanimated écrire `valeur.set()` / `valeur.get()`, pas `.value`.
 - Installer un paquet avec `npx expo install`. Avant chaque commit : `npx tsc --noEmit` et `npx expo lint`.
 

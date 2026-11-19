@@ -315,7 +315,7 @@ const creerStyles = (c: Palette) =>
   StyleSheet.create({
     ecran: { flex: 1, backgroundColor: c.fond },
     seul: { alignItems: 'center', justifyContent: 'center', gap: 12, padding: Espaces.marge },
-    titreSeul: { fontFamily: Polices.titre, fontSize: 24, lineHeight: 30, textAlign: 'center', color: c.encre },
+    titreSeul: { fontFamily: Polices.titre, fontSize: Tailles.titreSession, lineHeight: 30, textAlign: 'center', color: c.encre },
     entete: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -334,7 +334,7 @@ const creerStyles = (c: Palette) =>
     },
     presse: { backgroundColor: c.beige },
     enteteTextes: { flex: 1, minHeight: Espaces.cibleTactile, justifyContent: 'center' },
-    titre: { fontFamily: Polices.texteDemi, fontSize: 17, color: c.encre },
+    titre: { fontFamily: Polices.texteDemi, fontSize: Tailles.accent, color: c.encre },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     lieu: {
       flexDirection: 'row',
@@ -347,8 +347,8 @@ const creerStyles = (c: Palette) =>
       borderRadius: Rayons.bouton,
       backgroundColor: c.rougeDoux,
     },
-    lieuTexte: { flex: 1, fontFamily: Polices.texteMoyen, fontSize: 14, color: c.rougeTexte },
-    lieuLien: { fontFamily: Polices.texteDemi, fontSize: 14, color: c.rougeTexte },
+    lieuTexte: { flex: 1, fontFamily: Polices.texteMoyen, fontSize: Tailles.petit, color: c.rougeTexte },
+    lieuLien: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.rougeTexte },
     fil: { flex: 1 },
     filContenu: { padding: Espaces.marge, gap: 6, flexGrow: 1 },
     systeme: {
@@ -358,7 +358,7 @@ const creerStyles = (c: Palette) =>
       color: c.texteSecondaire,
       paddingBottom: 8,
     },
-    vide: { textAlign: 'center', fontFamily: Polices.texte, fontSize: 15, color: c.texteSecondaire, paddingTop: 24 },
+    vide: { textAlign: 'center', fontFamily: Polices.texte, fontSize: Tailles.courant, color: c.texteSecondaire, paddingTop: 24 },
     rangee: { alignItems: 'flex-start', gap: 2 },
     rangeeMoi: { alignItems: 'flex-end' },
     prenom: {
@@ -372,7 +372,7 @@ const creerStyles = (c: Palette) =>
     bulleAutre: { backgroundColor: c.carte, borderWidth: 1, borderColor: c.trait },
     bulleMoi: { backgroundColor: c.rouge },
     enAttente: { opacity: 0.6 },
-    bulleTexte: { fontFamily: Polices.texte, fontSize: 15, lineHeight: 21, color: c.encre },
+    bulleTexte: { fontFamily: Polices.texte, fontSize: Tailles.courant, lineHeight: 21, color: c.encre },
     bulleTexteMoi: { color: c.surRouge },
     echec: {
       fontFamily: Polices.texte,
@@ -403,7 +403,7 @@ const creerStyles = (c: Palette) =>
       borderWidth: 1,
       borderColor: c.trait,
       fontFamily: Polices.texte,
-      fontSize: 15,
+      fontSize: Tailles.courant,
       color: c.encre,
     },
     envoyer: {

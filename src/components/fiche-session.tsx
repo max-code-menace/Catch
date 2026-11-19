@@ -122,10 +122,10 @@ const creerStyles = (c: Palette) =>
       borderRadius: Rayons.carte,
       borderWidth: 1,
       borderColor: c.trait,
-      boxShadow: '0 8px 24px rgba(28, 20, 18, 0.14)',
+      boxShadow: c.ombreFlottante,
     },
     ligne: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-    quand: { fontFamily: Polices.texteDemi, fontSize: 14, color: c.encre },
+    quand: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.encre },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     titreZone: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
     picto: {
@@ -163,5 +163,5 @@ const creerStyles = (c: Palette) =>
       borderColor: c.trait,
     },
     inviterPresse: { backgroundColor: c.beige },
-    confirmationTexte: { fontFamily: Polices.titre, fontSize: 20, color: c.encre },
+    confirmationTexte: { fontFamily: Polices.titre, fontSize: Tailles.sousTitre, color: c.encre },
   });

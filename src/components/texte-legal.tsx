@@ -24,6 +24,6 @@ export function Paragraphe({ children }: { children: React.ReactNode }) {
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
     partie: { gap: 8 },
-    titre: { fontFamily: Polices.titreDemi, fontSize: 20, color: c.encre },
+    titre: { fontFamily: Polices.titreDemi, fontSize: Tailles.sousTitre, color: c.encre },
     texte: { fontFamily: Polices.texte, fontSize: Tailles.texte, lineHeight: 24, color: c.texteSecondaire },
   });

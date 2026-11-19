@@ -145,7 +145,7 @@ const creerStyles = (c: Palette) =>
     },
     textes: { flex: 1, gap: 2 },
     titre: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
-    apercu: { fontFamily: Polices.texte, fontSize: 14, color: c.texteSecondaire },
+    apercu: { fontFamily: Polices.texte, fontSize: Tailles.petit, color: c.texteSecondaire },
     apercuNonLu: { fontFamily: Polices.texteMoyen, color: c.encre },
     droite: { alignItems: 'flex-end', gap: 6 },
     quand: { fontFamily: Polices.texte, fontSize: Tailles.pastille, color: c.texteSecondaire },
@@ -158,5 +158,5 @@ const creerStyles = (c: Palette) =>
       justifyContent: 'center',
       backgroundColor: c.rouge,
     },
-    pastilleTexte: { fontFamily: Polices.texteDemi, fontSize: 11, color: c.surRouge },
+    pastilleTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.micro, color: c.surRouge },
   });

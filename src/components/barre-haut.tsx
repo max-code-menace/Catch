@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconeCarte, IconeListe, IconeRecentrer } from '@/components/icones';
-import { Espaces, Polices, Rayons } from '@/constants/theme';
+import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 export type Vue = 'carte' | 'liste';
@@ -69,11 +69,11 @@ const creerStyles = (c: Palette) =>
       borderRadius: Rayons.pilule,
       borderWidth: 1,
       borderColor: c.trait,
-      boxShadow: '0 4px 16px rgba(28, 20, 18, 0.10)',
+      boxShadow: c.ombre,
     },
-    logo: { fontFamily: Polices.titre, fontSize: 20, color: c.rouge },
+    logo: { fontFamily: Polices.titre, fontSize: Tailles.sousTitre, color: c.rouge },
     separateur: { width: 1, height: 20, backgroundColor: c.trait },
-    zone: { flex: 1, fontFamily: Polices.texteMoyen, fontSize: 14, color: c.encre },
+    zone: { flex: 1, fontFamily: Polices.texteMoyen, fontSize: Tailles.petit, color: c.encre },
     bascule: {
       height: 40,
       paddingHorizontal: 12,
@@ -85,7 +85,7 @@ const creerStyles = (c: Palette) =>
       borderWidth: 1,
       borderColor: c.trait,
     },
-    basculeTexte: { fontFamily: Polices.texteDemi, fontSize: 13, color: c.encre },
+    basculeTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
     bouton: {
       width: Espaces.cibleTactile,
       height: 40,

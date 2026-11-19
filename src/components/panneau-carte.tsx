@@ -3,7 +3,7 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HAUTEUR_BARRE_HAUT } from '@/components/barre-haut';
-import { Durees, Espaces, Polices } from '@/constants/theme';
+import { Durees, Espaces, Polices, Tailles } from '@/constants/theme';
 import { useStyles, type Palette } from '@/lib/theme';
 
 type Props = {
@@ -53,18 +53,18 @@ const creerStyles = (c: Palette) =>
       borderRadius: 26,
       borderWidth: 1,
       borderColor: c.trait,
-      boxShadow: '0 10px 30px rgba(28, 20, 18, 0.14)',
+      boxShadow: c.ombreFlottante,
     },
     titre: {
       fontFamily: Polices.titre,
-      fontSize: 24,
+      fontSize: Tailles.titreSession,
       lineHeight: 30,
       textAlign: 'center',
       color: c.encre,
     },
     texte: {
       fontFamily: Polices.texte,
-      fontSize: 15,
+      fontSize: Tailles.courant,
       lineHeight: 22,
       textAlign: 'center',
       color: c.texteSecondaire,

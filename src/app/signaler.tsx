@@ -197,7 +197,7 @@ const creerStyles = (c: Palette) =>
       borderWidth: 1,
       borderColor: c.trait,
       fontFamily: Polices.texte,
-      fontSize: 15,
+      fontSize: Tailles.courant,
       color: c.encre,
     },
     inactif: { opacity: 0.4 },

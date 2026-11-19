@@ -279,5 +279,5 @@ const creerStyles = (c: Palette) =>
       justifyContent: 'center',
       backgroundColor: c.rondPicto,
     },
-    sportTexte: { fontFamily: Polices.texteMoyen, fontSize: 14, color: c.encre },
+    sportTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.petit, color: c.encre },
   });

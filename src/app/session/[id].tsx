@@ -315,8 +315,8 @@ const creerStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    titre: { flex: 1, fontFamily: Polices.titre, fontSize: 32, lineHeight: 38, color: c.encre },
-    organisateur: { fontFamily: Polices.texte, fontSize: 15, color: c.texteSecondaire },
+    titre: { flex: 1, fontFamily: Polices.titre, fontSize: Tailles.titreDetail, lineHeight: 38, color: c.encre },
+    organisateur: { fontFamily: Polices.texte, fontSize: Tailles.courant, color: c.texteSecondaire },
     pastille: {
       alignSelf: 'flex-start',
       height: 26,
@@ -348,7 +348,7 @@ const creerStyles = (c: Palette) =>
       borderWidth: 1,
       borderColor: c.trait,
     },
-    itineraireTexte: { fontFamily: Polices.texteDemi, fontSize: 13, color: c.encre },
+    itineraireTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
     presse: { backgroundColor: c.beige },
     places: {
       flexDirection: 'row',
@@ -360,15 +360,15 @@ const creerStyles = (c: Palette) =>
       borderWidth: 1,
       borderColor: c.trait,
     },
-    placesTitre: { fontFamily: Polices.titre, fontSize: 20, color: c.rouge },
+    placesTitre: { fontFamily: Polices.titre, fontSize: Tailles.sousTitre, color: c.rouge },
     attente: { alignItems: 'center', justifyContent: 'center', gap: 12, padding: Espaces.marge },
     inviter: { left: undefined, right: 16 },
-    titreSeul: { flex: 0, fontSize: 24, lineHeight: 30, textAlign: 'center' },
+    titreSeul: { flex: 0, fontSize: Tailles.titreSession, lineHeight: 30, textAlign: 'center' },
     logo: {
       position: 'absolute',
       right: Espaces.marge,
       fontFamily: Polices.titre,
-      fontSize: 22,
+      fontSize: Tailles.titreMoyen,
       color: c.rouge,
     },
     retour: {
@@ -382,7 +382,7 @@ const creerStyles = (c: Palette) =>
       backgroundColor: c.carte,
       borderWidth: 1,
       borderColor: c.trait,
-      boxShadow: '0 4px 16px rgba(28, 20, 18, 0.10)',
+      boxShadow: c.ombre,
     },
     bas: {
       paddingHorizontal: Espaces.marge,
@@ -402,5 +402,5 @@ const creerStyles = (c: Palette) =>
     catchee: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingTop: 4 },
     duo: { flexDirection: 'row', gap: 8 },
     demi: { flex: 1 },
-    catcheeTexte: { fontFamily: Polices.titre, fontSize: 22, color: c.encre },
+    catcheeTexte: { fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, color: c.encre },
   });

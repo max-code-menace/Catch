@@ -175,7 +175,7 @@ const creerStyles = (c: Palette) =>
     ombre: { width: 44, height: 8, borderRadius: 4, backgroundColor: c.encre },
     titre: {
       fontFamily: Polices.titre,
-      fontSize: 36,
+      fontSize: Tailles.celebration,
       lineHeight: 42,
       color: c.encre,
       textAlign: 'center',
@@ -201,7 +201,7 @@ const creerStyles = (c: Palette) =>
       borderWidth: 1,
       borderColor: c.trait,
     },
-    attenteTexte: { fontFamily: Polices.texteMoyen, fontSize: 14, color: c.encre },
+    attenteTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.petit, color: c.encre },
     actions: { gap: 10, paddingBottom: 16 },
     rappel: {
       alignSelf: 'stretch',
