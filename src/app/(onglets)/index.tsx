@@ -149,7 +149,7 @@ export default function Carte() {
         </View>
       )}
       <BarreHaut
-        zone={`${position ? 'Autour de toi' : NOM_ZONE} · ${rayon} km`}
+        zone={`${position ? 'Près de toi' : NOM_ZONE} · ${rayon} km`}
         vue={vue}
         onBasculer={() => setVue(vue === 'carte' ? 'liste' : 'carte')}
         onRecentrer={() => {

@@ -55,7 +55,7 @@ Une seule couleur d'action par écran : le rouge. Un statut n'est jamais porté 
 - Écran de référence : 390 × 844. Marges latérales 20 px.
 - Cibles tactiles ≥ 44 px. Rayons : boutons 16, cartes 20, pastilles en pilule.
 - **Barre de navigation flottante** : pilule blanche détachée (20 px des bords, 26 px du bas), 4 onglets icône + texte, onglet actif rempli en rouge : Créer · Carte · Messages · Profil.
-- **Barre du haut (Carte et Liste)** : logo `catch`, zone (« Bruxelles · 5 km », ou « Autour de toi · 5 km » quand la position est connue), bouton Liste/Carte, bouton recentrer.
+- **Barre du haut (Carte et Liste)** : logo `catch`, zone (« Bruxelles · 5 km », ou « Près de toi · 5 km » quand la position est connue), bouton Liste/Carte, bouton recentrer.
 
 ## Pictos des sports
 
