@@ -45,6 +45,17 @@ Badge « En direct » animé avancé, bouton « je cherche un joueur » avec not
 
 La réserve d'idées la plus complète est le **laboratoire UX** ([design/laboratoire-ux/](../design/laboratoire-ux/), [version en ligne](https://claude.ai/artifact/XnGqqCVsjx5U1CSBRzKAHR)) : pour chaque écran, plusieurs variantes jouables et une recommandation. Ses variantes recommandées servent de référence quand on construit un écran ; ses variantes expérimentales (phrase à trous, grille à peindre, balayage) sont à tester avec de vrais utilisateurs avant d'entrer dans l'app.
 
+### Contre-expertise du laboratoire (19 novembre 2026)
+
+Le labo n'a pas été mis à jour après les décisions : **en cas de désaccord, ce document l'emporte sur le labo.** Ses notes sur 50 ne décident rien (souvent la variante recommandée a une note plus basse qu'une autre).
+
+- **Le labo se trompe, ne pas suivre** : Catch « optimiste » fêté avant le serveur (on fête après la réponse) · pont WhatsApp · résumé quotidien des notifications · centre de notifications (cloche) · « maintenir pour confirmer » (un dialogue suffit pour l'irréversible) · rayon réglable au curseur.
+- **Pour la v1, à faire** : explication avant la demande de localisation · « Ajouter à mon calendrier » après le Catch · « Chercher dans cette zone » quand on déplace la carte · état vide de la carte qui propose les 7 prochains jours · aucun contenu caché sous la barre flottante.
+- **Plus tard, après les premiers utilisateurs** : réponses rapides dans le chat (« J'arrive », « En retard ») · « Préviens-moi » / liste d'attente sur une session complète · habitués · statistiques et historique · photo de profil (avec modération des images) · recherche texte · feuille de filtres complète · squelette de chargement · conversations « À venir / Terminées » · préférences proposées au bon moment · prix indicatif · heures calmes · langues (Bruxelles : néerlandais, anglais).
+- **Abandonné** : suggestions personnalisées · phrase à trous · feuille à crans sur la carte · demandes à valider par l'organisateur · grille de disponibilités · badges · groupes et communautés · partage de position · simulateur de notifications · heure de départ conseillée · synchronisation permanente du calendrier · recherche en langage naturel · paiement, remboursement et historique de paiement dans l'app · actions mises en attente hors connexion (un Catch rejoué plus tard peut tomber sur une session complète) · tirer-pour-rafraîchir maison · balayage et glisser-déposer · transitions partagées.
+- **À rediscuter avec Maxime** : le taux de présence visible sur les profils (décidé plus haut). Sans moyen de vérifier qui est vraiment venu, il risque d'être injuste et de faire honte.
+- **Oublié par le labo** : la sécurité quand on retrouve des inconnus (lieu public, conseils avant la première session).
+
 Principe : le fun, c'est le terrain, pas l'écran. On récompense le fait de jouer, jamais le fait d'ouvrir l'app.
 
 - **« Il manque 1 joueur » comme mission** : celui qui catche sauve la session.

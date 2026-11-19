@@ -8,7 +8,7 @@ App mobile (Expo + Supabase) pour faire du sport et rencontrer des gens près de
 - `docs/design-system.md` : couleurs clair et sombre, typo, navigation, animations, vibrations
 - `docs/ux-writing.md` : ton, règle du mot « catch », glossaire
 - `docs/recherches.md` : résumé des recherches UX et de l'audit concurrents
-- `design/laboratoire-ux/` : avant de construire ou de retoucher un écran, regarder le pattern correspondant et sa variante recommandée (page Synthèse dans `src/app.js`, fiches dans `src/mod1.js` à `mod7.js`)
+- `design/laboratoire-ux/` : avant de construire ou de retoucher un écran, regarder le pattern correspondant et sa variante recommandée (page Synthèse dans `src/app.js`, fiches dans `src/mod1.js` à `mod7.js`). **Mais d'abord** la « Contre-expertise du laboratoire » dans `docs/produit.md` : le labo n'est pas à jour et plusieurs de ses recommandations sont rejetées
 - `AGENTS.md` : règles Expo (ne pas se fier à sa mémoire, lire la doc de la version installée)
 
 ## Où est quoi
