@@ -3,9 +3,11 @@ import { Platform, StyleSheet } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
 import { themeCarte } from '@/constants/carte';
+import { PastilleEvenement } from '@/components/pastille-evenement';
 import { PastilleGroupeLieux, PastilleLieu } from '@/components/pastille-lieu';
 import { PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
 import { CENTRE_ZONE, type Coordonnees, type Session } from '@/donnees/sessions';
+import type { Evenement } from '@/lib/evenements';
 import { estEnDirect } from '@/lib/formats';
 import type { LieuSport } from '@/lib/lieux-sport';
 import { OUVERTURE_REGROUPEMENT, regrouper } from '@/lib/regroupement';
@@ -25,6 +27,10 @@ export type PropsCarte = {
   lieux: LieuSport[];
   idLieuChoisi: string | null;
   onChoisirLieu: (id: string) => void;
+  /** Événements, au départ : au-dessus des lieux et des sessions qui y vont ensemble */
+  evenements: Evenement[];
+  idEvenementChoisi: string | null;
+  onChoisirEvenement: (id: string) => void;
 };
 
 const ZOOM = { latitudeDelta: 0.11, longitudeDelta: 0.11 };
@@ -40,6 +46,9 @@ export function CarteSessions({
   lieux,
   idLieuChoisi,
   onChoisirLieu,
+  evenements,
+  idEvenementChoisi,
+  onChoisirEvenement,
 }: PropsCarte) {
   const carte = useRef<MapView>(null);
   const { theme } = useTheme();
@@ -130,6 +139,25 @@ export function CarteSessions({
               onChoisir(session.id);
             }}>
             <PastilleSession session={session} choisie={choisie} />
+          </Marker>
+        );
+      })}
+      {evenements.map((evenement) => {
+        const choisi = evenement.id === idEvenementChoisi;
+        return (
+          <Marker
+            key={`evenement-${evenement.id}-${theme}-${choisi}`}
+            coordinate={evenement.position}
+            anchor={{ x: 0.5, y: 0.5 }}
+            tracksViewChanges={false}
+            // Au-dessus des sessions : celles qui y vont ensemble partent du même endroit, la fiche les liste
+            zIndex={choisi ? 4 : 2}
+            accessibilityLabel={evenement.nom}
+            onPress={(e) => {
+              e.stopPropagation();
+              onChoisirEvenement(evenement.id);
+            }}>
+            <PastilleEvenement choisi={choisi} />
           </Marker>
         );
       })}

@@ -7,6 +7,7 @@ import { Balle } from '@/components/balle';
 import { BarreHaut, HAUTEUR_BARRE_HAUT, type Vue } from '@/components/barre-haut';
 import { Bouton } from '@/components/bouton';
 import { CarteSessions } from '@/components/carte-sessions';
+import { FicheEvenement } from '@/components/fiche-evenement';
 import { FicheLieu } from '@/components/fiche-lieu';
 import { FicheSession } from '@/components/fiche-session';
 import { IconeCreer, IconeSansReseau } from '@/components/icones';
@@ -14,6 +15,7 @@ import { ListeSessions } from '@/components/liste-sessions';
 import { PanneauCarte } from '@/components/panneau-carte';
 import { CENTRE_ZONE, NOM_ZONE, type Coordonnees, type Session } from '@/donnees/sessions';
 import { useCatch } from '@/lib/catch';
+import { sessionsDeLEvenement, useEvenements } from '@/lib/evenements';
 import { distance } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { maPosition } from '@/lib/lieux';
@@ -50,6 +52,9 @@ export default function Carte() {
   const lieux = useLieuxSport();
   const [idLieuChoisi, setIdLieuChoisi] = useState<string | null>(null);
   const lieuChoisi = choisie ? undefined : lieux.find((l) => l.id === idLieuChoisi);
+  const evenements = useEvenements();
+  const [idEvenementChoisi, setIdEvenementChoisi] = useState<string | null>(null);
+  const evenementChoisi = choisie || lieuChoisi ? undefined : evenements.find((e) => e.id === idEvenementChoisi);
 
   // Position déjà autorisée lors d'une visite précédente : la carte s'ouvre autour de soi, sans rien demander
   useEffect(() => {
@@ -78,12 +83,21 @@ export default function Carte() {
     if (id && id !== idChoisie) vibrer.selection();
     setIdChoisie(id);
     setIdLieuChoisi(null);
+    setIdEvenementChoisi(null);
   }
 
   function choisirLieu(id: string) {
     if (id !== idLieuChoisi) vibrer.selection();
     setIdChoisie(null);
     setIdLieuChoisi(id);
+    setIdEvenementChoisi(null);
+  }
+
+  function choisirEvenement(id: string) {
+    if (id !== idEvenementChoisi) vibrer.selection();
+    setIdChoisie(null);
+    setIdLieuChoisi(null);
+    setIdEvenementChoisi(id);
   }
 
   // La question de la position n'est posée qu'au moment où on appuie sur « recentrer »
@@ -124,6 +138,9 @@ export default function Carte() {
         lieux={lieux}
         idLieuChoisi={lieuChoisi?.id ?? null}
         onChoisirLieu={choisirLieu}
+        evenements={evenements}
+        idEvenementChoisi={evenementChoisi?.id ?? null}
+        onChoisirEvenement={choisirEvenement}
       />
       {vue === 'liste' && (
         <ListeSessions
@@ -147,7 +164,7 @@ export default function Carte() {
         </PanneauCarte>
       )}
       {/* On laisse la session finir d'éclater avant d'afficher « Rien à 5 km » */}
-      {vue === 'carte' && rienIci && !choisie && !lieuChoisi && eclats.length === 0 && (
+      {vue === 'carte' && rienIci && !choisie && !lieuChoisi && !evenementChoisi && eclats.length === 0 && (
         <PanneauCarte
           entete={<Balle taille={32} />}
           titre={`Rien à ${rayon} km pour l’instant`}
@@ -196,6 +213,19 @@ export default function Carte() {
           onLancer={(sport) => {
             vibrer.selection();
             router.navigate({ pathname: '/creer', params: { lieu: lieuChoisi.id, sport } });
+          }}
+        />
+      )}
+      {vue === 'carte' && evenementChoisi && (
+        <FicheEvenement
+          key={evenementChoisi.id}
+          evenement={evenementChoisi}
+          distance={distance(origine, evenementChoisi.position)}
+          sessions={sessionsDeLEvenement(evenementChoisi, sessions)}
+          onOuvrirSession={ouvrir}
+          onEnsemble={() => {
+            vibrer.selection();
+            router.navigate({ pathname: '/creer', params: { evenement: evenementChoisi.id } });
           }}
         />
       )}

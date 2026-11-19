@@ -93,6 +93,7 @@ type Ligne = {
   a_savoir_titre: string | null;
   a_savoir_detail: string | null;
   inscrits: Inscrit[];
+  evenement_id: string | null;
 };
 
 type SessionLue = Omit<Session, 'inscrits' | 'idsInscrits'> & { participants: Inscrit[] };
@@ -121,6 +122,7 @@ function lire(ligne: Ligne): SessionLue {
     aSavoir: ligne.a_savoir_titre
       ? { titre: ligne.a_savoir_titre, detail: ligne.a_savoir_detail ?? '' }
       : undefined,
+    evenementId: ligne.evenement_id ?? undefined,
     participants: ligne.inscrits ?? [],
   };
 }
@@ -263,6 +265,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
           debutants_bienvenus: nouvelle.debutantsBienvenus,
           a_savoir_titre: nouvelle.aSavoir?.titre ?? null,
           a_savoir_detail: nouvelle.aSavoir?.detail ?? null,
+          evenement_id: nouvelle.evenementId ?? null,
         })
         .select('id')
         .single();

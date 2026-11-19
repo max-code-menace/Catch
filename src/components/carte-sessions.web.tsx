@@ -3,6 +3,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { PropsCarte } from '@/components/carte-sessions';
+import { PastilleEvenement } from '@/components/pastille-evenement';
 import { PastilleLieu } from '@/components/pastille-lieu';
 import { PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
 import { CENTRE_ZONE, type Coordonnees } from '@/donnees/sessions';
@@ -17,7 +18,18 @@ function placer({ position }: { position: Coordonnees }) {
   };
 }
 
-export function CarteSessions({ sessions, eclats, idChoisie, onChoisir, lieux, idLieuChoisi, onChoisirLieu }: PropsCarte) {
+export function CarteSessions({
+  sessions,
+  eclats,
+  idChoisie,
+  onChoisir,
+  lieux,
+  idLieuChoisi,
+  onChoisirLieu,
+  evenements,
+  idEvenementChoisi,
+  onChoisirEvenement,
+}: PropsCarte) {
   const styles = useStyles(creerStyles);
   return (
     <Pressable style={[StyleSheet.absoluteFill, styles.fond]} onPress={() => onChoisir(null)}>
@@ -37,6 +49,16 @@ export function CarteSessions({ sessions, eclats, idChoisie, onChoisir, lieux, i
           <View key={session.id} style={[styles.marqueur, { left: `${x}%`, top: `${y}%` }]}>
             <Pressable onPress={() => onChoisir(session.id)}>
               <PastilleSession session={session} choisie={session.id === idChoisie} />
+            </Pressable>
+          </View>
+        );
+      })}
+      {evenements.map((evenement) => {
+        const { x, y } = placer(evenement);
+        return (
+          <View key={evenement.id} style={[styles.marqueur, { left: `${x}%`, top: `${y}%` }]}>
+            <Pressable accessibilityLabel={evenement.nom} onPress={() => onChoisirEvenement(evenement.id)}>
+              <PastilleEvenement choisi={evenement.id === idEvenementChoisi} />
             </Pressable>
           </View>
         );

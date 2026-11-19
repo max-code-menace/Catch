@@ -26,6 +26,8 @@ export type Session = {
   debutantsBienvenus: boolean;
   /** Ce qu'il faut savoir avant de venir : matériel, tenue */
   aSavoir?: { titre: string; detail: string };
+  /** Événement auquel la session va ensemble (« On y va ensemble »), s'il y en a un */
+  evenementId?: string;
 };
 
 /** La zone de lancement : Bruxelles. La carte s'ouvre là tant qu'on ne connaît pas la position. */

@@ -18,7 +18,7 @@ import { Bouton } from '@/components/bouton';
 import { ChoixDateHeure } from '@/components/choix-date-heure';
 import { ChoixJoueurs } from '@/components/choix-joueurs';
 import { ChoixLieu } from '@/components/choix-lieu';
-import { IconeRelancer } from '@/components/icones';
+import { IconeDrapeau, IconeRelancer } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
 import { BarreNavigation, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { Pictos, type Sport } from '@/donnees/pictos';
@@ -26,6 +26,7 @@ import { CENTRE_ZONE } from '@/donnees/sessions';
 import { SPORTS, ficheSport } from '@/donnees/sports';
 import { prevenir } from '@/lib/alerte';
 import { useCompte } from '@/lib/compte';
+import { useEvenements } from '@/lib/evenements';
 import { quand, texteDistance } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { LIEU_PAR_DEFAUT, nommer, type Lieu } from '@/lib/lieux';
@@ -95,7 +96,11 @@ export default function Creer() {
   const [carteOuverte, setCarteOuverte] = useState(false);
   const lieux = useLieuxSport();
   // « Lancer une session ici » depuis la fiche d'un lieu : Créer s'ouvre avec ce sport et ce lieu
-  const params = useLocalSearchParams<{ lieu?: string; sport?: string }>();
+  const params = useLocalSearchParams<{ lieu?: string; sport?: string; evenement?: string }>();
+  // « On y va ensemble » depuis la fiche d'un événement : la session est rattachée à cet événement
+  const evenements = useEvenements();
+  const [evenementId, setEvenementId] = useState<string | null>(null);
+  const evenement = evenements.find((e) => e.id === evenementId);
 
   // Si la position est déjà connue, la carte du lieu s'ouvrira autour de soi.
   // Ce n'est qu'un point de départ : le lieu reste à choisir, on ne publie jamais sa propre position sans le vouloir.
@@ -111,7 +116,7 @@ export default function Creer() {
         const lu: Modele | null = texte ? JSON.parse(texte) : null;
         setModele(lu);
         // Ouvert depuis « Lancer une session ici » : le sport et le lieu demandés passent avant la dernière création
-        if (!lu || params.lieu) return;
+        if (!lu || params.lieu || params.evenement) return;
         setSport(lu.sport);
         setJoueurs(lu.joueurs);
         setDuree(lu.duree);
@@ -166,6 +171,30 @@ export default function Creer() {
     if (demandeTraitee) router.setParams({ lieu: undefined, sport: undefined });
   }, [demandeTraitee]);
 
+  // Même principe pour un événement : sport, heure de départ et lieu de départ remplis, une seule fois
+  const [evenementTraite, setEvenementTraite] = useState<string | null>(null);
+  if (!params.evenement && evenementTraite) setEvenementTraite(null);
+  const evenementVenu =
+    params.evenement && params.evenement !== evenementTraite ? evenements.find((e) => e.id === params.evenement) : undefined;
+  if (params.evenement && evenementVenu) {
+    setEvenementTraite(params.evenement);
+    setEvenementId(evenementVenu.id);
+    setSport(evenementVenu.sport);
+    if (evenementVenu.sport !== sport) setJoueurs(ficheSport(evenementVenu.sport).joueurs);
+    setDebutChoisi(evenementVenu.debut);
+    setPrecision('');
+    setLieuDemande(false);
+    setLieu({
+      position: evenementVenu.position,
+      nom: evenementVenu.depart,
+      commune: evenementVenu.commune,
+      choisi: true,
+    });
+  }
+  useEffect(() => {
+    if (evenementTraite) router.setParams({ evenement: undefined });
+  }, [evenementTraite]);
+
   const fiche = ficheSport(sport ?? 'foot');
   // Sport qui se joue à un endroit précis : on met en avant ses lieux, les plus proches d'abord
   const lieuConnu = lieu.choisi ? lieuA(lieux, lieu.position) : null;
@@ -208,6 +237,7 @@ export default function Creer() {
       fin: new Date(debut.getTime() + duree * MINUTE),
       joueurs,
       debutantsBienvenus: debutants,
+      evenementId: evenement?.id,
     });
     setEnvoi(false);
     if (!resultat || resultat === 'limite') {
@@ -235,6 +265,7 @@ export default function Creer() {
     // Le formulaire repart de zéro : revenir ici ne publie pas la même session une deuxième fois
     setPrecision('');
     setDebutChoisi(null);
+    setEvenementId(null);
     setLieu((avant) => ({ ...avant, choisi: false }));
     setLieuDemande(false);
     router.push({ pathname: '/session/[id]', params: { id } });
@@ -290,7 +321,33 @@ export default function Creer() {
           <Text maxFontSizeMultiplier={1.3} style={styles.phrase}>{premiereFois ? 'Quatre choix et c’est publié.' : recap}</Text>
         </View>
 
-        {modele && (
+        {evenement && (
+          <View style={[styles.evenement, styles.dansMarges]}>
+            <IconeDrapeau couleur={c.encre} taille={22} />
+            <View style={styles.textes}>
+              <Text maxFontSizeMultiplier={1.3} style={styles.fort} numberOfLines={1}>
+                Pour {evenement.nom}
+              </Text>
+              <Text maxFontSizeMultiplier={1.3} style={styles.aide} numberOfLines={2}>
+                Départ {quand(evenement.debut, ouverture).toLowerCase()}. L’inscription à l’événement se fait sur son site.
+              </Text>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Ne plus rattacher la session à ${evenement.nom}`}
+              hitSlop={8}
+              onPress={() => {
+                vibrer.selection();
+                setEvenementId(null);
+              }}>
+              <Text maxFontSizeMultiplier={1.3} style={[styles.fort, { color: c.rougeTexte }]}>
+                Retirer
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
+        {modele && !evenement && (
           <Pressable
             accessibilityRole="button"
             onPress={relancer}
@@ -548,6 +605,16 @@ const creerStyles = (c: Palette) =>
       borderWidth: 1.5,
       borderStyle: 'dashed',
       borderColor: c.rougeBordure,
+    },
+    evenement: {
+      minHeight: 56,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      backgroundColor: c.beige,
+      borderRadius: 18,
     },
     tuiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     tuile: {

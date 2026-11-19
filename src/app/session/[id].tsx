@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ApercuCarte } from '@/components/apercu-carte';
@@ -11,6 +11,7 @@ import { Bouton } from '@/components/bouton';
 import { BoutonCatch } from '@/components/bouton-catch';
 import {
   IconeCalendrier,
+  IconeDrapeau,
   IconeInfo,
   IconeInviter,
   IconeLieu,
@@ -31,6 +32,7 @@ import {
 } from '@/lib/formats';
 import { useCatch } from '@/lib/catch';
 import { useCompte } from '@/lib/compte';
+import { useEvenements } from '@/lib/evenements';
 import { inviter } from '@/lib/invitation';
 import { ajouterAuCalendrier, calendrierDisponible } from '@/lib/calendrier';
 import { ouvrirItineraire } from '@/lib/itineraire';
@@ -78,6 +80,8 @@ export default function DetailSession() {
   const { autoriser, envoyer, confirmer } = useCatch();
   const { compte } = useCompte();
   const session = sessions.find((s) => s.id === id);
+  const evenements = useEvenements();
+  const evenement = session?.evenementId ? evenements.find((e) => e.id === session.evenementId) : undefined;
   // Sur le web, cette page est celle d'un lien d'invitation : on parle à quelqu'un qui ne connaît pas l'app
   const invitation = Platform.OS === 'web';
 
@@ -180,6 +184,21 @@ export default function DetailSession() {
                 <Text style={styles.itineraireTexte}>Itinéraire</Text>
               </Pressable>
             </Ligne>
+            {evenement && (
+              <Ligne
+                Icone={IconeDrapeau}
+                titre={`Pour ${evenement.nom}`}
+                detail="Chacun s’inscrit sur le site de l’événement">
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`S’inscrire à ${evenement.nom} sur le site officiel`}
+                  onPress={() => Linking.openURL(evenement.lien).catch(() => {})}
+                  hitSlop={4}
+                  style={({ pressed }) => [styles.itineraire, pressed && styles.presse]}>
+                  <Text style={styles.itineraireTexte}>S’inscrire</Text>
+                </Pressable>
+              </Ligne>
+            )}
             {session.aSavoir && (
               <Ligne Icone={IconeInfo} titre={session.aSavoir.titre} detail={session.aSavoir.detail} />
             )}

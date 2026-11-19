@@ -170,3 +170,12 @@ export function IconeEnvoyer(props: Props) {
     </Base>
   );
 }
+
+export function IconeDrapeau(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M5 21V4" />
+      <Path d="M5 4h11l-2 4 2 4H5" />
+    </Base>
+  );
+}
