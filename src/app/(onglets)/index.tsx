@@ -9,8 +9,9 @@ import { Bouton } from '@/components/bouton';
 import { CarteSessions } from '@/components/carte-sessions';
 import { FicheEvenement } from '@/components/fiche-evenement';
 import { FicheLieu } from '@/components/fiche-lieu';
+import { FiltresCarte, HAUTEUR_FILTRES_CARTE, type FiltreCarte } from '@/components/filtres-carte';
 import { FicheSession } from '@/components/fiche-session';
-import { IconeCreer, IconeSansReseau } from '@/components/icones';
+import { IconeCreer, IconeDrapeau, IconeSansReseau } from '@/components/icones';
 import { ListeSessions } from '@/components/liste-sessions';
 import { PanneauCarte } from '@/components/panneau-carte';
 import { CENTRE_ZONE, NOM_ZONE, type Coordonnees, type Session } from '@/donnees/sessions';
@@ -47,14 +48,21 @@ export default function Carte() {
   }, [etat]);
   const [vue, setVue] = useState<Vue>('carte');
 
-  const [idChoisie, setIdChoisie] = useState<string | null>(null);
-  const choisie = sessions.find((s) => s.id === idChoisie);
+  // Filtre de la carte : tout, ou seulement les sessions, les événements ou les salles et terrains
+  const [filtre, setFiltre] = useState<FiltreCarte>('tout');
+  const voirSessions = filtre === 'tout' || filtre === 'sessions';
   const lieux = useLieuxSport();
-  const [idLieuChoisi, setIdLieuChoisi] = useState<string | null>(null);
-  const lieuChoisi = choisie ? undefined : lieux.find((l) => l.id === idLieuChoisi);
   const evenements = useEvenements();
+  const lieuxCarte = filtre === 'tout' || filtre === 'lieux' ? lieux : [];
+  const evenementsCarte = filtre === 'tout' || filtre === 'evenements' ? evenements : [];
+
+  const [idChoisie, setIdChoisie] = useState<string | null>(null);
+  const choisie = voirSessions ? sessions.find((s) => s.id === idChoisie) : undefined;
+  const [idLieuChoisi, setIdLieuChoisi] = useState<string | null>(null);
+  const lieuChoisi = choisie ? undefined : lieuxCarte.find((l) => l.id === idLieuChoisi);
   const [idEvenementChoisi, setIdEvenementChoisi] = useState<string | null>(null);
-  const evenementChoisi = choisie || lieuChoisi ? undefined : evenements.find((e) => e.id === idEvenementChoisi);
+  const evenementChoisi =
+    choisie || lieuChoisi ? undefined : evenementsCarte.find((e) => e.id === idEvenementChoisi);
 
   // Position déjà autorisée lors d'une visite précédente : la carte s'ouvre autour de soi, sans rien demander
   useEffect(() => {
@@ -109,6 +117,25 @@ export default function Carte() {
     setCible({ ...(point ?? CENTRE_ZONE), cle: Date.now() });
   }
 
+  // Rien dans le rayon : on peut aussi aller voir les événements à venir ou les salles et terrains
+  function voirEvenements() {
+    vibrer.selection();
+    setFiltre('evenements');
+    const plusProche = [...evenements].sort(
+      (a, b) => distance(origine, a.position) - distance(origine, b.position),
+    )[0];
+    if (!plusProche) return;
+    const km = Math.ceil(distance(origine, plusProche.position) / 1000);
+    // On recule juste assez pour voir l'événement le plus proche
+    setCible({ ...origine, cle: Date.now(), rayonKm: Math.max(km, RAYON_KM) });
+  }
+
+  function voirLieux() {
+    vibrer.selection();
+    setFiltre('lieux');
+    setCible({ ...origine, cle: Date.now() });
+  }
+
   function voirPlusLoin(km: number) {
     vibrer.selection();
     setRayon(km);
@@ -129,16 +156,16 @@ export default function Carte() {
   return (
     <View style={styles.ecran}>
       <CarteSessions
-        sessions={sessions}
-        eclats={eclats}
+        sessions={voirSessions ? sessions : []}
+        eclats={voirSessions ? eclats : []}
         idChoisie={idChoisie}
         onChoisir={choisir}
         cible={cible}
         montrerPosition={position !== null}
-        lieux={lieux}
+        lieux={lieuxCarte}
         idLieuChoisi={lieuChoisi?.id ?? null}
         onChoisirLieu={choisirLieu}
-        evenements={evenements}
+        evenements={evenementsCarte}
         idEvenementChoisi={evenementChoisi?.id ?? null}
         onChoisirEvenement={choisirEvenement}
       />
@@ -164,7 +191,7 @@ export default function Carte() {
         </PanneauCarte>
       )}
       {/* On laisse la session finir d'éclater avant d'afficher « Rien à 5 km » */}
-      {vue === 'carte' && rienIci && !choisie && !lieuChoisi && !evenementChoisi && eclats.length === 0 && (
+      {vue === 'carte' && voirSessions && rienIci && !choisie && !lieuChoisi && !evenementChoisi && eclats.length === 0 && (
         <PanneauCarte
           entete={<Balle taille={32} />}
           titre={`Rien à ${rayon} km pour l’instant`}
@@ -173,13 +200,32 @@ export default function Carte() {
           {rayonElargi && titrePlusLoin && (
             <Bouton variante="secondaire" titre={titrePlusLoin} onPress={() => voirPlusLoin(rayonElargi)} />
           )}
+          {evenements.length > 0 && (
+            <Bouton
+              variante="lien"
+              titre={evenements.length > 1 ? `Voir les ${evenements.length} événements à venir` : 'Voir l’événement à venir'}
+              onPress={voirEvenements}
+            />
+          )}
+          {lieux.length > 0 && <Bouton variante="lien" titre="Voir les salles et terrains" onPress={voirLieux} />}
+        </PanneauCarte>
+      )}
+      {vue === 'carte' && filtre === 'evenements' && evenements.length === 0 && etat !== 'erreur' && (
+        <PanneauCarte
+          entete={<IconeDrapeau couleur={c.encre} taille={32} />}
+          titre="Pas d’événement pour l’instant"
+          texte="Les courses et autres événements sportifs apparaissent ici 2 semaines avant le départ.">
+          <Bouton variante="secondaire" titre="Tout voir" onPress={() => setFiltre('tout')} />
         </PanneauCarte>
       )}
       {etat === 'chargement' && attenteLongue && (
-        <View pointerEvents="none" style={[styles.attente, { top: top + HAUTEUR_BARRE_HAUT + 12 }]}>
+        <View
+          pointerEvents="none"
+          style={[styles.attente, { top: top + HAUTEUR_BARRE_HAUT + HAUTEUR_FILTRES_CARTE + 8 }]}>
           <Text style={styles.attenteTexte}>Recherche des sessions…</Text>
         </View>
       )}
+      {vue === 'carte' && <FiltresCarte filtre={filtre} onChoisir={setFiltre} />}
       <BarreHaut
         zone={`${position ? 'Près de toi' : NOM_ZONE} · ${rayon} km`}
         vue={vue}

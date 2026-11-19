@@ -9,6 +9,7 @@ import { ficheSport } from '@/donnees/sports';
 import { demander, prevenir } from '@/lib/alerte';
 import { useCompte } from '@/lib/compte';
 import { annulationLibre, estEnDirect } from '@/lib/formats';
+import { AVANCE_EVENEMENTS } from '@/lib/evenements';
 import { supabase } from '@/lib/supabase';
 
 /** Ce que l'écran « Créer une session » fournit ; le reste est rempli par le serveur */
@@ -139,19 +140,23 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
   const [eclats, setEclats] = useState<Eclat[]>([]);
   const [position, setPosition] = useState<Coordonnees | null>(null);
 
-  // Les sessions pas encore finies qui commencent dans les 7 prochains jours
+  // Les sessions pas encore finies qui commencent dans les 7 prochains jours,
+  // et celles qui vont ensemble à un événement (visible 2 semaines avant) d'ici là
   const recharger = useCallback(async () => {
     if (!supabase) return;
     // Après un échec, « Réessayer » montre tout de suite qu'on cherche à nouveau
     setEtat((avant) => (avant === 'erreur' ? 'chargement' : avant));
     const maintenant = new Date();
     const dans7Jours = new Date(maintenant.getTime() + 7 * 24 * 3_600_000);
+    const finEvenements = new Date(maintenant.getTime() + AVANCE_EVENEMENTS);
     try {
       const { data, error } = await supabase
         .from('sessions_visibles')
         .select('*')
         .gt('fin', maintenant.toISOString())
-        .lt('debut', dans7Jours.toISOString())
+        .or(
+          `debut.lt.${dans7Jours.toISOString()},and(evenement_id.not.is.null,debut.lt.${finEvenements.toISOString()})`,
+        )
         .order('debut')
         .limit(500);
       if (error) throw error;
@@ -159,7 +164,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
       // Une session ouverte par un lien d'invitation peut commencer dans plus de 7 jours : on la garde
       setLues((avant) => [
         ...recues,
-        ...avant.filter((s) => s.debut >= dans7Jours && !recues.some((r) => r.id === s.id)),
+        ...avant.filter((s) => s.debut >= dans7Jours && !s.evenementId && !recues.some((r) => r.id === s.id)),
       ]);
       setEtat('pretes');
     } catch {

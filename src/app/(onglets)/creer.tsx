@@ -73,7 +73,7 @@ export default function Creer() {
   // L'onglet reste ouvert en arrière-plan : « Aujourd'hui » et les heures proposées sont recalculés à chaque retour
   const [ouverture, setOuverture] = useState(() => new Date());
   useFocusEffect(useCallback(() => setOuverture(new Date()), []));
-  const { min: dateMin, max: dateMax } = useMemo(() => bornes(ouverture), [ouverture]);
+  const { min: dateMin, max: maxHabituel } = useMemo(() => bornes(ouverture), [ouverture]);
 
   // Première création : rien n'est pré-rempli, 3 choix seulement (sport, quand, où). Ensuite tout l'est.
   // `undefined` le temps de relire le téléphone.
@@ -101,6 +101,10 @@ export default function Creer() {
   const evenements = useEvenements();
   const [evenementId, setEvenementId] = useState<string | null>(null);
   const evenement = evenements.find((e) => e.id === evenementId);
+  // Pour un événement (visible 2 semaines avant), « Quand » va jusqu'au jour du départ
+  const finJourEvenement = evenement ? new Date(evenement.debut) : null;
+  finJourEvenement?.setHours(24, 0, 0, 0);
+  const dateMax = finJourEvenement && finJourEvenement > maxHabituel ? finJourEvenement : maxHabituel;
 
   // Si la position est déjà connue, la carte du lieu s'ouvrira autour de soi.
   // Ce n'est qu'un point de départ : le lieu reste à choisir, on ne publie jamais sa propre position sans le vouloir.

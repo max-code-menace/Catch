@@ -1,5 +1,6 @@
 // Les événements sportifs ouverts à tous (table `evenements` de Supabase) : courses, randos vélo…
-// Ils vivent sur la carte, au départ, seulement pendant les 7 jours qui précèdent (comme les sessions).
+// Ils vivent sur la carte, au départ, seulement pendant les 2 semaines qui précèdent : on peut les remplir
+// des mois à l'avance, chacun apparaît tout seul.
 import { useEffect, useState } from 'react';
 
 import type { Sport } from '@/donnees/pictos';
@@ -27,6 +28,8 @@ const HEURE = 3_600_000;
 const JOUR = 24 * HEURE;
 /** Un événement reste sur la carte quelques heures après son départ (les gens sont encore là) */
 const APRES_DEPART = 3 * HEURE;
+/** Un événement apparaît sur la carte 2 semaines avant son départ */
+export const AVANCE_EVENEMENTS = 14 * JOUR;
 
 let lecture: Promise<Evenement[]> | null = null;
 
@@ -53,10 +56,10 @@ function lire(): Promise<Evenement[]> {
   return lecture;
 }
 
-/** Visible sur la carte : départ dans les 7 prochains jours, ou il y a moins de 3 heures */
+/** Visible sur la carte : départ dans les 2 prochaines semaines, ou il y a moins de 3 heures */
 export function estVisible(evenement: Evenement, maintenant = Date.now()) {
   const ecart = evenement.debut.getTime() - maintenant;
-  return ecart > -APRES_DEPART && ecart <= 7 * JOUR;
+  return ecart > -APRES_DEPART && ecart <= AVANCE_EVENEMENTS;
 }
 
 /** Les événements à montrer. Liste vide tant qu'ils ne sont pas lus (ou sans réseau). */
