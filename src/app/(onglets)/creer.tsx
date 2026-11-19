@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Pressable,
@@ -21,13 +21,15 @@ import { ChoixLieu } from '@/components/choix-lieu';
 import { IconeRelancer } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
 import { BarreNavigation, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
-import type { Sport } from '@/donnees/pictos';
+import { Pictos, type Sport } from '@/donnees/pictos';
+import { CENTRE_ZONE } from '@/donnees/sessions';
 import { SPORTS, ficheSport } from '@/donnees/sports';
 import { prevenir } from '@/lib/alerte';
 import { useCompte } from '@/lib/compte';
-import { quand } from '@/lib/formats';
+import { quand, texteDistance } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { LIEU_PAR_DEFAUT, nommer, type Lieu } from '@/lib/lieux';
+import { lieuA, lieuxDuSport, texteType, useLieuxSport, type LieuSport } from '@/lib/lieux-sport';
 import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
@@ -105,7 +107,9 @@ export default function Creer() {
   const [enAttente, setEnAttente] = useState(false);
   const [envoi, setEnvoi] = useState(false);
   const [carteOuverte, setCarteOuverte] = useState(false);
-
+  const lieux = useLieuxSport();
+  // « Lancer une session ici » depuis la fiche d'un lieu : Créer s'ouvre avec ce sport et ce lieu
+  const params = useLocalSearchParams<{ lieu?: string; sport?: string }>();
 
   // Si la position est déjà connue, la carte du lieu s'ouvrira autour de soi.
   // Ce n'est qu'un point de départ : le lieu reste à choisir, on ne publie jamais sa propre position sans le vouloir.
@@ -120,7 +124,8 @@ export default function Creer() {
       .then((texte) => {
         const lu: Modele | null = texte ? JSON.parse(texte) : null;
         setModele(lu);
-        if (!lu) return;
+        // Ouvert depuis « Lancer une session ici » : le sport et le lieu demandés passent avant la dernière création
+        if (!lu || params.lieu) return;
         setSport(lu.sport);
         setJoueurs(lu.joueurs);
         setDuree(lu.duree);
@@ -150,7 +155,42 @@ export default function Creer() {
     setLieu({ ...modele.lieu, choisi: true });
   }
 
+  function choisirLieuSport(choisi: LieuSport) {
+    vibrer.selection();
+    setLieuDemande(false);
+    setPrecision('');
+    setLieu({ position: choisi.position, nom: choisi.nom, commune: choisi.commune, choisi: true });
+  }
+
+  // Appliquée pendant l'affichage (pas dans un effet) dès que les lieux sont lus ; puis on oublie la demande,
+  // pour que revenir sur l'onglet ne remette pas ce lieu par-dessus un autre choix
+  const demandeLieu = params.lieu ? `${params.lieu}:${params.sport ?? ''}` : null;
+  const [demandeTraitee, setDemandeTraitee] = useState<string | null>(null);
+  if (!demandeLieu && demandeTraitee) setDemandeTraitee(null);
+  const lieuVenu = demandeLieu && demandeLieu !== demandeTraitee ? lieux.find((l) => l.id === params.lieu) : undefined;
+  if (demandeLieu && lieuVenu) {
+    const cle = params.sport && params.sport in Pictos ? (params.sport as Sport) : lieuVenu.sports[0];
+    setDemandeTraitee(demandeLieu);
+    setSport(cle);
+    if (cle !== sport) setJoueurs(ficheSport(cle).joueurs);
+    if (!raccourci) setRaccourci(encoreCeSoir ? 'soir' : 'demain');
+    setPrecision('');
+    setLieuDemande(false);
+    setLieu({ position: lieuVenu.position, nom: lieuVenu.nom, commune: lieuVenu.commune, choisi: true });
+  }
+  useEffect(() => {
+    if (demandeTraitee) router.setParams({ lieu: undefined, sport: undefined });
+  }, [demandeTraitee]);
+
   const fiche = ficheSport(sport ?? 'foot');
+  // Sport qui se joue à un endroit précis : on met en avant ses lieux, les plus proches d'abord
+  const lieuConnu = lieu.choisi ? lieuA(lieux, lieu.position) : null;
+  const proches = sport && fiche.ou === 'lieu' ? lieuxDuSport(lieux, sport, position ?? CENTRE_ZONE) : [];
+  // Le lieu déjà choisi passe en tête, pour qu'on le voie sélectionné sans faire défiler
+  const suggestions = [
+    ...proches.filter((p) => p.lieu.id === lieuConnu?.id),
+    ...proches.filter((p) => p.lieu.id !== lieuConnu?.id),
+  ].slice(0, 8);
   const nomLieu = precision.trim() || lieu.nom;
   /** Le début de la session, d'après le raccourci ou la date choisie dans « Autre » */
   function debutChoisi() {
@@ -288,7 +328,7 @@ export default function Creer() {
         <View style={styles.section}>
           <Text maxFontSizeMultiplier={1.3} style={[styles.etiquette, styles.dansMarges]}>Sport</Text>
           <View style={[styles.tuiles, styles.dansMarges]}>
-            {SPORTS.map(({ cle, nom }) => {
+            {SPORTS.map(({ cle, nom, nomTuile }) => {
               const actif = cle === sport;
               return (
                 <Pressable
@@ -303,7 +343,7 @@ export default function Creer() {
                     adjustsFontSizeToFit
                     minimumFontScale={0.8}
                     style={[styles.tuileTexte, actif && styles.tuileTexteActif]}>
-                    {nom}
+                    {nomTuile ?? nom}
                   </Text>
                 </Pressable>
               );
@@ -350,6 +390,36 @@ export default function Creer() {
 
         <View style={[styles.section, styles.dansMarges]}>
           <Text maxFontSizeMultiplier={1.3} style={styles.etiquette}>Où</Text>
+          {suggestions.length > 0 && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.suggestionsZone}
+              contentContainerStyle={styles.suggestions}>
+              {suggestions.map(({ lieu: suggestion, distance }) => {
+                const actif = lieuConnu?.id === suggestion.id;
+                return (
+                  <Pressable
+                    key={suggestion.id}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: actif }}
+                    accessibilityLabel={`${suggestion.nom}, ${texteType(suggestion)}, ${texteDistance(distance)}`}
+                    onPress={() => !actif && choisirLieuSport(suggestion)}
+                    style={[styles.suggestion, actif && styles.suggestionActive]}>
+                    <Text
+                      maxFontSizeMultiplier={1.3}
+                      numberOfLines={1}
+                      style={[styles.suggestionNom, actif && { color: c.rougeTexte }]}>
+                      {suggestion.nom}
+                    </Text>
+                    <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={styles.aide}>
+                      {texteType(suggestion)} · {texteDistance(distance)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          )}
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={lieu.choisi ? `Lieu : ${lieu.nom}. Changer` : 'Choisir le lieu sur la carte'}
@@ -367,7 +437,11 @@ export default function Creer() {
                   {lieu.choisi ? lieu.nom : 'Lieu à choisir'}
                 </Text>
                 <Text maxFontSizeMultiplier={1.3} style={[styles.aide, lieuDemande && !lieu.choisi && { color: c.rougeTexte }]} numberOfLines={1}>
-                  {lieu.choisi ? lieu.commune || 'Lieu choisi' : 'Place l’épingle là où vous jouez'}
+                  {lieu.choisi
+                    ? lieu.commune || 'Lieu choisi'
+                    : suggestions.length
+                      ? 'Touche un lieu au-dessus, ou place l’épingle'
+                      : 'Place l’épingle là où vous jouez'}
                 </Text>
               </View>
               <Text maxFontSizeMultiplier={1.3} style={styles.changer}>{lieu.choisi ? 'Changer' : 'Choisir sur la carte'}</Text>
@@ -450,6 +524,7 @@ export default function Creer() {
         <ChoixLieu
           ouvert
           depart={lieu}
+          lieux={suggestions.length ? lieuxDuSport(lieux, sport!, lieu.position).map((s) => s.lieu) : []}
           onFermer={() => setCarteOuverte(false)}
           onChoisir={(choisi) => {
             setLieuDemande(false);
@@ -550,6 +625,23 @@ const creerStyles = (c: Palette) =>
       alignItems: 'center',
       gap: 12,
     },
+    // La rangée de lieux déborde jusqu'aux bords de l'écran
+    suggestionsZone: { marginHorizontal: -Espaces.marge },
+    suggestions: { gap: 8, paddingHorizontal: Espaces.marge },
+    suggestion: {
+      maxWidth: 220,
+      minHeight: 52,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      justifyContent: 'center',
+      gap: 2,
+      backgroundColor: c.carte,
+      borderRadius: 14,
+      borderWidth: 1.5,
+      borderColor: c.trait,
+    },
+    suggestionActive: { backgroundColor: c.rougeDoux, borderColor: c.rouge },
+    suggestionNom: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.encre },
     changer: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTexte },
     champ: {
       height: 52,

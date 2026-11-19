@@ -107,7 +107,7 @@ function lire(ligne: Ligne): SessionLue {
   return {
     id: ligne.id,
     sport: ligne.sport,
-    nomSport: ficheSport(ligne.sport).nom,
+    nomSport: ficheSport(ligne.sport).nomTuile ?? ficheSport(ligne.sport).nom,
     titre: ligne.titre,
     lieu: ligne.lieu,
     commune: ligne.commune,

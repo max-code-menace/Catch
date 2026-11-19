@@ -44,6 +44,10 @@ export default function Confidentialite() {
           l’enregistre pas et on ne suit pas tes déplacements. Le lieu d’une session que tu crées, lui, est public :
           c’est toi qui le places sur la carte.
         </Paragraphe>
+        <Paragraphe>
+          Les terrains et les salles de la carte viennent de chez nous : les afficher n’envoie rien sur toi. Le
+          bouton « Site » d’une salle ouvre son site, qui a ses propres règles de confidentialité.
+        </Paragraphe>
       </Partie>
 
       <Partie titre="Où sont tes données">

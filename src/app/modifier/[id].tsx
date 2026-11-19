@@ -11,6 +11,8 @@ import { Polices, Rayons, Tailles } from '@/constants/theme';
 import { quand } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import type { Lieu } from '@/lib/lieux';
+import { useLieuxSport } from '@/lib/lieux-sport';
+import { ficheSport } from '@/donnees/sports';
 import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
@@ -35,6 +37,7 @@ export default function ModifierSession() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { sessions, estOrganisee, modifier } = useSessions();
   const session = sessions.find((s) => s.id === id);
+  const tousLesLieux = useLieuxSport();
 
   const [ouvertLe] = useState(() => new Date());
   // Tant qu'on ne touche pas à l'horaire, celui d'origine est gardé à la minute près
@@ -158,6 +161,11 @@ export default function ModifierSession() {
           ouvert
           depart={
             lieu ?? { position: session.position, nom: session.lieu, commune: session.commune, choisi: true }
+          }
+          lieux={
+            ficheSport(session.sport).ou === 'lieu'
+              ? tousLesLieux.filter((l) => l.sports.includes(session.sport))
+              : []
           }
           onFermer={() => setCarteOuverte(false)}
           onChoisir={(choisi) => {

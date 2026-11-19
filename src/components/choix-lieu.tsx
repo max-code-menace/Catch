@@ -1,16 +1,18 @@
 import { useRef, useState } from 'react';
 import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import MapView, { type Region } from 'react-native-maps';
+import MapView, { Marker, type Region } from 'react-native-maps';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import { Bouton } from '@/components/bouton';
 import { IconeRecentrer, IconeRetour } from '@/components/icones';
+import { PastilleLieu } from '@/components/pastille-lieu';
 import { themeCarte } from '@/constants/carte';
 import { Espaces, Polices, Rayons, Ressorts, Tailles } from '@/constants/theme';
 import { vibrer } from '@/lib/haptics';
 import { maPosition, nommer, type Lieu } from '@/lib/lieux';
+import { lieuA, type LieuSport } from '@/lib/lieux-sport';
 import { useStyles, useTheme, type Palette } from '@/lib/theme';
 
 export type PropsChoixLieu = {
@@ -19,6 +21,8 @@ export type PropsChoixLieu = {
   depart: Lieu;
   onFermer: () => void;
   onChoisir: (lieu: Lieu) => void;
+  /** Lieux du sport choisi, mis en avant : en toucher un y pose l'épingle. On peut toujours la poser ailleurs. */
+  lieux: LieuSport[];
 };
 
 const ZOOM = { latitudeDelta: 0.012, longitudeDelta: 0.012 };
@@ -27,7 +31,7 @@ const ZOOM = { latitudeDelta: 0.012, longitudeDelta: 0.012 };
  * Choix du lieu sur la carte : l'épingle reste au milieu, c'est la carte qu'on fait glisser dessous.
  * Le nom de l'endroit se met à jour dès que la carte s'arrête.
  */
-export function ChoixLieu({ ouvert, depart, onFermer, onChoisir }: PropsChoixLieu) {
+export function ChoixLieu({ ouvert, depart, onFermer, onChoisir, lieux }: PropsChoixLieu) {
   const { c, theme } = useTheme();
   const styles = useStyles(creerStyles);
   const { top, bottom } = useSafeAreaInsets();
@@ -42,6 +46,14 @@ export function ChoixLieu({ ouvert, depart, onFermer, onChoisir }: PropsChoixLie
   async function arreter(region: Region) {
     saut.set(withSpring(0, Ressorts.snappy));
     const numero = ++demande.current;
+    // L'épingle est sur un lieu connu : on reprend son nom plutôt que celui de la rue
+    const connu = lieuA(lieux, region);
+    if (connu) {
+      setLieu({ position: connu.position, nom: connu.nom, commune: connu.commune, choisi: true });
+      setCherche(false);
+      vibrer.selection();
+      return;
+    }
     setCherche(true);
     const trouve = await nommer({ latitude: region.latitude, longitude: region.longitude });
     if (numero !== demande.current) return;
@@ -75,8 +87,22 @@ export function ChoixLieu({ ouvert, depart, onFermer, onChoisir }: PropsChoixLie
           onRegionChange={() => {
             if (saut.get() === 0) saut.set(withSpring(-12, Ressorts.snappy));
           }}
-          onRegionChangeComplete={arreter}
-        />
+          onRegionChangeComplete={arreter}>
+          {lieux.map((l) => (
+            <Marker
+              key={`${l.id}-${theme}`}
+              coordinate={l.position}
+              anchor={{ x: 0.5, y: 0.5 }}
+              tracksViewChanges={false}
+              accessibilityLabel={l.nom}
+              onPress={(e) => {
+                e.stopPropagation();
+                carte.current?.animateToRegion({ ...l.position, ...ZOOM }, 400);
+              }}>
+              <PastilleLieu lieu={l} choisi={false} />
+            </Marker>
+          ))}
+        </MapView>
 
         {/* L'épingle : sa pointe est exactement au centre de la carte */}
         <View pointerEvents="none" style={styles.centre}>
@@ -105,7 +131,9 @@ export function ChoixLieu({ ouvert, depart, onFermer, onChoisir }: PropsChoixLie
         </Pressable>
 
         <View style={[styles.fiche, { paddingBottom: Math.max(bottom, 16) + 8 }]}>
-          <Text style={styles.aide}>Déplace la carte pour placer l’épingle</Text>
+          <Text style={styles.aide}>
+            {lieux.length ? 'Touche un lieu, ou déplace la carte pour placer l’épingle' : 'Déplace la carte pour placer l’épingle'}
+          </Text>
           <Text style={styles.nom} numberOfLines={1}>
             {cherche ? 'Recherche…' : lieu.nom}
           </Text>

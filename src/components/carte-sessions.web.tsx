@@ -3,23 +3,34 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { PropsCarte } from '@/components/carte-sessions';
+import { PastilleLieu } from '@/components/pastille-lieu';
 import { PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
-import { CENTRE_ZONE, type Session } from '@/donnees/sessions';
+import { CENTRE_ZONE, type Coordonnees } from '@/donnees/sessions';
 import { useStyles, type Palette } from '@/lib/theme';
 
 const ETENDUE = 0.13;
 
-function placer(session: Session) {
+function placer({ position }: { position: Coordonnees }) {
   return {
-    x: 50 + ((session.position.longitude - CENTRE_ZONE.longitude) / (ETENDUE * 1.6)) * 50,
-    y: 42 - ((session.position.latitude - CENTRE_ZONE.latitude) / ETENDUE) * 50,
+    x: 50 + ((position.longitude - CENTRE_ZONE.longitude) / (ETENDUE * 1.6)) * 50,
+    y: 42 - ((position.latitude - CENTRE_ZONE.latitude) / ETENDUE) * 50,
   };
 }
 
-export function CarteSessions({ sessions, eclats, idChoisie, onChoisir }: PropsCarte) {
+export function CarteSessions({ sessions, eclats, idChoisie, onChoisir, lieux, idLieuChoisi, onChoisirLieu }: PropsCarte) {
   const styles = useStyles(creerStyles);
   return (
     <Pressable style={[StyleSheet.absoluteFill, styles.fond]} onPress={() => onChoisir(null)}>
+      {lieux.map((lieu) => {
+        const { x, y } = placer(lieu);
+        return (
+          <View key={lieu.id} style={[styles.marqueur, { left: `${x}%`, top: `${y}%` }]}>
+            <Pressable accessibilityLabel={lieu.nom} onPress={() => onChoisirLieu(lieu.id)}>
+              <PastilleLieu lieu={lieu} choisi={lieu.id === idLieuChoisi} />
+            </Pressable>
+          </View>
+        );
+      })}
       {sessions.map((session) => {
         const { x, y } = placer(session);
         return (

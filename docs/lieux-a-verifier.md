@@ -4,6 +4,8 @@ Recherche faite par Claude le 19 novembre 2026 sur le web. **Rien n'est vérifi�
 
 Légende : ⚠️ = info contradictoire ou douteuse entre les sources.
 
+**Déjà dans l'app (19 novembre, à la demande de Maxime, avant vérification)** : 38 lieux, table `lieux` de Supabase (migration `20261119010000_lieux.sql`). Pris : ceux qui ont une adresse ou un endroit précis (place, square, parc, plaine de jeux) et que la carte OpenStreetMap a retrouvés. Laissés de côté : les lignes ⚠️, ceux sans adresse (seulement une commune), les clubs de course, vélo et ultimate (sports libres), le CrossFit (pas dans les 16 sports), et ceux que le géocodage n'a pas trouvés (Iris Beach, Royal Brussels Lawn Tennis Club, Agoraspaces Pierron et Andromède, Playground Sainte-Catherine, Playground Saint-Job, Parc Huybrechts, Moortebeek, chaussée de Stockel 315, Complexe Cynthia Bolingo : OpenStreetMap le place avenue de Stalingrad, pas « Nieuwland »). Les parcs sont placés au milieu du parc, pas sur le terrain exact (OpenStreetMap détaillé, overpass-api.de, ne répondait pas). Un lieu barré ici devra être retiré de la table à la main.
+
 ## Escalade (payant)
 
 - [ ] **Arkose Canal** — Bruxelles, bord du canal. Bloc (⚠️ voie aussi selon une source), 2 800 m²
