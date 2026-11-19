@@ -15,9 +15,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatars } from '@/components/avatars';
 import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
-import { IconeInviter, IconeItineraire } from '@/components/icones';
+import { IconeCalendrier, IconeInviter, IconeItineraire } from '@/components/icones';
 import { Durees, Espaces, Polices, Rayons, Ressorts, Tailles } from '@/constants/theme';
 import { annulationLibre, quandPhrase, texteAttente } from '@/lib/formats';
+import { ajouterAuCalendrier, calendrierDisponible } from '@/lib/calendrier';
 import { inviter } from '@/lib/invitation';
 import { ouvrirItineraire } from '@/lib/itineraire';
 import { activerNotifications, permissionNotifications, type Permission } from '@/lib/notifications';
@@ -108,6 +109,15 @@ export default function Catchee() {
             <Avatars initiales={session.inscrits.filter((nom) => nom !== 'Toi')} max={4} />
             <Text style={styles.attenteTexte}>{texteAttente(session)}</Text>
           </View>
+
+          {calendrierDisponible && (
+            <Bouton
+              titre="Ajouter à mon calendrier"
+              variante="lien"
+              Icone={IconeCalendrier}
+              onPress={() => ajouterAuCalendrier(session)}
+            />
+          )}
 
           {/* Les notifications ne sont demandées qu'ici, après un Catch, et seulement si on ne l'a jamais fait */}
           {permission === 'a-demander' && (

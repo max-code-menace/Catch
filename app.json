@@ -48,6 +48,15 @@
         }
       ],
       "expo-apple-authentication",
+      [
+        "expo-calendar",
+        {
+          "writeOnlyAccess": true,
+          "calendarPermission": "Catch ajoute les sessions que tu rejoins à ton calendrier, quand tu le demandes.",
+          "writeOnlyCalendarPermission": "Catch ajoute les sessions que tu rejoins à ton calendrier, quand tu le demandes.",
+          "remindersPermission": "Catch n’utilise pas tes rappels."
+        }
+      ],
       "expo-notifications"
     ],
     "experiments": {

@@ -32,6 +32,7 @@ import {
 import { useCatch } from '@/lib/catch';
 import { useCompte } from '@/lib/compte';
 import { inviter } from '@/lib/invitation';
+import { ajouterAuCalendrier, calendrierDisponible } from '@/lib/calendrier';
 import { ouvrirItineraire } from '@/lib/itineraire';
 import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
@@ -153,7 +154,18 @@ export default function DetailSession() {
           )}
 
           <View style={styles.lignes}>
-            <Ligne Icone={IconeCalendrier} titre={quandDetail(session)} detail={texteDuree(session)} />
+            <Ligne Icone={IconeCalendrier} titre={quandDetail(session)} detail={texteDuree(session)}>
+              {catchee && calendrierDisponible && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Ajouter la session à mon calendrier"
+                  onPress={() => ajouterAuCalendrier(session)}
+                  hitSlop={4}
+                  style={({ pressed }) => [styles.itineraire, pressed && styles.presse]}>
+                  <Text style={styles.itineraireTexte}>Ajouter</Text>
+                </Pressable>
+              )}
+            </Ligne>
             <Ligne
               Icone={IconeLieu}
               titre={session.lieu}

@@ -19,6 +19,7 @@ export function demander({
   refuser = 'Annuler',
   destructif = false,
   onConfirmer,
+  onRefuser,
 }: {
   titre: string;
   texte: string;
@@ -27,13 +28,16 @@ export function demander({
   refuser?: string;
   destructif?: boolean;
   onConfirmer: () => void;
+  /** Appelé quand on répond non (utile pour attendre la réponse) */
+  onRefuser?: () => void;
 }) {
   if (Platform.OS === 'web') {
     if (window.confirm(`${titre}\n\n${texte}`)) onConfirmer();
+    else onRefuser?.();
     return;
   }
   Alert.alert(titre, texte, [
-    { text: refuser, style: 'cancel' },
+    { text: refuser, style: 'cancel', onPress: onRefuser },
     { text: confirmer, style: destructif ? 'destructive' : 'default', onPress: onConfirmer },
   ]);
 }

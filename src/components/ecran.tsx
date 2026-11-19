@@ -11,7 +11,10 @@ type Props = {
   defile?: boolean;
 };
 
-/** Cadre commun des écrans : fond chaud, marges, titre, place réservée pour la barre du bas. */
+/**
+ * Cadre commun des écrans : fond chaud, marges, titre, place réservée pour la barre du bas.
+ * Calé sur toute la surface de l'onglet (absoluteFill) : sur le web, l'onglet grandit sinon avec son contenu.
+ */
 export function Ecran({ titre, children, defile = false }: Props) {
   const styles = useStyles(creerStyles);
   if (defile) {
@@ -30,7 +33,7 @@ export function Ecran({ titre, children, defile = false }: Props) {
     );
   }
   return (
-    <SafeAreaView style={styles.fond} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.fond, StyleSheet.absoluteFill]} edges={['top', 'left', 'right']}>
       <View style={styles.contenu}>
         <Text accessibilityRole="header" style={styles.titre}>
           {titre}
