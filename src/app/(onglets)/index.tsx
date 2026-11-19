@@ -117,23 +117,17 @@ export default function Carte() {
     setCible({ ...(point ?? CENTRE_ZONE), cle: Date.now() });
   }
 
-  // Rien dans le rayon : on peut aussi aller voir les événements à venir ou les salles et terrains
-  function voirEvenements() {
+  // Rien dans le rayon : on peut aussi fermer la fenêtre pour voir les événements, salles et terrains
+  const [panneauFerme, setPanneauFerme] = useState(false);
+  function voirAutour() {
     vibrer.selection();
-    setFiltre('evenements');
+    setPanneauFerme(true);
     const plusProche = [...evenements].sort(
       (a, b) => distance(origine, a.position) - distance(origine, b.position),
     )[0];
-    if (!plusProche) return;
-    const km = Math.ceil(distance(origine, plusProche.position) / 1000);
     // On recule juste assez pour voir l'événement le plus proche
+    const km = plusProche ? Math.ceil(distance(origine, plusProche.position) / 1000) : RAYON_KM;
     setCible({ ...origine, cle: Date.now(), rayonKm: Math.max(km, RAYON_KM) });
-  }
-
-  function voirLieux() {
-    vibrer.selection();
-    setFiltre('lieux');
-    setCible({ ...origine, cle: Date.now() });
   }
 
   function voirPlusLoin(km: number) {
@@ -191,7 +185,7 @@ export default function Carte() {
         </PanneauCarte>
       )}
       {/* On laisse la session finir d'éclater avant d'afficher « Rien à 5 km » */}
-      {vue === 'carte' && voirSessions && rienIci && !choisie && !lieuChoisi && !evenementChoisi && eclats.length === 0 && (
+      {vue === 'carte' && voirSessions && rienIci && !panneauFerme && !choisie && !lieuChoisi && !evenementChoisi && eclats.length === 0 && (
         <PanneauCarte
           entete={<Balle taille={32} />}
           titre={`Rien à ${rayon} km pour l’instant`}
@@ -200,14 +194,9 @@ export default function Carte() {
           {rayonElargi && titrePlusLoin && (
             <Bouton variante="secondaire" titre={titrePlusLoin} onPress={() => voirPlusLoin(rayonElargi)} />
           )}
-          {evenements.length > 0 && (
-            <Bouton
-              variante="lien"
-              titre={evenements.length > 1 ? `Voir les ${evenements.length} événements à venir` : 'Voir l’événement à venir'}
-              onPress={voirEvenements}
-            />
+          {(evenements.length > 0 || lieux.length > 0) && (
+            <Bouton variante="lien" titre="Voir les événements, salles et terrains" onPress={voirAutour} />
           )}
-          {lieux.length > 0 && <Bouton variante="lien" titre="Voir les salles et terrains" onPress={voirLieux} />}
         </PanneauCarte>
       )}
       {vue === 'carte' && filtre === 'evenements' && evenements.length === 0 && etat !== 'erreur' && (
@@ -232,6 +221,7 @@ export default function Carte() {
         onBasculer={() => setVue(vue === 'carte' ? 'liste' : 'carte')}
         onRecentrer={() => {
           setVue('carte');
+          setPanneauFerme(false);
           recentrer();
         }}
       />
