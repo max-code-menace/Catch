@@ -1,30 +1,28 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Bouton } from '@/components/bouton';
+import { ChoixDateHeure } from '@/components/choix-date-heure';
+import { ChoixJoueurs } from '@/components/choix-joueurs';
 import { ChoixLieu } from '@/components/choix-lieu';
 import { EcranSecondaire } from '@/components/ecran-secondaire';
-import { Roulette } from '@/components/roulette';
 import { Polices, Rayons, Tailles } from '@/constants/theme';
-import { heure, quand } from '@/lib/formats';
+import { quand } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import type { Lieu } from '@/lib/lieux';
 import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
-const JOURS = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'];
-/** Heures proposées, de demi-heure en demi-heure, en minutes depuis minuit */
-const HEURES = Array.from({ length: 36 }, (_, i) => 6 * 60 + i * 30);
-
-function minuit(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-function texteHeure(minutes: number) {
-  const date = new Date();
-  date.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
-  return heure(date);
+/** Jusqu'où on peut déplacer une session : 7 jours, comme ce que montre la carte */
+function bornes(maintenant: Date, origine: Date) {
+  const min = new Date(maintenant);
+  min.setSeconds(0, 0);
+  min.setMinutes(Math.ceil((min.getMinutes() + 1) / 15) * 15);
+  const max = new Date(maintenant);
+  max.setDate(max.getDate() + 7);
+  max.setHours(0, 0, 0, 0);
+  return { min, max: origine > max ? origine : max };
 }
 
 /**
@@ -39,10 +37,8 @@ export default function ModifierSession() {
   const session = sessions.find((s) => s.id === id);
 
   const [ouvertLe] = useState(() => new Date());
-  const aujourdhui = minuit(ouvertLe);
-  // Tant qu'on ne touche ni au jour ni à l'heure, l'horaire d'origine est gardé à la minute près
-  const [jour, setJour] = useState<number | null>(null);
-  const [minutes, setMinutes] = useState<number | null>(null);
+  // Tant qu'on ne touche pas à l'horaire, celui d'origine est gardé à la minute près
+  const [debutModifie, setDebutModifie] = useState<Date | null>(null);
   const [joueurs, setJoueurs] = useState<number | null>(null);
   const [lieu, setLieu] = useState<Lieu | null>(null);
   const [carteOuverte, setCarteOuverte] = useState(false);
@@ -59,36 +55,11 @@ export default function ModifierSession() {
   }
 
   const inscrits = session.inscrits.length;
-  const nombres = Array.from({ length: 31 - Math.max(2, inscrits) }, (_, i) => i + Math.max(2, inscrits));
   const joueursChoisis = joueurs ?? Math.min(30, Math.max(session.joueurs, inscrits));
 
-  // Le jour et l'heure d'origine, ramenés aux choix proposés
-  const jourOrigine = Math.max(
-    0,
-    Math.round((minuit(session.debut).getTime() - aujourdhui.getTime()) / 86_400_000),
-  );
-  const minutesOrigine = session.debut.getHours() * 60 + session.debut.getMinutes();
-  const jourChoisi = jour ?? jourOrigine;
-  const minutesChoisies = minutes ?? minutesOrigine;
-  const indexHeure = HEURES.reduce(
-    (proche, h, i) => (Math.abs(h - minutesChoisies) < Math.abs(HEURES[proche] - minutesChoisies) ? i : proche),
-    0,
-  );
-  const listeJours = Array.from({ length: Math.max(7, jourOrigine + 1) }, (_, i) => {
-    const date = new Date(aujourdhui);
-    date.setDate(date.getDate() + i);
-    return i === 0 ? 'Aujourd’hui' : i === 1 ? 'Demain' : `${JOURS[date.getDay()]} ${date.getDate()}`;
-  });
-
-  const horaireChange = jour !== null || minutes !== null;
-  function debutChoisi() {
-    if (!horaireChange) return session!.debut;
-    const date = new Date(aujourdhui);
-    date.setDate(date.getDate() + jourChoisi);
-    date.setHours(Math.floor(minutesChoisies / 60), minutesChoisies % 60, 0, 0);
-    return date;
-  }
-  const debut = debutChoisi();
+  const horaireChange = debutModifie !== null;
+  const { min: dateMin, max: dateMax } = bornes(ouvertLe, session.debut);
+  const debut = debutModifie ?? session.debut;
   const duree = session.fin.getTime() - session.debut.getTime();
   const fin = new Date(debut.getTime() + duree);
   const dansLePasse = horaireChange && fin.getTime() <= ouvertLe.getTime();
@@ -133,60 +104,21 @@ export default function ModifierSession() {
 
       <View style={styles.section}>
         <Text style={styles.etiquette}>Quand</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.jours}>
-          {listeJours.map((titre, i) => {
-            const actif = i === jourChoisi;
-            return (
-              <Pressable
-                key={titre}
-                accessibilityRole="button"
-                accessibilityState={{ selected: actif }}
-                onPress={() => {
-                  if (!actif) vibrer.selection();
-                  setJour(i);
-                  // Changer de jour fige aussi l'heure sur un cran proposé
-                  setMinutes(HEURES[indexHeure]);
-                }}
-                style={[styles.jour, actif && styles.jourActif]}>
-                <Text style={[styles.jourTexte, actif && { color: c.rougeTexte }]}>{titre}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-        <Roulette
-          elements={HEURES}
-          index={indexHeure}
-          onChange={(i) => {
-            setMinutes(HEURES[i]);
-            setJour(jourChoisi);
+        <ChoixDateHeure
+          valeur={debut}
+          onChange={(date) => {
+            vibrer.selection();
+            setDebutModifie(date);
           }}
-          largeur={84}
-          hauteur={56}
-          cle={String}
-          etiquette="Heure"
-          valeur={texteHeure(HEURES[indexHeure])}
-          rendre={(h, actif) => (
-            <Text style={[styles.heure, actif ? styles.heureActive : styles.efface]}>{texteHeure(h)}</Text>
-          )}
+          min={dateMin}
+          max={dateMax}
         />
         {dansLePasse && <Text style={styles.erreur}>Cet horaire est déjà passé.</Text>}
       </View>
 
       <View style={styles.section}>
         <Text style={styles.etiquette}>Joueurs</Text>
-        <Roulette
-          elements={nombres}
-          index={Math.max(0, nombres.indexOf(joueursChoisis))}
-          onChange={(i) => setJoueurs(nombres[i])}
-          largeur={64}
-          hauteur={64}
-          cle={String}
-          etiquette="Nombre de joueurs"
-          valeur={`${joueursChoisis} joueurs`}
-          rendre={(n, actif) => (
-            <Text style={[styles.heure, actif ? styles.nombreActif : styles.efface]}>{n}</Text>
-          )}
-        />
+        <ChoixJoueurs valeur={joueursChoisis} onChange={setJoueurs} min={Math.max(2, inscrits)} />
         {inscrits > 2 && <Text style={styles.aide}>Au moins {inscrits} : c’est le nombre d’inscrits.</Text>}
       </View>
 
@@ -246,22 +178,6 @@ const creerStyles = (c: Palette) =>
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     fort: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
     textes: { flex: 1, gap: 2 },
-    efface: { opacity: 0.45 },
-    jours: { gap: 8 },
-    jour: {
-      height: 40,
-      paddingHorizontal: 14,
-      justifyContent: 'center',
-      borderRadius: Rayons.pilule,
-      backgroundColor: c.beige,
-      borderWidth: 1.5,
-      borderColor: c.beige,
-    },
-    jourActif: { backgroundColor: c.rougeDoux, borderColor: c.rouge },
-    jourTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.petit, color: c.encre },
-    heure: { fontFamily: Polices.titreDemi, fontSize: Tailles.sousTitre, color: c.encre, fontVariant: ['tabular-nums'] },
-    heureActive: { fontFamily: Polices.titre, color: c.rougeTexte },
-    nombreActif: { fontFamily: Polices.titre, fontSize: Tailles.titreSession, color: c.rougeTexte },
     lieu: {
       minHeight: 56,
       paddingHorizontal: 14,

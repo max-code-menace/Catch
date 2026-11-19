@@ -14,14 +14,14 @@ export function BadgeSession({ session }: { session: Session }) {
     return (
       <View style={[styles.badge, { backgroundColor: c.rougeDoux }]}>
         <PointEnDirect couleur={c.rouge} />
-        <Text style={[styles.texte, { color: c.rougeTexte }]}>En direct</Text>
+        <Text maxFontSizeMultiplier={1.3} style={[styles.texte, { color: c.rougeTexte }]}>En direct</Text>
       </View>
     );
   }
   if (placesLibres(session) === 1) {
     return (
       <View style={[styles.badge, { backgroundColor: c.orangeDoux }]}>
-        <Text style={[styles.texte, { color: c.orangeTexte }]}>Il manque 1 joueur</Text>
+        <Text maxFontSizeMultiplier={1.3} style={[styles.texte, { color: c.orangeTexte }]}>Il manque 1 joueur</Text>
       </View>
     );
   }

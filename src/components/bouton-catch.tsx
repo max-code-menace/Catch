@@ -131,7 +131,7 @@ export function BoutonCatch({ titre = 'Catch', complet = false, onDemande, onEnv
         onPress={lancer}
         style={[styles.bouton, styleBouton]}>
         <Animated.View style={[styles.fondAttrape, styleFondAttrape]} />
-        <Text style={[styles.texte, etat === 'attrapee' && styles.texteAttrape]}>
+        <Text maxFontSizeMultiplier={1.3} style={[styles.texte, etat === 'attrapee' && styles.texteAttrape]}>
           {etat === 'attrapee' ? 'Catchée !' : titre}
         </Text>
       </PressableAnime>

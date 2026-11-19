@@ -1,10 +1,10 @@
-import { router, useFocusEffect } from 'expo-router';
+import { Stack, router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Bouton } from '@/components/bouton';
-import { IconeRetour } from '@/components/icones';
+import { useOptionsEntete } from '@/components/ecran-secondaire';
 import { PictoSport } from '@/components/picto-sport';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Sport } from '@/donnees/pictos';
@@ -61,7 +61,8 @@ function Ligne({
 export default function ReglagesNotifications() {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
-  const { top, bottom } = useSafeAreaInsets();
+  const { bottom } = useSafeAreaInsets();
+  const optionsEntete = useOptionsEntete('Notifications');
   const { compte } = useCompte();
   const { origine, position } = useSessions();
   const idCompte = compte?.id;
@@ -110,22 +111,12 @@ export default function ReglagesNotifications() {
   }
 
   return (
-    <View style={[styles.ecran, { paddingTop: top + 8 }]}>
-      <View style={styles.entete}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Retour"
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/profil'))}
-          hitSlop={4}
-          style={({ pressed }) => [styles.retour, pressed && styles.presse]}>
-          <IconeRetour couleur={c.encre} taille={22} />
-        </Pressable>
-        <Text accessibilityRole="header" style={styles.titre}>
-          Notifications
-        </Text>
-      </View>
-
-      <ScrollView contentContainerStyle={[styles.contenu, { paddingBottom: bottom + 24 }]}>
+    <>
+      <Stack.Screen options={optionsEntete} />
+      <ScrollView
+        style={styles.ecran}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={[styles.contenu, { paddingBottom: bottom + 24 }]}>
         {!compte ? (
           <>
             <Text style={styles.texte}>Connecte-toi pour régler tes notifications.</Text>
@@ -225,23 +216,13 @@ export default function ReglagesNotifications() {
           </>
         )}
       </ScrollView>
-    </View>
+    </>
   );
 }
 
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
     ecran: { flex: 1, backgroundColor: c.fond },
-    entete: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12 },
-    retour: {
-      width: Espaces.cibleTactile,
-      height: Espaces.cibleTactile,
-      borderRadius: Rayons.pilule,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    presse: { backgroundColor: c.beige },
-    titre: { fontFamily: Polices.titre, fontSize: Tailles.titreEcran, color: c.encre },
     contenu: { padding: Espaces.marge, gap: 16 },
     texte: { fontFamily: Polices.texte, fontSize: Tailles.texte, lineHeight: 24, color: c.texteSecondaire },
     carte: {

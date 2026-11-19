@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ActionSheetIOS,
   Alert,
   FlatList,
   KeyboardAvoidingView,
@@ -142,6 +143,24 @@ export default function ConversationSession() {
     if (Platform.OS === 'web') {
       // Pas de menu natif sur le web : on passe directement au signalement
       signaler();
+      return;
+    }
+    if (Platform.OS === 'ios') {
+      // La feuille d'actions d'iOS, qui monte du bas de l'écran
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title: prenom,
+          message: message.texte.slice(0, 120),
+          options: ['Signaler ce message', `Bloquer ${prenom}`, 'Annuler'],
+          destructiveButtonIndex: 1,
+          cancelButtonIndex: 2,
+          tintColor: c.rouge,
+        },
+        (choix) => {
+          if (choix === 0) signaler();
+          if (choix === 1) bloquerLui();
+        },
+      );
       return;
     }
     Alert.alert(prenom, message.texte.slice(0, 120), [

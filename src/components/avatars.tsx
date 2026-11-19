@@ -16,12 +16,12 @@ export function Avatars({ initiales, max = 3 }: { initiales: string[]; max?: num
     <View style={styles.rangee} accessibilityLabel={`${initiales.length} inscrits`}>
       {visibles.map((nom, i) => (
         <View key={`${nom}-${i}`} style={[styles.avatar, { backgroundColor: TEINTES[i % TEINTES.length] }]}>
-          <Text style={styles.texte}>{nom}</Text>
+          <Text maxFontSizeMultiplier={1.3} style={styles.texte}>{nom}</Text>
         </View>
       ))}
       {reste > 0 && (
         <View style={[styles.avatar, { backgroundColor: c.beige }]}>
-          <Text style={[styles.texte, { color: c.encre }]}>+{reste}</Text>
+          <Text maxFontSizeMultiplier={1.3} style={[styles.texte, { color: c.encre }]}>+{reste}</Text>
         </View>
       )}
     </View>

@@ -1,3 +1,6 @@
+import SegmentedControlNatif, {
+  type SegmentedControlProps,
+} from '@react-native-segmented-control/segmented-control';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Linking, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
@@ -6,7 +9,7 @@ import { Bouton } from '@/components/bouton';
 import { Aide, Ecran } from '@/components/ecran';
 import { IconeChevron } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
-import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
+import { Polices, Rayons, Tailles } from '@/constants/theme';
 import { EMAIL_CONTACT } from '@/constants/liens';
 import { useCompte } from '@/lib/compte';
 import { quand, quandPhrase } from '@/lib/formats';
@@ -14,6 +17,9 @@ import { reglerVibrations, vibrationsActives, vibrer } from '@/lib/haptics';
 import { demander } from '@/lib/moderation';
 import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, useTheme, type Apparence, type Palette } from '@/lib/theme';
+
+// Ses déclarations de types datent d'avant React 19 : on le présente comme un composant ordinaire
+const SegmentedControl = SegmentedControlNatif as unknown as React.ComponentType<SegmentedControlProps>;
 
 const APPARENCES: { valeur: Apparence; titre: string }[] = [
   { valeur: 'auto', titre: 'Auto' },
@@ -24,7 +30,7 @@ const APPARENCES: { valeur: Apparence; titre: string }[] = [
 /** Réglages disponibles avec ou sans compte : apparence et vibrations. */
 function Reglages() {
   const styles = useStyles(creerStyles);
-  const { c, apparence, setApparence } = useTheme();
+  const { c, theme, apparence, setApparence } = useTheme();
   const [vibrations, setVibrations] = useState(vibrationsActives());
 
   return (
@@ -32,25 +38,21 @@ function Reglages() {
       <Text style={styles.section}>Réglages</Text>
       <View style={styles.carte}>
         <Text style={styles.libelle}>Apparence</Text>
-        <View accessibilityRole="radiogroup" style={styles.choix}>
-          {APPARENCES.map(({ valeur, titre }) => {
-            const actif = apparence === valeur;
-            return (
-              <Pressable
-                key={valeur}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: actif }}
-                onPress={() => {
-                  if (actif) return;
-                  vibrer.selection();
-                  setApparence(valeur);
-                }}
-                style={[styles.option, actif && styles.optionActive]}>
-                <Text style={[styles.optionTexte, actif && { color: c.encre }]}>{titre}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        {/* Le sélecteur segmenté du système (UISegmentedControl sur iPhone) */}
+        <SegmentedControl
+          values={APPARENCES.map((a) => a.titre)}
+          selectedIndex={APPARENCES.findIndex((a) => a.valeur === apparence)}
+          onChange={(e) => {
+            const choisie = APPARENCES[e.nativeEvent.selectedSegmentIndex];
+            if (!choisie || choisie.valeur === apparence) return;
+            vibrer.selection();
+            setApparence(choisie.valeur);
+          }}
+          appearance={theme === 'sombre' ? 'dark' : 'light'}
+          fontStyle={{ fontFamily: Polices.texteMoyen, color: c.texteSecondaire }}
+          activeFontStyle={{ fontFamily: Polices.texteDemi, color: c.encre }}
+          style={styles.segments}
+        />
         <Text style={styles.aide}>Auto suit le réglage de ton téléphone.</Text>
       </View>
       <Pressable
@@ -223,18 +225,7 @@ const creerStyles = (c: Palette) =>
     },
     ligne: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     libelle: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
-    choix: { flexDirection: 'row', gap: 4, padding: 4, backgroundColor: c.beige, borderRadius: Rayons.bouton },
-    option: {
-      flex: 1,
-      minHeight: Espaces.cibleTactile,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: 'transparent',
-    },
-    optionActive: { backgroundColor: c.carte, borderColor: c.trait },
-    optionTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.courant, color: c.texteSecondaire },
+    segments: { height: 36 },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     session: { flexDirection: 'row', alignItems: 'center' },
     picto: {

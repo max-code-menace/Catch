@@ -48,7 +48,7 @@ export default function Signaler() {
 
   if (!compte) {
     return (
-      <EcranSecondaire titre="Signaler">
+      <EcranSecondaire titre="Signaler" modale>
         <Text style={styles.texte}>Connecte-toi pour envoyer un signalement.</Text>
         <Bouton titre="Me connecter" onPress={() => router.push('/connexion')} />
       </EcranSecondaire>
@@ -89,7 +89,7 @@ export default function Signaler() {
 
   if (fait) {
     return (
-      <EcranSecondaire titre="Merci">
+      <EcranSecondaire titre="Merci" modale>
         <Text style={styles.texte}>
           C’est transmis à l’équipe de Catch. On regarde ça dès que possible. Si tu es en danger, appelle le 112.
         </Text>
@@ -117,7 +117,7 @@ export default function Signaler() {
   }
 
   return (
-    <EcranSecondaire titre={TITRES[cible] ?? 'Signaler'}>
+    <EcranSecondaire titre={TITRES[cible] ?? 'Signaler'} modale>
       {nom ? <Text style={styles.texte}>{nom}</Text> : null}
       <Text style={styles.libelle}>Qu’est-ce qui ne va pas ?</Text>
       <View accessibilityRole="radiogroup" style={styles.motifs}>

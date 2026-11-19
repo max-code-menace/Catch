@@ -27,9 +27,9 @@ export function BarreHaut({ zone, vue, onBasculer, onRecentrer }: Props) {
 
   return (
     <View style={[styles.barre, { top: top + 8 }]}>
-      <Text style={styles.logo}>catch</Text>
+      <Text maxFontSizeMultiplier={1.3} style={styles.logo}>catch</Text>
       <View style={styles.separateur} />
-      <Text style={styles.zone} numberOfLines={1}>
+      <Text maxFontSizeMultiplier={1.3} style={styles.zone} numberOfLines={1}>
         {zone}
       </Text>
       <Pressable
@@ -38,7 +38,7 @@ export function BarreHaut({ zone, vue, onBasculer, onRecentrer }: Props) {
         onPress={onBasculer}
         style={({ pressed }) => [styles.bascule, pressed && styles.presse]}>
         <Icone couleur={c.encre} taille={18} />
-        <Text style={styles.basculeTexte}>{versListe ? 'Liste' : 'Carte'}</Text>
+        <Text maxFontSizeMultiplier={1.3} style={styles.basculeTexte}>{versListe ? 'Liste' : 'Carte'}</Text>
       </Pressable>
       {/* Le bouton garde sa place en vue liste pour que la barre ne bouge pas */}
       <Pressable

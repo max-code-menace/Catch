@@ -62,7 +62,7 @@ export function PastilleSession({ session, choisie }: { session: Session; choisi
         <PictoSport sport={session.sport} taille={20} />
       </View>
       {enDirect && <PointEnDirect couleur={c.surRouge} />}
-      <Text numberOfLines={1} style={[styles.texte, { color: texte }]}>
+      <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.texte, { color: texte }]}>
         {textePastille(session)}
       </Text>
     </View>
