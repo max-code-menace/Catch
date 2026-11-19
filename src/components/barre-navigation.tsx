@@ -58,11 +58,11 @@ export function Onglet({ titre, Icone, pastille = 0, isFocused, onPressIn, onPre
         <Icone couleur={couleur} taille={22} />
         {pastille > 0 && (
           <View style={styles.pastille}>
-            <Text style={styles.pastilleTexte}>{pastille > 9 ? '9+' : pastille}</Text>
+            <Text maxFontSizeMultiplier={1.3} style={styles.pastilleTexte}>{pastille > 9 ? '9+' : pastille}</Text>
           </View>
         )}
       </View>
-      <Text style={[styles.titre, { color: couleur }]}>{titre}</Text>
+      <Text maxFontSizeMultiplier={1.3} style={[styles.titre, { color: couleur }]}>{titre}</Text>
     </PressableAnime>
   );
 }

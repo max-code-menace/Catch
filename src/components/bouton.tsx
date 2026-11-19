@@ -45,7 +45,7 @@ export function Bouton({ titre, variante = 'principal', Icone, style, onPressIn,
       style={[styles.base, styles[variante], style, styleAnime]}
       {...props}>
       {Icone && <Icone couleur={couleur} taille={18} />}
-      <Text style={[styles.texte, { color: couleur }]}>{titre}</Text>
+      <Text maxFontSizeMultiplier={1.3} style={[styles.texte, { color: couleur }]}>{titre}</Text>
     </PressableAnime>
   );
 }

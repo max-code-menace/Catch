@@ -15,16 +15,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ApercuCarte } from '@/components/apercu-carte';
 import { Bouton } from '@/components/bouton';
+import { ChoixDateHeure } from '@/components/choix-date-heure';
+import { ChoixJoueurs } from '@/components/choix-joueurs';
 import { ChoixLieu } from '@/components/choix-lieu';
 import { IconeRelancer } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
-import { Roulette } from '@/components/roulette';
 import { BarreNavigation, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Sport } from '@/donnees/pictos';
 import { SPORTS, ficheSport } from '@/donnees/sports';
 import { prevenir } from '@/lib/alerte';
 import { useCompte } from '@/lib/compte';
-import { heure, quand } from '@/lib/formats';
+import { quand } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { LIEU_PAR_DEFAUT, nommer, type Lieu } from '@/lib/lieux';
 import { useSessions } from '@/lib/sessions';
@@ -40,40 +41,23 @@ const DUREES = [
   { minutes: 120, titre: '2h' },
   { minutes: 180, titre: '3h' },
 ];
-const NOMBRES = Array.from({ length: 29 }, (_, i) => i + 2); // de 2 à 30 joueurs
-const JOURS = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'];
-/** « Maintenant », ou une heure de la journée en minutes depuis minuit */
-type Creneau = 'maintenant' | number;
-
-/** Les 7 prochains jours : « Aujourd'hui », « Demain », « Mer. 18 » */
-function jours(maintenant: Date) {
-  return Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(maintenant);
-    date.setDate(date.getDate() + i);
-    const titre = i === 0 ? 'Aujourd’hui' : i === 1 ? 'Demain' : `${JOURS[date.getDay()]} ${date.getDate()}`;
-    return { ecart: i, titre };
-  });
-}
-
-/** Les heures proposées, de demi-heure en demi-heure. Aujourd'hui : « Maintenant », puis ce qui reste. */
-function creneaux(ecartJour: number, maintenant: Date): Creneau[] {
-  const liste: number[] = [];
-  for (let minutes = 6 * 60; minutes <= 23 * 60 + 30; minutes += 30) liste.push(minutes);
-  if (ecartJour > 0) return liste;
-  const passe = maintenant.getHours() * 60 + maintenant.getMinutes();
-  return ['maintenant', ...liste.filter((minutes) => minutes > passe + 10)];
-}
-
-function dateDe(ecartJour: number, creneau: Creneau) {
+/** Un jour à partir d'aujourd'hui (0 = aujourd'hui) et une heure en minutes depuis minuit */
+function dateDe(ecartJour: number, minutes: number) {
   const date = new Date();
-  if (creneau === 'maintenant') return date;
   date.setDate(date.getDate() + ecartJour);
-  date.setHours(Math.floor(creneau / 60), creneau % 60, 0, 0);
+  date.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
   return date;
 }
 
-function texteCreneau(creneau: Creneau) {
-  return creneau === 'maintenant' ? 'Maintenant' : heure(dateDe(0, creneau));
+/** Bornes de « Autre » : du prochain quart d'heure jusqu'à 7 jours (la carte montre les 7 prochains jours) */
+function bornes(maintenant: Date) {
+  const min = new Date(maintenant);
+  min.setSeconds(0, 0);
+  min.setMinutes(Math.ceil((min.getMinutes() + 1) / 15) * 15);
+  const max = new Date(maintenant);
+  max.setDate(max.getDate() + 7);
+  max.setHours(0, 0, 0, 0);
+  return { min, max };
 }
 
 /** Les raccourcis de « Quand » : un appui suffit dans la plupart des cas */
@@ -98,7 +82,7 @@ export default function Creer() {
   // L'onglet reste ouvert en arrière-plan : « Aujourd'hui » et les heures proposées sont recalculés à chaque retour
   const [ouverture, setOuverture] = useState(() => new Date());
   useFocusEffect(useCallback(() => setOuverture(new Date()), []));
-  const listeJours = useMemo(() => jours(ouverture), [ouverture]);
+  const { min: dateMin, max: dateMax } = useMemo(() => bornes(ouverture), [ouverture]);
   // Par défaut : ce soir 19h s'il reste du temps, sinon demain 19h
   const encoreCeSoir = ouverture.getHours() * 60 + ouverture.getMinutes() < 18 * 60 + 30;
 
@@ -109,8 +93,8 @@ export default function Creer() {
   const [plusDOptions, setPlusDOptions] = useState(false);
   const [sport, setSport] = useState<Sport | null>(null);
   const [raccourci, setRaccourci] = useState<Raccourci | null>(null);
-  const [jour, setJour] = useState(encoreCeSoir ? 0 : 1);
-  const [creneau, setCreneau] = useState<Creneau>(19 * 60);
+  // « Autre » : après-demain 19h pour commencer, puis le sélecteur du système
+  const [dateAutre, setDateAutre] = useState(() => dateDe(2, 19 * 60));
   const [lieu, setLieu] = useState<Lieu>(LIEU_PAR_DEFAUT);
   const [precision, setPrecision] = useState('');
   const [joueurs, setJoueurs] = useState(ficheSport('foot').joueurs);
@@ -122,10 +106,6 @@ export default function Creer() {
   const [envoi, setEnvoi] = useState(false);
   const [carteOuverte, setCarteOuverte] = useState(false);
 
-  const listeCreneaux = useMemo(() => creneaux(jour, ouverture), [jour, ouverture]);
-  // L'heure choisie n'existe plus ce jour-là (déjà passée) : on prend la première proposée
-  const indexCreneau = Math.max(0, listeCreneaux.indexOf(creneau));
-  const creneauChoisi = listeCreneaux[indexCreneau];
 
   // Si la position est déjà connue, la carte du lieu s'ouvrira autour de soi.
   // Ce n'est qu'un point de départ : le lieu reste à choisir, on ne publie jamais sa propre position sans le vouloir.
@@ -172,15 +152,14 @@ export default function Creer() {
 
   const fiche = ficheSport(sport ?? 'foot');
   const nomLieu = precision.trim() || lieu.nom;
-  /** Le début de la session, d'après le raccourci ou le jour et l'heure choisis */
+  /** Le début de la session, d'après le raccourci ou la date choisie dans « Autre » */
   function debutChoisi() {
     if (raccourci === 'maintenant') return new Date();
     if (raccourci === 'soir') return dateDe(0, 19 * 60);
     if (raccourci === 'demain') return dateDe(1, 19 * 60);
-    return dateDe(jour, creneauChoisi);
+    return dateAutre;
   }
-  const maintenant =
-    raccourci === 'maintenant' || (raccourci === 'autre' && creneauChoisi === 'maintenant');
+  const maintenant = raccourci === 'maintenant';
   const texteQuand = maintenant ? 'maintenant' : quand(debutChoisi(), ouverture).toLowerCase();
   const texteDuree = DUREES.find((d) => d.minutes === duree)?.titre ?? '1h30';
   // Ce qu'il reste à choisir avant de pouvoir publier
@@ -284,11 +263,11 @@ export default function Creer() {
           gap: 20,
         }}>
         <View style={styles.marges}>
-          <Text accessibilityRole="header" style={styles.titre}>
+          <Text maxFontSizeMultiplier={1.3} accessibilityRole="header" style={styles.titre}>
             Créer une session
           </Text>
           {/* La phrase se réécrit toute seule pendant qu'on fait glisser les choix */}
-          <Text style={styles.phrase}>{premiereFois ? 'Quatre choix et c’est publié.' : recap}</Text>
+          <Text maxFontSizeMultiplier={1.3} style={styles.phrase}>{premiereFois ? 'Quatre choix et c’est publié.' : recap}</Text>
         </View>
 
         {modele && (
@@ -298,8 +277,8 @@ export default function Creer() {
             style={({ pressed }) => [styles.relancer, styles.dansMarges, pressed && { opacity: 0.7 }]}>
             <IconeRelancer couleur={c.rouge} taille={22} />
             <View style={styles.textes}>
-              <Text style={[styles.fort, { color: c.rougeTexte }]}>Relancer ta dernière session</Text>
-              <Text style={[styles.aide, { color: c.rougeTexte }]} numberOfLines={1}>
+              <Text maxFontSizeMultiplier={1.3} style={[styles.fort, { color: c.rougeTexte }]}>Relancer ta dernière session</Text>
+              <Text maxFontSizeMultiplier={1.3} style={[styles.aide, { color: c.rougeTexte }]} numberOfLines={1}>
                 {ficheSport(modele.sport).nom} · {modele.lieu.nom}
               </Text>
             </View>
@@ -307,7 +286,7 @@ export default function Creer() {
         )}
 
         <View style={styles.section}>
-          <Text style={[styles.etiquette, styles.dansMarges]}>Sport</Text>
+          <Text maxFontSizeMultiplier={1.3} style={[styles.etiquette, styles.dansMarges]}>Sport</Text>
           <View style={[styles.tuiles, styles.dansMarges]}>
             {SPORTS.map(({ cle, nom }) => {
               const actif = cle === sport;
@@ -319,7 +298,7 @@ export default function Creer() {
                   onPress={() => choisirSport(cle)}
                   style={[styles.tuile, { width: largeurTuile }, actif && styles.tuileActive]}>
                   <PictoSport sport={cle} taille={32} />
-                  <Text
+                  <Text maxFontSizeMultiplier={1.3}
                     numberOfLines={1}
                     adjustsFontSizeToFit
                     minimumFontScale={0.8}
@@ -333,7 +312,7 @@ export default function Creer() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.etiquette, styles.dansMarges]}>Quand</Text>
+          <Text maxFontSizeMultiplier={1.3} style={[styles.etiquette, styles.dansMarges]}>Quand</Text>
           <View style={[styles.puces, styles.dansMarges]}>
             {raccourcis.map(({ cle, titre }) => {
               const actif = cle === raccourci;
@@ -347,80 +326,30 @@ export default function Creer() {
                     setRaccourci(cle);
                   }}
                   style={[styles.puce, actif && styles.puceActive]}>
-                  <Text style={[styles.puceTexte, actif && { color: c.surEncre }]}>{titre}</Text>
+                  <Text maxFontSizeMultiplier={1.3} style={[styles.puceTexte, actif && { color: c.surEncre }]}>{titre}</Text>
                 </Pressable>
               );
             })}
           </View>
           {raccourci === 'autre' && (
-            <>
-              {/* Peu de jours : des pastilles à toucher. Beaucoup d'heures qui se suivent : une bande à glisser. */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.jours}>
-                {listeJours.map((j) => {
-                  const actif = j.ecart === jour;
-                  return (
-                    <Pressable
-                      key={j.ecart}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: actif }}
-                      onPress={() => {
-                        if (!actif) vibrer.selection();
-                        setJour(j.ecart);
-                      }}
-                      style={[styles.jour, actif && styles.jourActif]}>
-                      <Text style={[styles.puceTexte, actif && { color: c.rougeTexte }]}>
-                        {j.titre}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-              <Roulette
-                // Les heures proposées changent avec le jour : la bande repart au bon endroit
-                key={jour}
-                elements={listeCreneaux}
-                index={indexCreneau}
-                onChange={(i) => setCreneau(listeCreneaux[i])}
-                largeur={creneauChoisi === 'maintenant' ? 124 : 84}
-                hauteur={56}
-                cle={(c) => String(c)}
-                etiquette="Heure"
-                valeur={texteCreneau(creneauChoisi)}
-                rendre={(c, actif) => (
-                  <Text style={[styles.heure, actif ? styles.heureActive : styles.efface]}>
-                    {texteCreneau(c)}
-                  </Text>
-                )}
-              />
-            </>
+            <View style={styles.dansMarges}>
+              <ChoixDateHeure valeur={dateAutre} onChange={setDateAutre} min={dateMin} max={dateMax} />
+            </View>
           )}
         </View>
 
         <View style={styles.section}>
           <View style={[styles.ligne, styles.dansMarges]}>
-            <Text style={styles.etiquette}>Joueurs</Text>
-            <Text style={styles.aide}>toi compris</Text>
+            <Text maxFontSizeMultiplier={1.3} style={styles.etiquette}>Joueurs</Text>
+            <Text maxFontSizeMultiplier={1.3} style={styles.aide}>toi compris</Text>
           </View>
-          <Roulette
-            elements={NOMBRES}
-            index={NOMBRES.indexOf(joueurs)}
-            onChange={(i) => setJoueurs(NOMBRES[i])}
-            largeur={64}
-            hauteur={64}
-            cle={String}
-            etiquette="Nombre de joueurs"
-            valeur={`${joueurs} joueurs`}
-            rendre={(n, actif) => (
-              <Text style={[styles.nombre, actif ? styles.nombreActif : styles.efface]}>{n}</Text>
-            )}
-          />
+          <View style={styles.dansMarges}>
+            <ChoixJoueurs valeur={joueurs} onChange={setJoueurs} />
+          </View>
         </View>
 
         <View style={[styles.section, styles.dansMarges]}>
-          <Text style={styles.etiquette}>Où</Text>
+          <Text maxFontSizeMultiplier={1.3} style={styles.etiquette}>Où</Text>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={lieu.choisi ? `Lieu : ${lieu.nom}. Changer` : 'Choisir le lieu sur la carte'}
@@ -434,14 +363,14 @@ export default function Creer() {
             </View>
             <View style={styles.lieuBas}>
               <View style={styles.textes}>
-                <Text style={styles.fort} numberOfLines={1}>
+                <Text maxFontSizeMultiplier={1.3} style={styles.fort} numberOfLines={1}>
                   {lieu.choisi ? lieu.nom : 'Lieu à choisir'}
                 </Text>
-                <Text style={[styles.aide, lieuDemande && !lieu.choisi && { color: c.rougeTexte }]} numberOfLines={1}>
+                <Text maxFontSizeMultiplier={1.3} style={[styles.aide, lieuDemande && !lieu.choisi && { color: c.rougeTexte }]} numberOfLines={1}>
                   {lieu.choisi ? lieu.commune || 'Lieu choisi' : 'Place l’épingle là où vous jouez'}
                 </Text>
               </View>
-              <Text style={styles.changer}>{lieu.choisi ? 'Changer' : 'Choisir sur la carte'}</Text>
+              <Text maxFontSizeMultiplier={1.3} style={styles.changer}>{lieu.choisi ? 'Changer' : 'Choisir sur la carte'}</Text>
             </View>
           </Pressable>
           <TextInput
@@ -469,7 +398,7 @@ export default function Creer() {
         ) : (
           <>
         <View style={styles.section}>
-          <Text style={[styles.etiquette, styles.dansMarges]}>Durée</Text>
+          <Text maxFontSizeMultiplier={1.3} style={[styles.etiquette, styles.dansMarges]}>Durée</Text>
           <View accessibilityRole="radiogroup" style={[styles.puces, styles.dansMarges]}>
             {DUREES.map(({ minutes, titre }) => {
               const actif = minutes === duree;
@@ -483,7 +412,7 @@ export default function Creer() {
                     setDuree(minutes);
                   }}
                   style={[styles.puce, actif && styles.puceActive]}>
-                  <Text style={[styles.puceTexte, actif && { color: c.surEncre }]}>{titre}</Text>
+                  <Text maxFontSizeMultiplier={1.3} style={[styles.puceTexte, actif && { color: c.surEncre }]}>{titre}</Text>
                 </Pressable>
               );
             })}
@@ -491,7 +420,7 @@ export default function Creer() {
         </View>
 
         <View style={[styles.ligne, styles.dansMarges]}>
-          <Text style={[styles.etiquette, styles.textes]}>Débutants bienvenus</Text>
+          <Text maxFontSizeMultiplier={1.3} style={[styles.etiquette, styles.textes]}>Débutants bienvenus</Text>
           <Switch
             value={debutants}
             onValueChange={(valeur) => {
@@ -512,7 +441,7 @@ export default function Creer() {
           styles.pied,
           { paddingBottom: Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur + 10 },
         ]}>
-        <Text style={styles.recap} numberOfLines={1}>
+        <Text maxFontSizeMultiplier={1.3} style={styles.recap} numberOfLines={1}>
           {recap}
         </Text>
         <Bouton titre={envoi ? 'Publication…' : 'Publier la session'} disabled={envoi} onPress={publier} />
@@ -565,7 +494,6 @@ const creerStyles = (c: Palette) =>
     fort: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     ligne: { flexDirection: 'row', alignItems: 'baseline', gap: 8, minHeight: 24 },
-    efface: { opacity: 0.45 },
     relancer: {
       minHeight: 56,
       paddingHorizontal: 16,
@@ -581,7 +509,7 @@ const creerStyles = (c: Palette) =>
     },
     tuiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     tuile: {
-      height: 68,
+      minHeight: 68,
       paddingHorizontal: 2,
       alignItems: 'center',
       justifyContent: 'center',
@@ -596,7 +524,7 @@ const creerStyles = (c: Palette) =>
     tuileTexteActif: { fontFamily: Polices.texteDemi, color: c.rougeTexte },
     puces: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     puce: {
-      height: Espaces.cibleTactile,
+      minHeight: Espaces.cibleTactile,
       paddingHorizontal: 14,
       justifyContent: 'center',
       backgroundColor: c.carte,
@@ -606,31 +534,6 @@ const creerStyles = (c: Palette) =>
     },
     puceActive: { backgroundColor: c.encre, borderColor: c.encre },
     puceTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.petit, color: c.encre },
-    jours: { paddingHorizontal: Espaces.marge, gap: 8 },
-    jour: {
-      height: 40,
-      paddingHorizontal: 14,
-      justifyContent: 'center',
-      borderRadius: Rayons.pilule,
-      backgroundColor: c.beige,
-      borderWidth: 1.5,
-      borderColor: c.beige,
-    },
-    jourActif: { backgroundColor: c.rougeDoux, borderColor: c.rouge },
-    heure: {
-      fontFamily: Polices.titreDemi,
-      fontSize: Tailles.sousTitre,
-      color: c.encre,
-      fontVariant: ['tabular-nums'],
-    },
-    heureActive: { fontFamily: Polices.titre, color: c.rougeTexte },
-    nombre: {
-      fontFamily: Polices.titreDemi,
-      fontSize: Tailles.titreSession,
-      color: c.encre,
-      fontVariant: ['tabular-nums'],
-    },
-    nombreActif: { fontFamily: Polices.titre, fontSize: Tailles.grandNombre, color: c.rougeTexte },
     lieu: {
       overflow: 'hidden',
       backgroundColor: c.carte,
