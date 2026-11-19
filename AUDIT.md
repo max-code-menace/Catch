@@ -5,9 +5,9 @@ Audit en lecture seule : aucun fichier de code modifié. Vérifié dans le code,
 ## Corrections faites (19 novembre 2026)
 
 - **S1, S2, S3** : migration `supabase/migrations/20261119080000_vie_privee_limites.sql`, testée sur la vraie base dans une transaction annulée, puis appliquée. Un compte ne voit plus que ses propres sessions, leurs inscrits et les prénoms des gens qu'il croise ; la date de création d'une session est imposée par le serveur ; 10 sessions à venir maximum par compte (message « Tu as déjà 10 sessions à venir » dans `src/lib/catch.ts`).
-- **S6, B2, B3** : migration `20261119090000_organisateur_reste.sql` (appliquée, testée) ; « Je ne peux plus » relit la session sur le serveur avant d'agir (`src/lib/sessions.tsx`) ; lien d'invitation sans réseau → « Pas de réseau » + « Réessayer » (`src/app/session/[id].tsx`). Pas encore publié sur Expo.
+- **S6, B2, B3** : migration `20261119090000_organisateur_reste.sql` (appliquée, testée) ; « Je ne peux plus » relit la session sur le serveur avant d'agir (`src/lib/sessions.tsx`) ; lien d'invitation sans réseau → « Pas de réseau » + « Réessayer » (`src/app/session/[id].tsx`). Publié sur Expo et sur le site le 20 novembre.
 - **S4** : âge minimum 16 ans confirmé. Adresse Gmail perso gardée jusqu'à la publication sur les stores. Conditions et Confidentialité relues et validées par Maxime (19 nov.) : ajout de « Qui édite Catch » (Maxime Draux, à titre personnel, pas de numéro BCE), « Si tu as 16 ou 17 ans », « Responsabilité », « Changements ». Reste avant les stores : adresse postale de l'éditeur et adresse de contact dédiée.
-- **Publication** : le code des corrections est dans `main` (commit `1d679f0`), pas encore publié sur Expo ni sur le site (à lancer par Maxime depuis son PC, ou depuis une session sur l'environnement « catch »).
+- **Publication** : corrections et nouveaux textes légaux (commit `198a41f`) publiés sur Expo (canal `main`) et sur le site le 20 novembre, depuis le PC de Maxime.
 
 ## L'app en bref
 
