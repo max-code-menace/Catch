@@ -49,6 +49,7 @@ function Navigation() {
             <Stack.Screen name="supprimer-compte" />
             <Stack.Screen name="confidentialite" />
             <Stack.Screen name="conditions" />
+            <Stack.Screen name="securite" />
             <Stack.Screen
               name="catchee/[id]"
               options={{ animation: 'fade', gestureEnabled: false }}

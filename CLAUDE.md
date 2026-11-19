@@ -68,6 +68,8 @@ Le 15 novembre, une session avait reconstruit l'app de zéro dans `mobile/` sans
 
 **Icône et écran de démarrage (19 novembre)** : icône = logo blanc sur dégradé orange (iPhone, Android, favicon du site), démarrage = logo en couleurs sur le fond clair ou sombre de l'app. Fabriqués par `node scripts/generer_icones.mjs` à partir de `design/logo/logo-catch.png` (modifier le script, pas les images). Ils ne se voient **pas dans Expo Go** (qui garde sa propre icône) : seulement dans un vrai build (EAS / TestFlight) et sur le site.
 
+**Conseils de sécurité (19 novembre)** : écran `securite` (« Jouer en sécurité » : lieu public, prévenir un proche, garder son numéro, écouter son instinct, jouer à son niveau, signaler / bloquer / 112), ouvert depuis Profil > Aide et sécurité et proposé une seule fois, au premier Catch fait depuis ce téléphone, par le lien « Conseils pour ta première session » de « Tu l'as catchée ! » (`lib/conseils.ts`, clé `catch.conseils-securite`). Texte écrit par Claude, à faire relire par Maxime. Pas vu sur un vrai iPhone.
+
 Pas encore fait : clé Google Maps pour Android (nécessaire pour un build hors Expo Go).
 
 ## À faire par Maxime (à lui rappeler de temps en temps)

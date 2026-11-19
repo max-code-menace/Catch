@@ -101,6 +101,7 @@ function Securite({ connecte }: { connecte: boolean }) {
   return (
     <View style={styles.reglages}>
       <Text style={styles.section}>Aide et sécurité</Text>
+      <LigneLien titre="Jouer en sécurité" onPress={() => router.push('/securite')} />
       {EMAIL_CONTACT ? (
         <LigneLien titre="Nous contacter" onPress={() => Linking.openURL(`mailto:${EMAIL_CONTACT}`)} />
       ) : null}

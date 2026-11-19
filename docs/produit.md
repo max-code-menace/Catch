@@ -80,7 +80,7 @@ Le labo n'a pas été mis à jour après les décisions : **en cas de désaccord
 - **Plus tard, après les premiers utilisateurs** : réponses rapides dans le chat (« J'arrive », « En retard ») · « Préviens-moi » / liste d'attente sur une session complète · habitués · statistiques et historique · photo de profil (avec modération des images) · recherche texte · feuille de filtres complète · squelette de chargement · conversations « À venir / Terminées » · préférences proposées au bon moment · prix indicatif · heures calmes · langues (Bruxelles : néerlandais, anglais).
 - **Abandonné** : suggestions personnalisées · phrase à trous · feuille à crans sur la carte · demandes à valider par l'organisateur · grille de disponibilités · badges · groupes et communautés · partage de position · simulateur de notifications · heure de départ conseillée · synchronisation permanente du calendrier · recherche en langage naturel · paiement, remboursement et historique de paiement dans l'app · actions mises en attente hors connexion (un Catch rejoué plus tard peut tomber sur une session complète) · tirer-pour-rafraîchir maison · balayage et glisser-déposer · transitions partagées.
 - **À rediscuter avec Maxime** : le taux de présence visible sur les profils (décidé plus haut). Sans moyen de vérifier qui est vraiment venu, il risque d'être injuste et de faire honte.
-- **Oublié par le labo** : la sécurité quand on retrouve des inconnus (lieu public, conseils avant la première session).
+- **Oublié par le labo** (fait le 19 novembre) : la sécurité quand on retrouve des inconnus, écran « Jouer en sécurité » proposé au premier Catch et dans Profil.
 
 Principe : le fun, c'est le terrain, pas l'écran. On récompense le fait de jouer, jamais le fait d'ouvrir l'app.
 
