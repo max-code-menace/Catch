@@ -1,6 +1,6 @@
 import { EcranSecondaire } from '@/components/ecran-secondaire';
 import { Paragraphe, Partie } from '@/components/texte-legal';
-import { EMAIL_CONTACT } from '@/constants/liens';
+import { EDITEUR, EMAIL_CONTACT } from '@/constants/liens';
 
 /**
  * Politique de confidentialité. Aussi lisible sans l'app, à l'adresse /confidentialite du site.
@@ -11,8 +11,16 @@ export default function Confidentialite() {
     <EcranSecondaire titre="Confidentialité">
       <Paragraphe>
         Catch sert à trouver des sessions de sport près de chez toi et à y retrouver des gens. On garde le strict
-        nécessaire pour ça, on ne vend rien et il n’y a pas de publicité. Dernière mise à jour : 16 novembre 2026.
+        nécessaire pour ça, on ne vend rien et il n’y a pas de publicité. Dernière mise à jour : 19 novembre 2026.
       </Paragraphe>
+
+      <Partie titre="Qui édite Catch">
+        <Paragraphe>
+          Catch est édité par {EDITEUR}, à titre personnel. Catch n’est pas une entreprise et n’a pas de numéro BCE
+          pour l’instant.{EMAIL_CONTACT ? ` Contact : ${EMAIL_CONTACT}.` : ''} L’adresse postale sera ajoutée ici avant
+          la publication sur l’App Store et Google Play. C’est lui le responsable de tes données.
+        </Paragraphe>
+      </Partie>
 
       <Partie titre="Ce qu’on garde">
         <Paragraphe>

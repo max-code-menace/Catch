@@ -1,6 +1,6 @@
 import { EcranSecondaire } from '@/components/ecran-secondaire';
 import { Paragraphe, Partie } from '@/components/texte-legal';
-import { EMAIL_CONTACT } from '@/constants/liens';
+import { EDITEUR, EMAIL_CONTACT } from '@/constants/liens';
 
 /** Conditions d'utilisation. Aussi lisibles sans l'app, à l'adresse /conditions du site. */
 export default function Conditions() {
@@ -8,8 +8,16 @@ export default function Conditions() {
     <EcranSecondaire titre="Conditions d’utilisation">
       <Paragraphe>
         Catch met en relation des personnes qui veulent faire du sport ensemble. L’app est gratuite. En créant un
-        compte, tu acceptes ce qui suit. Dernière mise à jour : 16 novembre 2026.
+        compte, tu acceptes ce qui suit. Dernière mise à jour : 19 novembre 2026.
       </Paragraphe>
+
+      <Partie titre="Qui édite Catch">
+        <Paragraphe>
+          Catch est édité par {EDITEUR}, à titre personnel. Catch n’est pas une entreprise et n’a pas de numéro BCE
+          pour l’instant.{EMAIL_CONTACT ? ` Contact : ${EMAIL_CONTACT}.` : ''} L’adresse postale sera ajoutée ici avant
+          la publication sur l’App Store et Google Play.
+        </Paragraphe>
+      </Partie>
 
       <Partie titre="Ce que tu peux attendre de Catch">
         <Paragraphe>
@@ -34,6 +42,14 @@ export default function Conditions() {
         </Paragraphe>
       </Partie>
 
+      <Partie titre="Si tu as 16 ou 17 ans">
+        <Paragraphe>
+          Tu peux utiliser Catch dès 16 ans. Avant ta première session, parles-en à un parent ou à un adulte de
+          confiance : dis-lui où tu vas et avec qui. Choisis un lieu public. Si quelqu’un te demande ton adresse, des
+          photos ou de l’argent, signale-le et bloque cette personne.
+        </Paragraphe>
+      </Partie>
+
       <Partie titre="Ta sécurité">
         <Paragraphe>
           Tu rencontres des personnes que tu ne connais pas : privilégie les lieux publics et préviens un proche. Tu
@@ -51,10 +67,32 @@ export default function Conditions() {
         </Paragraphe>
       </Partie>
 
+      <Partie titre="Responsabilité">
+        <Paragraphe>
+          Catch met des gens en relation : chacun est responsable de ce qu’il publie et de son comportement pendant
+          les sessions. Catch n’est pas responsable des blessures, vols ou dégâts pendant une session. Catch n’est
+          pas non plus responsable des infos sur les lieux et événements (adresses, prix, liens « Réserver ») :
+          vérifie-les avant de te déplacer.
+        </Paragraphe>
+        <Paragraphe>
+          On fait de notre mieux pour que l’app marche, sans pouvoir promettre qu’elle soit toujours disponible ni
+          sans erreur. Ces conditions ne réduisent pas tes droits de consommateur, ni notre responsabilité quand la
+          loi l’interdit (par exemple en cas de faute grave ou volontaire).
+        </Paragraphe>
+      </Partie>
+
       <Partie titre="Ton compte">
         <Paragraphe>
           Tu peux supprimer ton compte quand tu veux, depuis Profil. L’usage de tes données est décrit dans la page
           Confidentialité.
+        </Paragraphe>
+      </Partie>
+
+      <Partie titre="Changements">
+        <Paragraphe>
+          Si ces conditions changent, la date en haut de cette page est mise à jour. Pour un changement important, on
+          te prévient par e-mail ou dans l’app avant qu’il s’applique. Si tu n’es pas d’accord, tu peux supprimer ton
+          compte à tout moment.
         </Paragraphe>
       </Partie>
 

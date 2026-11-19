@@ -9,3 +9,7 @@ export function lienSession(id: string) {
 // Adresse pour nous écrire (affichée dans Profil). Vide : la ligne « Nous contacter » est masquée. Provisoire, à remplacer par une adresse dédiée avant les stores.
 // À renseigner avant la publication sur les stores : le contact doit être visible.
 export const EMAIL_CONTACT = 'drauxmaxime@gmail.com';
+
+// Qui édite Catch (affiché dans Conditions et Confidentialité). À titre personnel, pas de numéro BCE pour l'instant.
+// Adresse postale à ajouter avant la publication sur les stores (obligation légale).
+export const EDITEUR = 'Maxime Draux';
