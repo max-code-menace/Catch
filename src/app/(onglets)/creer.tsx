@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -30,6 +31,8 @@ import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 const MINUTE = 60_000;
+/** Place prise par le pied (récapitulatif + bouton Publier) au-dessus de la barre */
+const HAUTEUR_PIED = 92;
 /** Durées proposées, en minutes */
 const DUREES = [
   { minutes: 60, titre: '1h' },
@@ -76,6 +79,10 @@ function texteCreneau(creneau: Creneau) {
 /** Les raccourcis de « Quand » : un appui suffit dans la plupart des cas */
 type Raccourci = 'maintenant' | 'soir' | 'demain' | 'autre';
 
+/** Ce qu'on retient de la dernière session publiée depuis ce téléphone : sert à pré-remplir et à « Relancer » */
+type Modele = { sport: Sport; joueurs: number; duree: number; debutants: boolean; lieu: Omit<Lieu, 'choisi'> };
+const CLE_MODELE = 'catch.derniere-creation';
+
 export default function Creer() {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
@@ -86,7 +93,7 @@ export default function Creer() {
   const parLigne = width < 360 ? 4 : 5;
   const largeurTuile = Math.floor((width - 2 * Espaces.marge - (parLigne - 1) * 8) / parLigne);
   const { compte } = useCompte();
-  const { creer, derniereCreee, position } = useSessions();
+  const { creer, position } = useSessions();
 
   // L'onglet reste ouvert en arrière-plan : « Aujourd'hui » et les heures proposées sont recalculés à chaque retour
   const [ouverture, setOuverture] = useState(() => new Date());
@@ -95,8 +102,13 @@ export default function Creer() {
   // Par défaut : ce soir 19h s'il reste du temps, sinon demain 19h
   const encoreCeSoir = ouverture.getHours() * 60 + ouverture.getMinutes() < 18 * 60 + 30;
 
-  const [sport, setSport] = useState<Sport>('foot');
-  const [raccourci, setRaccourci] = useState<Raccourci>(encoreCeSoir ? 'soir' : 'demain');
+  // Première création : rien n'est pré-rempli, 3 choix seulement (sport, quand, où). Ensuite tout l'est.
+  // `undefined` le temps de relire le téléphone.
+  const [modele, setModele] = useState<Modele | null | undefined>(undefined);
+  const premiereFois = modele === null;
+  const [plusDOptions, setPlusDOptions] = useState(false);
+  const [sport, setSport] = useState<Sport | null>(null);
+  const [raccourci, setRaccourci] = useState<Raccourci | null>(null);
   const [jour, setJour] = useState(encoreCeSoir ? 0 : 1);
   const [creneau, setCreneau] = useState<Creneau>(19 * 60);
   const [lieu, setLieu] = useState<Lieu>(LIEU_PAR_DEFAUT);
@@ -122,6 +134,24 @@ export default function Creer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [position]);
 
+  // On relit la dernière création au démarrage et on pré-remplit avec : dernier sport, dernier lieu, mêmes réglages
+  useEffect(() => {
+    AsyncStorage.getItem(CLE_MODELE)
+      .then((texte) => {
+        const lu: Modele | null = texte ? JSON.parse(texte) : null;
+        setModele(lu);
+        if (!lu) return;
+        setSport(lu.sport);
+        setJoueurs(lu.joueurs);
+        setDuree(lu.duree);
+        setDebutants(lu.debutants);
+        setRaccourci(encoreCeSoir ? 'soir' : 'demain');
+        setLieu({ ...lu.lieu, choisi: true });
+      })
+      .catch(() => setModele(null));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function choisirSport(cle: Sport) {
     if (cle === sport) return;
     vibrer.selection();
@@ -130,21 +160,17 @@ export default function Creer() {
   }
 
   function relancer() {
-    if (!derniereCreee) return;
+    if (!modele) return;
     vibrer.selection();
-    setSport(derniereCreee.sport);
-    setJoueurs(derniereCreee.joueurs);
-    setDebutants(derniereCreee.debutantsBienvenus);
+    setSport(modele.sport);
+    setJoueurs(modele.joueurs);
+    setDuree(modele.duree);
+    setDebutants(modele.debutants);
     setPrecision('');
-    setLieu({
-      position: derniereCreee.position,
-      nom: derniereCreee.lieu,
-      commune: derniereCreee.commune,
-      choisi: true,
-    });
+    setLieu({ ...modele.lieu, choisi: true });
   }
 
-  const fiche = ficheSport(sport);
+  const fiche = ficheSport(sport ?? 'foot');
   const nomLieu = precision.trim() || lieu.nom;
   /** Le début de la session, d'après le raccourci ou le jour et l'heure choisis */
   function debutChoisi() {
@@ -157,6 +183,12 @@ export default function Creer() {
     raccourci === 'maintenant' || (raccourci === 'autre' && creneauChoisi === 'maintenant');
   const texteQuand = maintenant ? 'maintenant' : quand(debutChoisi(), ouverture).toLowerCase();
   const texteDuree = DUREES.find((d) => d.minutes === duree)?.titre ?? '1h30';
+  // Ce qu'il reste à choisir avant de pouvoir publier
+  const manque = [!sport && 'un sport', !raccourci && 'un moment', !lieu.choisi && 'un lieu'].filter(Boolean) as string[];
+  const recap =
+    sport && raccourci
+      ? `${fiche.nom} · ${texteQuand} · ${texteDuree} · ${joueurs} joueurs`
+      : `Choisis ${manque.join(', ').replace(/, ([^,]*)$/, ' et $1')}`;
   const raccourcis: { cle: Raccourci; titre: string }[] = [
     { cle: 'maintenant', titre: 'Maintenant' },
     ...(encoreCeSoir ? [{ cle: 'soir' as const, titre: 'Ce soir 19h' }] : []),
@@ -165,7 +197,7 @@ export default function Creer() {
   ];
 
   async function envoyer() {
-    if (envoi) return;
+    if (envoi || !sport) return;
     setEnvoi(true);
     const debut = debutChoisi();
     const resultat = await creer({
@@ -192,6 +224,16 @@ export default function Creer() {
     }
     const { id } = resultat;
     vibrer.succes();
+    // On retient cette création : la prochaine fois, tout sera pré-rempli avec
+    const nouveau: Modele = {
+      sport,
+      joueurs,
+      duree,
+      debutants,
+      lieu: { position: lieu.position, nom: nomLieu, commune: lieu.commune },
+    };
+    setModele(nouveau);
+    AsyncStorage.setItem(CLE_MODELE, JSON.stringify(nouveau)).catch(() => {});
     // Le formulaire repart de zéro : revenir ici ne publie pas la même session une deuxième fois
     setPrecision('');
     setLieu((avant) => ({ ...avant, choisi: false }));
@@ -200,6 +242,11 @@ export default function Creer() {
   }
 
   function publier() {
+    // Sport ou moment pas encore choisi : la phrase du bas dit ce qui manque
+    if (!sport || !raccourci) {
+      vibrer.avertissement();
+      return;
+    }
     // Pas de lieu par défaut publié par mégarde : on ouvre la carte pour le choisir
     if (!lieu.choisi) {
       vibrer.avertissement();
@@ -233,7 +280,7 @@ export default function Creer() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           paddingTop: top + 24,
-          paddingBottom: Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur + 24,
+          paddingBottom: Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur + HAUTEUR_PIED + 24,
           gap: 20,
         }}>
         <View style={styles.marges}>
@@ -241,12 +288,10 @@ export default function Creer() {
             Créer une session
           </Text>
           {/* La phrase se réécrit toute seule pendant qu'on fait glisser les choix */}
-          <Text style={styles.phrase}>
-            {fiche.nom} · {texteQuand} · {texteDuree} · {joueurs} joueurs
-          </Text>
+          <Text style={styles.phrase}>{premiereFois ? 'Trois choix et c’est publié.' : recap}</Text>
         </View>
 
-        {derniereCreee && (
+        {modele && (
           <Pressable
             accessibilityRole="button"
             onPress={relancer}
@@ -255,7 +300,7 @@ export default function Creer() {
             <View style={styles.textes}>
               <Text style={[styles.fort, { color: c.rougeTexte }]}>Relancer ta dernière session</Text>
               <Text style={[styles.aide, { color: c.rougeTexte }]} numberOfLines={1}>
-                {derniereCreee.titre} · {derniereCreee.lieu}
+                {ficheSport(modele.sport).nom} · {modele.lieu.nom}
               </Text>
             </View>
           </Pressable>
@@ -354,6 +399,55 @@ export default function Creer() {
           )}
         </View>
 
+        <View style={[styles.section, styles.dansMarges]}>
+          <Text style={styles.etiquette}>Où</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={lieu.choisi ? `Lieu : ${lieu.nom}. Changer` : 'Choisir le lieu sur la carte'}
+            onPress={() => setCarteOuverte(true)}
+            style={({ pressed }) => [styles.lieu, pressed && { opacity: 0.85 }]}>
+            <View style={styles.apercu}>
+              <ApercuCarte
+                key={`${lieu.position.latitude},${lieu.position.longitude}`}
+                position={lieu.position}
+              />
+            </View>
+            <View style={styles.lieuBas}>
+              <View style={styles.textes}>
+                <Text style={styles.fort} numberOfLines={1}>
+                  {lieu.choisi ? lieu.nom : 'Lieu à choisir'}
+                </Text>
+                <Text style={[styles.aide, lieuDemande && !lieu.choisi && { color: c.rougeTexte }]} numberOfLines={1}>
+                  {lieu.choisi ? lieu.commune || 'Lieu choisi' : 'Place l’épingle là où vous jouez'}
+                </Text>
+              </View>
+              <Text style={styles.changer}>{lieu.choisi ? 'Changer' : 'Choisir sur la carte'}</Text>
+            </View>
+          </Pressable>
+          <TextInput
+            value={precision}
+            onChangeText={setPrecision}
+            placeholder="Nom du lieu (facultatif) : terrain, salle, parc"
+            placeholderTextColor={c.texteSecondaire}
+            maxLength={40}
+            returnKeyType="done"
+            style={styles.champ}
+          />
+        </View>
+
+        {premiereFois && !plusDOptions ? (
+          <View style={styles.dansMarges}>
+            <Bouton
+              titre="Plus d’options : durée, joueurs"
+              variante="lien"
+              onPress={() => {
+                vibrer.selection();
+                setPlusDOptions(true);
+              }}
+            />
+          </View>
+        ) : (
+          <>
         <View style={styles.section}>
           <Text style={[styles.etiquette, styles.dansMarges]}>Durée</Text>
           <View accessibilityRole="radiogroup" style={[styles.puces, styles.dansMarges]}>
@@ -396,42 +490,6 @@ export default function Creer() {
           />
         </View>
 
-        <View style={[styles.section, styles.dansMarges]}>
-          <Text style={styles.etiquette}>Où</Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={lieu.choisi ? `Lieu : ${lieu.nom}. Changer` : 'Choisir le lieu sur la carte'}
-            onPress={() => setCarteOuverte(true)}
-            style={({ pressed }) => [styles.lieu, pressed && { opacity: 0.85 }]}>
-            <View style={styles.apercu}>
-              <ApercuCarte
-                key={`${lieu.position.latitude},${lieu.position.longitude}`}
-                position={lieu.position}
-              />
-            </View>
-            <View style={styles.lieuBas}>
-              <View style={styles.textes}>
-                <Text style={styles.fort} numberOfLines={1}>
-                  {lieu.choisi ? lieu.nom : 'Lieu à choisir'}
-                </Text>
-                <Text style={[styles.aide, lieuDemande && !lieu.choisi && { color: c.rougeTexte }]} numberOfLines={1}>
-                  {lieu.choisi ? lieu.commune || 'Lieu choisi' : 'Place l’épingle là où vous jouez'}
-                </Text>
-              </View>
-              <Text style={styles.changer}>{lieu.choisi ? 'Changer' : 'Choisir sur la carte'}</Text>
-            </View>
-          </Pressable>
-          <TextInput
-            value={precision}
-            onChangeText={setPrecision}
-            placeholder="Nom du lieu (facultatif) : terrain, salle, parc"
-            placeholderTextColor={c.texteSecondaire}
-            maxLength={40}
-            returnKeyType="done"
-            style={styles.champ}
-          />
-        </View>
-
         <View style={[styles.ligne, styles.dansMarges]}>
           <Text style={[styles.etiquette, styles.textes]}>Débutants bienvenus</Text>
           <Switch
@@ -445,10 +503,20 @@ export default function Creer() {
           />
         </View>
 
-        <View style={styles.dansMarges}>
-          <Bouton titre={envoi ? 'Publication…' : 'Publier la session'} disabled={envoi} onPress={publier} />
-        </View>
+          </>
+        )}
       </ScrollView>
+      {/* Toujours visible au-dessus de la barre : ce qui sera publié, et le bouton */}
+      <View
+        style={[
+          styles.pied,
+          { paddingBottom: Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur + 10 },
+        ]}>
+        <Text style={styles.recap} numberOfLines={1}>
+          {recap}
+        </Text>
+        <Bouton titre={envoi ? 'Publication…' : 'Publier la session'} disabled={envoi} onPress={publier} />
+      </View>
       {carteOuverte && (
         <ChoixLieu
           ouvert
@@ -468,6 +536,25 @@ export default function Creer() {
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
     fond: { flex: 1, backgroundColor: c.fond },
+    // Le pied descend jusqu'en bas : la barre flottante passe par-dessus, le contenu défile dessous sans se mélanger
+    pied: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      paddingTop: 10,
+      paddingHorizontal: Espaces.marge,
+      gap: 8,
+      backgroundColor: c.fond,
+      borderTopWidth: 1,
+      borderTopColor: c.trait,
+    },
+    recap: {
+      fontFamily: Polices.texteMoyen,
+      fontSize: Tailles.aide,
+      color: c.texteSecondaire,
+      textAlign: 'center',
+    },
     marges: { paddingHorizontal: Espaces.marge, gap: 4 },
     dansMarges: { marginHorizontal: Espaces.marge },
     titre: { fontFamily: Polices.titre, fontSize: Tailles.titreEcran, color: c.encre },

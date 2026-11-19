@@ -61,6 +61,6 @@ Les idées « fun » de `docs/produit.md` (après-session, badges, défis, sessi
 | Icône et écran de démarrage | B | à faire |
 | Build EAS + TestFlight + clé Google Maps Android | B | à faire |
 | Liens qui ouvrent l'app / « Ouvrir dans l'app » | B | à faire |
-| Vérifier la première création en 3 choix | B | à faire |
+| Vérifier la première création en 3 choix | B | fait (19 novembre) |
 | 10 corrections d'audit du laboratoire UX | B | liste jamais notée dans le dépôt (perdue) |
 | Étape 11 : tests | B | après les autres |
