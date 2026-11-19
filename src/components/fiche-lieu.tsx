@@ -12,7 +12,7 @@ import type { Session } from '@/donnees/sessions';
 import { ficheSport } from '@/donnees/sports';
 import { quand, texteDistance, textePlaces } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
-import { texteType, type LieuSport } from '@/lib/lieux-sport';
+import { lienDuLieu, texteType, type LieuSport } from '@/lib/lieux-sport';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 type Props = {
@@ -34,6 +34,7 @@ export function FicheLieu({ lieu, distance, sessions, onOuvrirSession, onLancer 
   const [sport, setSport] = useState<Sport>(lieu.sports[0]);
   const bas = Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur + 12;
   const plusieurs = lieu.sports.length > 1;
+  const lien = lienDuLieu(lieu, sport);
 
   return (
     <Animated.View
@@ -124,12 +125,16 @@ export function FicheLieu({ lieu, distance, sessions, onOuvrirSession, onLancer 
           Icone={IconeCreer}
           onPress={() => onLancer(sport)}
         />
-        {lieu.site && (
+        {lien && (
           <Bouton
-            titre="Site"
+            titre={lien.titre}
             variante="secondaire"
-            accessibilityLabel={`Site de ${lieu.nom}`}
-            onPress={() => Linking.openURL(lieu.site!).catch(() => {})}
+            accessibilityLabel={
+              lien.reservation
+                ? `Réserver : ${ficheSport(sport).nom.toLowerCase()} à ${lieu.nom}`
+                : `Site de ${lieu.nom}`
+            }
+            onPress={() => Linking.openURL(lien.url).catch(() => {})}
           />
         )}
       </View>
