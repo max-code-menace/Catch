@@ -5,6 +5,7 @@ import { test } from 'node:test';
 
 import {
   annulationLibre,
+  descriptionGroupe,
   descriptionPastille,
   distance,
   estEnDirect,
@@ -16,6 +17,7 @@ import {
   texteDuree,
   textePastille,
   textePlaces,
+  texteGroupe,
 } from '../src/lib/formats.ts';
 
 const HEURE = 3_600_000;
@@ -110,4 +112,37 @@ test('VoiceOver : la pastille dit le sport, le moment et les places', () => {
   const enCours = new Date(maintenant.getTime() - HEURE / 2);
   assert.equal(descriptionPastille(session(enCours, { inscrits: 9 }), maintenant), 'Foot, en ce moment, 1 place libre');
   assert.equal(descriptionPastille(session(soir, { inscrits: 10 }), maintenant), 'Foot, ce soir 19h, complet');
+});
+
+test('bulle de sessions : même sport, sports différents, en direct', () => {
+  const foot = (h, j = 16) => session(new Date(2026, 10, j, h, 0));
+  const autre = (sport, nomSport, h) => ({ ...foot(h), sport, nomSport });
+  assert.equal(texteGroupe([foot(19), foot(18), foot(20), foot(21)], maintenant), 'Foot ×4 · dès 18h');
+  assert.equal(texteGroupe([foot(19, 17), foot(20, 17)], maintenant), 'Foot ×2 · dès demain 19h');
+  assert.equal(texteGroupe([foot(19, 19), foot(20, 19)], maintenant), 'Foot ×2 · dès jeu. 19h');
+  // Une session en cours (11h-12h30, il est midi) : la bulle passe en direct
+  assert.equal(texteGroupe([foot(11), foot(19)], maintenant), 'Foot ×2 · en direct');
+  assert.equal(
+    texteGroupe([foot(19), autre('volley', 'Volley', 18), autre('padel', 'Padel', 20), foot(21)], maintenant),
+    '4 sessions',
+  );
+});
+
+test('bulle de sessions : ce que lit VoiceOver', () => {
+  const foot = (h, j = 16) => session(new Date(2026, 10, j, h, 0));
+  const autre = (sport, nomSport, h, j = 16) => ({ ...foot(h, j), sport, nomSport });
+  assert.equal(
+    descriptionGroupe([foot(19), foot(18), foot(20), foot(21)], maintenant),
+    '4 sessions de foot, à partir de 18h',
+  );
+  assert.equal(
+    descriptionGroupe([autre('escalade', 'Escalade', 19, 17), autre('escalade', 'Escalade', 20, 17)], maintenant),
+    '2 sessions d’escalade, à partir de demain 19h',
+  );
+  assert.equal(
+    descriptionGroupe([autre('volley', 'Volley', 18, 19), foot(19, 19), autre('padel', 'Padel', 20, 19)], maintenant),
+    '3 sessions : volley, foot et padel, à partir de jeudi 18h',
+  );
+  assert.equal(descriptionGroupe([foot(11), foot(19)], maintenant), '2 sessions de foot, à partir de 19h, dont 1 en ce moment');
+  assert.equal(descriptionGroupe([foot(11), foot(11)], maintenant), '2 sessions de foot, en ce moment');
 });

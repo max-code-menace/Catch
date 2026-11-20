@@ -14,7 +14,8 @@ import Animated, {
 import { PictoSport } from '@/components/picto-sport';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
-import { estEnDirect, placesLibres, textePastille } from '@/lib/formats';
+import { estEnDirect, placesLibres, sportsDuGroupe, texteGroupe, textePastille } from '@/lib/formats';
+import { PASTILLE } from '@/lib/regroupement-sessions';
 import { DUREE_ECLAT } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
@@ -66,6 +67,47 @@ export function PastilleSession({ session, choisie }: { session: Session; choisi
         {enDirect && <PointEnDirect couleur={c.surRouge} />}
         <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.texte, { color: texte }]}>
           {textePastille(session)}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+/**
+ * Bulle de plusieurs sessions qui se toucheraient sur la carte.
+ * Même sport : « Foot ×4 · dès 18h » ; sports différents : « 4 sessions » avec 2 ou 3 pictos.
+ * Rouge si une des sessions est en direct.
+ */
+export function PastilleGroupeSessions({ sessions, choisie }: { sessions: Session[]; choisie: boolean }) {
+  const c = useCouleurs();
+  const styles = useStyles(creerStyles);
+  const enDirect = sessions.some((s) => estEnDirect(s));
+  const sports = sportsDuGroupe(sessions).slice(0, 3);
+
+  const fond = enDirect ? c.rouge : c.carte;
+  const texte = enDirect ? c.surRouge : c.encre;
+  const bordure = enDirect ? c.rouge : c.trait;
+
+  return (
+    <View style={styles.zoneToucher}>
+      <View
+        style={[
+          styles.pastille,
+          { backgroundColor: fond, borderColor: choisie ? c.encre : bordure },
+          choisie && styles.choisie,
+        ]}>
+        <View style={styles.pictos}>
+          {sports.map(({ sport }, i) => (
+            <View
+              key={sport}
+              style={[styles.picto, i > 0 && styles.pictoRecouvert, sports.length > 1 && [styles.lisere, { borderColor: fond }]]}>
+              <PictoSport sport={sport} taille={sports.length > 1 ? 22 : 24} />
+            </View>
+          ))}
+        </View>
+        {enDirect && <PointEnDirect couleur={c.surRouge} />}
+        <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.texte, { color: texte }]}>
+          {texteGroupe(sessions)}
         </Text>
       </View>
     </View>
@@ -143,25 +185,29 @@ const creerStyles = (c: Palette) =>
     pastille: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 7,
-      paddingLeft: 4,
-      paddingRight: 14,
-      height: 40,
+      gap: PASTILLE.ecart,
+      paddingLeft: PASTILLE.margeGauche,
+      paddingRight: PASTILLE.margeDroite,
+      height: PASTILLE.hauteur,
       borderRadius: Rayons.pilule,
-      borderWidth: 1,
+      borderWidth: PASTILLE.bordure,
       boxShadow: c.ombrePetite,
     },
     choisie: { borderWidth: 2 },
     picto: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: PASTILLE.rondPicto,
+      height: PASTILLE.rondPicto,
+      borderRadius: PASTILLE.rondPicto / 2,
       backgroundColor: c.rondPicto,
       alignItems: 'center',
       justifyContent: 'center',
     },
+    pictos: { flexDirection: 'row' },
+    // Les pictos d'une bulle se recouvrent un peu, séparés par un liseré de la couleur du fond
+    pictoRecouvert: { marginLeft: -PASTILLE.recouvrementPictos },
+    lisere: { borderWidth: 2 },
     texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit },
-    point: { width: 8, height: 8 },
+    point: { width: PASTILLE.pointDirect, height: PASTILLE.pointDirect },
     rond: { position: 'absolute', width: 8, height: 8, borderRadius: 4 },
     // Assez de place autour de la pastille pour que les morceaux ne soient pas coupés
     zoneEclat: { padding: PORTEE + 6, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },

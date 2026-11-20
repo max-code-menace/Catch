@@ -1,30 +1,31 @@
 // Version web : pas de vraie carte, seulement les pastilles placées sur un fond.
 // Sert à vérifier la mise en page dans un navigateur ; l'app, elle, utilise carte-sessions.tsx.
+// Les pastilles sont placées avec la même projection que les vraies cartes, et regroupées de la même façon :
+// toucher une bulle zoome (sans animation) ou ouvre la liste.
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { PropsCarte } from '@/components/carte-sessions';
 import { PastilleEvenement } from '@/components/pastille-evenement';
 import { PastilleLieu } from '@/components/pastille-lieu';
-import { PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
+import { PastilleGroupeSessions, PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
 import { CENTRE_ZONE, type Coordonnees } from '@/donnees/sessions';
-import { descriptionPastille } from '@/lib/formats';
+import { descriptionGroupe, descriptionPastille } from '@/lib/formats';
 import { texteType } from '@/lib/lieux-sport';
+import { eclatsVisibles, groupesDeSessions, zoomDuGroupe } from '@/lib/pastilles-carte';
+import { versEcran } from '@/lib/regroupement-sessions';
 import { useStyles, type Palette } from '@/lib/theme';
 
-const ETENDUE = 0.13;
-
-function placer({ position }: { position: Coordonnees }) {
-  return {
-    x: 50 + ((position.longitude - CENTRE_ZONE.longitude) / (ETENDUE * 1.6)) * 50,
-    y: 42 - ((position.latitude - CENTRE_ZONE.latitude) / ETENDUE) * 50,
-  };
-}
+/** Même ouverture que l'app au démarrage */
+const DELTA_DEPART = 0.11;
 
 export function CarteSessions({
   sessions,
   eclats,
   idChoisie,
   onChoisir,
+  onOuvrirGroupe,
+  cible,
   lieux,
   idLieuChoisi,
   onChoisirLieu,
@@ -33,25 +34,65 @@ export function CarteSessions({
   onChoisirEvenement,
 }: PropsCarte) {
   const styles = useStyles(creerStyles);
+  const [taille, setTaille] = useState({ largeur: 390, hauteur: 800 });
+  const [centre, setCentre] = useState<Coordonnees>(CENTRE_ZONE);
+  const [longitudeDelta, setLongitudeDelta] = useState(DELTA_DEPART);
+  const vue = { longitudeDelta, largeurEcran: taille.largeur };
+
+  // Nouvelle cible (recentrer, voir plus loin) : on y va, comme la vraie carte
+  const [cibleVue, setCibleVue] = useState(cible);
+  if (cible !== cibleVue) {
+    setCibleVue(cible);
+    if (cible) {
+      setCentre({ latitude: cible.latitude, longitude: cible.longitude });
+      setLongitudeDelta(cible.rayonKm ? (cible.rayonKm * 3) / 111 : DELTA_DEPART);
+    }
+  }
+
+  function placer({ position }: { position: Coordonnees }) {
+    const { x, y } = versEcran(position, centre, vue, taille.hauteur);
+    return { left: x, top: y };
+  }
+
+  const groupes = groupesDeSessions(sessions, vue);
+
   return (
-    <Pressable style={[StyleSheet.absoluteFill, styles.fond]} onPress={() => onChoisir(null)}>
-      {lieux.map((lieu) => {
-        const { x, y } = placer(lieu);
+    <Pressable
+      style={[StyleSheet.absoluteFill, styles.fond]}
+      onLayout={(e) => setTaille({ largeur: e.nativeEvent.layout.width, hauteur: e.nativeEvent.layout.height })}
+      onPress={() => onChoisir(null)}>
+      {lieux.map((lieu) => (
+        <View key={lieu.id} style={[styles.marqueur, placer(lieu)]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${lieu.nom}, ${texteType(lieu).toLowerCase()}`}
+            onPress={() => onChoisirLieu(lieu.id)}>
+            <PastilleLieu lieu={lieu} choisi={lieu.id === idLieuChoisi} />
+          </Pressable>
+        </View>
+      ))}
+      {groupes.map((groupe) => {
+        if (groupe.elements.length > 1) {
+          const membres = groupe.elements;
+          return (
+            <View key={groupe.cle} style={[styles.marqueur, placer(groupe)]}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={descriptionGroupe(membres)}
+                onPress={() => {
+                  const zoom = zoomDuGroupe(membres, vue);
+                  if (!zoom) return onOuvrirGroupe(membres.map((s) => s.id));
+                  setCentre(zoom.centre);
+                  setLongitudeDelta(zoom.longitudeDelta);
+                }}>
+                <PastilleGroupeSessions sessions={membres} choisie={membres.some((s) => s.id === idChoisie)} />
+              </Pressable>
+            </View>
+          );
+        }
+        const session = groupe.elements[0];
         return (
-          <View key={lieu.id} style={[styles.marqueur, { left: `${x}%`, top: `${y}%` }]}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`${lieu.nom}, ${texteType(lieu).toLowerCase()}`}
-              onPress={() => onChoisirLieu(lieu.id)}>
-              <PastilleLieu lieu={lieu} choisi={lieu.id === idLieuChoisi} />
-            </Pressable>
-          </View>
-        );
-      })}
-      {sessions.map((session) => {
-        const { x, y } = placer(session);
-        return (
-          <View key={session.id} style={[styles.marqueur, { left: `${x}%`, top: `${y}%` }]}>
+          <View key={session.id} style={[styles.marqueur, placer(session)]}>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={descriptionPastille(session)}
@@ -61,27 +102,21 @@ export function CarteSessions({
           </View>
         );
       })}
-      {evenements.map((evenement) => {
-        const { x, y } = placer(evenement);
-        return (
-          <View key={evenement.id} style={[styles.marqueur, { left: `${x}%`, top: `${y}%` }]}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Événement : ${evenement.nom}`}
-              onPress={() => onChoisirEvenement(evenement.id)}>
-              <PastilleEvenement choisi={evenement.id === idEvenementChoisi} />
-            </Pressable>
-          </View>
-        );
-      })}
-      {eclats.map(({ session, delai }) => {
-        const { x, y } = placer(session);
-        return (
-          <View key={`eclat-${session.id}`} style={[styles.marqueur, { left: `${x}%`, top: `${y}%` }]}>
-            <PastilleQuiEclate session={session} delai={delai} />
-          </View>
-        );
-      })}
+      {evenements.map((evenement) => (
+        <View key={evenement.id} style={[styles.marqueur, placer(evenement)]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Événement : ${evenement.nom}`}
+            onPress={() => onChoisirEvenement(evenement.id)}>
+            <PastilleEvenement choisi={evenement.id === idEvenementChoisi} />
+          </Pressable>
+        </View>
+      ))}
+      {eclatsVisibles(eclats, sessions, vue).map(({ session, delai }) => (
+        <View key={`eclat-${session.id}`} style={[styles.marqueur, placer(session)]}>
+          <PastilleQuiEclate session={session} delai={delai} />
+        </View>
+      ))}
     </Pressable>
   );
 }

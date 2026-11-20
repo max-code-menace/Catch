@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, useWindowDimensions } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
 import { themeCarte } from '@/constants/carte';
 import { PastilleEvenement } from '@/components/pastille-evenement';
 import { PastilleGroupeLieux, PastilleLieu } from '@/components/pastille-lieu';
-import { PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
+import { PastilleGroupeSessions, PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
 import { CENTRE_ZONE, type Coordonnees, type Session } from '@/donnees/sessions';
 import type { Evenement } from '@/lib/evenements';
-import { descriptionPastille, estEnDirect } from '@/lib/formats';
+import { descriptionGroupe, descriptionPastille, estEnDirect } from '@/lib/formats';
 import { texteType, type LieuSport } from '@/lib/lieux-sport';
+import { eclatsVisibles, groupesDeSessions, zoomDuGroupe } from '@/lib/pastilles-carte';
 import { OUVERTURE_REGROUPEMENT, regrouper } from '@/lib/regroupement';
 import type { Eclat } from '@/lib/sessions';
 import { useTheme } from '@/lib/theme';
@@ -20,6 +21,8 @@ export type PropsCarte = {
   eclats: Eclat[];
   idChoisie: string | null;
   onChoisir: (id: string | null) => void;
+  /** Bulle de sessions au même endroit (le zoom ne les sépare pas) : on ouvre la liste pour choisir */
+  onOuvrirGroupe: (ids: string[]) => void;
   /** Change pour recentrer la carte sur un point */
   cible: (Coordonnees & { cle: number; rayonKm?: number }) | null;
   montrerPosition: boolean;
@@ -41,6 +44,7 @@ export function CarteSessions({
   eclats,
   idChoisie,
   onChoisir,
+  onOuvrirGroupe,
   cible,
   montrerPosition,
   lieux,
@@ -55,6 +59,26 @@ export function CarteSessions({
   // Ouverture de la carte (latitudeDelta) : décide si les lieux se regroupent
   const [ouverture, setOuverture] = useState(ZOOM.latitudeDelta);
   const groupes = regrouper(lieux, (l) => l.position, ouverture, (l) => l.id);
+  // Zoom et largeur de la carte : décident quelles sessions se regroupent (relu seulement à la fin du geste)
+  const { width } = useWindowDimensions();
+  const [longitudeDelta, setLongitudeDelta] = useState(ZOOM.longitudeDelta);
+  const vue = { longitudeDelta, largeurEcran: width };
+  const groupesSessions = groupesDeSessions(sessions, vue);
+  const eclatsAMontrer = eclatsVisibles(eclats, sessions, vue);
+
+  function toucherGroupe(membres: Session[]) {
+    const zoom = zoomDuGroupe(membres, vue);
+    if (!zoom) {
+      onOuvrirGroupe(membres.map((s) => s.id));
+      return;
+    }
+    // On zoome jusqu'à séparer les sessions de la bulle (la largeur décide : la hauteur suit)
+    const { longitudeDelta: delta, centre } = zoom;
+    carte.current?.animateToRegion(
+      { ...centre, longitudeDelta: delta, latitudeDelta: delta * Math.cos((centre.latitude * Math.PI) / 180) * 0.5 },
+      400,
+    );
+  }
 
   useEffect(() => {
     if (cible) {
@@ -81,7 +105,10 @@ export function CarteSessions({
       toolbarEnabled={false}
       pitchEnabled={false}
       rotateEnabled={false}
-      onRegionChangeComplete={(region) => setOuverture(region.latitudeDelta)}
+      onRegionChangeComplete={(region) => {
+        setOuverture(region.latitudeDelta);
+        setLongitudeDelta(region.longitudeDelta);
+      }}
       onPress={() => onChoisir(null)}>
       {/* Les lieux d'abord et plus bas (zIndex 0) : les sessions restent les plus visibles */}
       {groupes.map((groupe) => {
@@ -128,7 +155,30 @@ export function CarteSessions({
           </Marker>
         );
       })}
-      {sessions.map((session) => {
+      {groupesSessions.map((groupe) => {
+        if (groupe.elements.length > 1) {
+          const membres = groupe.elements;
+          const choisie = membres.some((s) => s.id === idChoisie);
+          return (
+            <Marker
+              // Clé stable tant que la bulle garde les mêmes sessions : pas de clignotement sur Android
+              key={`groupe-${groupe.cle}-${theme}`}
+              coordinate={groupe.position}
+              anchor={{ x: 0.5, y: 0.5 }}
+              tracksViewChanges={choisie || membres.some((s) => estEnDirect(s))}
+              zIndex={choisie ? 2 : 1}
+              accessibilityRole="button"
+              accessibilityLabel={descriptionGroupe(membres)}
+              accessibilityHint="Montre chaque session"
+              onPress={(e) => {
+                e.stopPropagation();
+                toucherGroupe(membres);
+              }}>
+              <PastilleGroupeSessions sessions={membres} choisie={choisie} />
+            </Marker>
+          );
+        }
+        const session = groupe.elements[0];
         const choisie = session.id === idChoisie;
         return (
           <Marker
@@ -168,7 +218,7 @@ export function CarteSessions({
           </Marker>
         );
       })}
-      {eclats.map(({ session, delai }) => (
+      {eclatsAMontrer.map(({ session, delai }) => (
         <Marker
           key={`eclat-${session.id}`}
           coordinate={session.position}

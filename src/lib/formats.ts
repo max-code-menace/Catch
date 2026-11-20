@@ -116,3 +116,70 @@ export function texteAttente(session: Session) {
   if (autres <= 0) return `${session.organisateur} t’attend`;
   return `${session.organisateur} et ${autres} ${autres === 1 ? 'autre' : 'autres'} t’attendent`;
 }
+
+/** Début le plus proche, court : « 18h » (aujourd'hui), « demain 18h », « jeu. 18h » */
+function quandCourt(date: Date, maintenant: Date) {
+  const ecart = joursEntre(maintenant, date);
+  if (ecart === 0) return heure(date);
+  if (ecart === 1) return `demain ${heure(date)}`;
+  return `${JOURS[date.getDay()].toLowerCase()} ${heure(date)}`;
+}
+
+/** Début le plus proche, dans une phrase : « 18h », « demain 18h », « jeudi 18h » */
+function quandLong(date: Date, maintenant: Date) {
+  const ecart = joursEntre(maintenant, date);
+  if (ecart === 0) return heure(date);
+  if (ecart === 1) return `demain ${heure(date)}`;
+  return `${JOURS_LONGS[date.getDay()]} ${heure(date)}`;
+}
+
+/** Les sports d'un groupe, sans doublon, dans l'ordre des sessions (la plus proche d'abord) */
+export function sportsDuGroupe(sessions: Session[]) {
+  const tries = [...sessions].sort((a, b) => a.debut.getTime() - b.debut.getTime());
+  const vus = new Map<string, Session>();
+  for (const s of tries) if (!vus.has(s.sport)) vus.set(s.sport, s);
+  return [...vus.values()].map((s) => ({ sport: s.sport, nom: s.nomSport }));
+}
+
+function premierDebut(sessions: Session[]) {
+  return new Date(Math.min(...sessions.map((s) => s.debut.getTime())));
+}
+
+/** Texte d'une bulle : « Foot ×4 · dès 18h », « Foot ×4 · en direct », « 4 sessions » (sports différents) */
+export function texteGroupe(sessions: Session[], maintenant = new Date()) {
+  const sports = sportsDuGroupe(sessions);
+  if (sports.length > 1) return `${sessions.length} sessions`;
+  const suite = sessions.some((s) => estEnDirect(s, maintenant))
+    ? 'en direct'
+    : `dès ${quandCourt(premierDebut(sessions), maintenant)}`;
+  return `${sports[0].nom} ×${sessions.length} · ${suite}`;
+}
+
+/** « de foot », « d’escalade » */
+function deSport(nom: string) {
+  const bas = nom.toLowerCase();
+  return /^[aeiouyéèêàâ]/.test(bas) ? `d’${bas}` : `de ${bas}`;
+}
+
+/** « foot, volley et padel » */
+function enumeration(mots: string[]) {
+  return mots.length < 2 ? mots.join('') : `${mots.slice(0, -1).join(', ')} et ${mots[mots.length - 1]}`;
+}
+
+/**
+ * Ce que VoiceOver lit sur une bulle : « 4 sessions de foot, à partir de 18h »,
+ * « 3 sessions : foot, volley et padel, à partir de demain 19h », « …, dont 1 en ce moment »
+ */
+export function descriptionGroupe(sessions: Session[], maintenant = new Date()) {
+  const sports = sportsDuGroupe(sessions);
+  const quoi =
+    sports.length > 1
+      ? `${sessions.length} sessions : ${enumeration(sports.map((s) => s.nom.toLowerCase()))}`
+      : `${sessions.length} sessions ${deSport(sports[0].nom)}`;
+  const enDirect = sessions.filter((s) => estEnDirect(s, maintenant)).length;
+  const aVenir = sessions.filter((s) => !estEnDirect(s, maintenant));
+  const parties = [quoi];
+  if (aVenir.length) parties.push(`à partir de ${quandLong(premierDebut(aVenir), maintenant)}`);
+  if (enDirect) parties.push(aVenir.length ? `dont ${enDirect} en ce moment` : 'en ce moment');
+  return parties.join(', ');
+}

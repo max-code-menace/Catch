@@ -8,6 +8,7 @@ import { BarreHaut, HAUTEUR_BARRE_HAUT, type Vue } from '@/components/barre-haut
 import { Bouton } from '@/components/bouton';
 import { CarteSessions } from '@/components/carte-sessions';
 import { FicheEvenement } from '@/components/fiche-evenement';
+import { FicheGroupe } from '@/components/fiche-groupe';
 import { FicheLieu } from '@/components/fiche-lieu';
 import { FiltresCarte, HAUTEUR_FILTRES_CARTE, type FiltreCarte } from '@/components/filtres-carte';
 import { FicheSession } from '@/components/fiche-session';
@@ -63,6 +64,12 @@ export default function Carte() {
   const [idEvenementChoisi, setIdEvenementChoisi] = useState<string | null>(null);
   const evenementChoisi =
     choisie || lieuChoisi ? undefined : evenementsCarte.find((e) => e.id === idEvenementChoisi);
+  // Bulle de sessions au même endroit : la liste pour choisir (les sessions encore là)
+  const [idsGroupe, setIdsGroupe] = useState<string[] | null>(null);
+  const sessionsGroupe =
+    voirSessions && idsGroupe && !choisie && !lieuChoisi && !evenementChoisi
+      ? sessions.filter((s) => idsGroupe.includes(s.id))
+      : [];
 
   // Position déjà autorisée lors d'une visite précédente : la carte s'ouvre autour de soi, sans rien demander
   useEffect(() => {
@@ -92,6 +99,7 @@ export default function Carte() {
     setIdChoisie(id);
     setIdLieuChoisi(null);
     setIdEvenementChoisi(null);
+    setIdsGroupe(null);
   }
 
   function choisirLieu(id: string) {
@@ -99,6 +107,7 @@ export default function Carte() {
     setIdChoisie(null);
     setIdLieuChoisi(id);
     setIdEvenementChoisi(null);
+    setIdsGroupe(null);
   }
 
   function choisirEvenement(id: string) {
@@ -106,6 +115,7 @@ export default function Carte() {
     setIdChoisie(null);
     setIdLieuChoisi(null);
     setIdEvenementChoisi(id);
+    setIdsGroupe(null);
   }
 
   // La question de la position n'est posée qu'au moment où on appuie sur « recentrer »
@@ -154,6 +164,11 @@ export default function Carte() {
         eclats={voirSessions ? eclats : []}
         idChoisie={idChoisie}
         onChoisir={choisir}
+        onOuvrirGroupe={(ids) => {
+          vibrer.selection();
+          choisir(null);
+          setIdsGroupe(ids);
+        }}
         cible={cible}
         montrerPosition={position !== null}
         lieux={lieuxCarte}
@@ -237,6 +252,14 @@ export default function Carte() {
           onEnvoi={() => envoyer(choisie.id)}
           onCatch={() => confirmer(choisie.id)}
           onAnnuler={() => annuler(choisie)}
+        />
+      )}
+      {vue === 'carte' && sessionsGroupe.length > 1 && (
+        <FicheGroupe
+          key={sessionsGroupe.map((s) => s.id).join('|')}
+          sessions={sessionsGroupe}
+          distance={distance(origine, sessionsGroupe[0].position)}
+          onChoisir={(session) => choisir(session.id)}
         />
       )}
       {vue === 'carte' && lieuChoisi && (
