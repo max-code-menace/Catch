@@ -54,6 +54,7 @@ Les fichiers `design/canvas/*.dc.html` sont générés par `design/canvas/genere
 - **S8 accepté (20 novembre, décision de Maxime)** : `pg_net` reste étiqueté « public » (tout son contenu est dans `net` ; le déplacer demanderait un `DROP EXTENSION`). Avertissement Supabase attendu.
 - **U3, couleurs des avatars (20 novembre)** : `avatar1` à `avatar4` et `refletBalle` dans les palettes (plus de couleur en dur dans `components/`).
 - **B6, tests du Catch, de la création et de l'annulation (20 novembre)** : côté app, `lib/regles-sessions.ts` (calcul pur, testé par `tests/regles-sessions.test.mjs`), utilisé par `lib/sessions.tsx` et `creer.tsx`. Côté base, `supabase/tests/catch.sql` : à coller dans le SQL Editor, se termine toujours par une erreur « BILAN » qui annule tout (une ligne ✓ / ✗ par règle). Lancé par Maxime le 20 novembre : 18 ✓ sur 18. À relancer après chaque migration qui touche aux sessions (depuis le PC : la confirmation Supabase est invisible sur iPhone).
+- **14 sessions de test sur la vraie base (20 novembre au soir, demande de Maxime)** : organisées par le compte de Maxime, repérables par « À savoir » = « Session de test » et un lieu finissant par « (test) », autour du centre de Bruxelles, du 20 au 24 novembre. Pour tester les bulles de la carte. **À annuler après son test** : `update public.sessions set annulee_le = now() where a_savoir_titre = 'Session de test' and annulee_le is null;` (pas de DELETE ; le ménage automatique les efface ensuite).
 
 Plan complet dans `docs/produit.md`.
 
