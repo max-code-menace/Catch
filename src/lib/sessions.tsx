@@ -10,6 +10,15 @@ import { demander, prevenir } from '@/lib/alerte';
 import { useCompte } from '@/lib/compte';
 import { annulationLibre, estEnDirect } from '@/lib/formats';
 import { AVANCE_EVENEMENTS } from '@/lib/evenements';
+import {
+  appliquerInscription,
+  choixAnnulation,
+  dernierInscrit,
+  interpreterCatch,
+  interpreterCreation,
+  ligneNouvelleSession,
+  texteAnnulationSession,
+} from '@/lib/regles-sessions';
 import { supabase } from '@/lib/supabase';
 
 /** Ce que l'écran « Créer une session » fournit ; le reste est rempli par le serveur */
@@ -241,10 +250,9 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
     setLues((liste) =>
       liste.map((s) => {
         if (s.id !== id) return s;
-        const sansMoi = s.participants.filter((p) => p.id !== compte.id);
         return {
           ...s,
-          participants: inscrit ? [...sansMoi, { id: compte.id, prenom: compte.prenom ?? '' }] : sansMoi,
+          participants: appliquerInscription(s.participants, { id: compte.id, prenom: compte.prenom ?? '' }, inscrit),
         };
       }),
     );
@@ -254,15 +262,14 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
     if (!supabase) return 'erreur';
     try {
       const { data, error } = await supabase.rpc('catcher', { p_session: id });
-      if (error) return 'erreur';
-      if (data === 'ok') {
+      const resultat = interpreterCatch(data, !!error);
+      if (resultat === 'erreur') return 'erreur';
+      if (resultat === 'ok') {
         appliquer(id, true);
         setAnnulee(null);
-        recharger();
-        return 'ok';
       }
       recharger();
-      return data === 'complete' || data === 'limite' ? data : 'terminee';
+      return resultat;
     } catch {
       return 'erreur';
     }
@@ -273,28 +280,14 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
     try {
       const { data, error } = await supabase
         .from('sessions')
-        .insert({
-          sport: nouvelle.sport,
-          titre: nouvelle.titre,
-          lieu: nouvelle.lieu,
-          commune: nouvelle.commune,
-          lat: nouvelle.position.latitude,
-          lng: nouvelle.position.longitude,
-          debut: nouvelle.debut.toISOString(),
-          fin: nouvelle.fin.toISOString(),
-          joueurs: nouvelle.joueurs,
-          debutants_bienvenus: nouvelle.debutantsBienvenus,
-          a_savoir_titre: nouvelle.aSavoir?.titre ?? null,
-          a_savoir_detail: nouvelle.aSavoir?.detail ?? null,
-          evenement_id: nouvelle.evenementId ?? null,
-        })
+        .insert(ligneNouvelleSession(nouvelle))
         .select('id')
         .single();
-      if (error?.message.includes('limite_sessions')) return 'limite';
-      if (error || !data) return null;
+      const resultat = interpreterCreation(data, error);
+      if (!resultat || resultat === 'limite') return resultat;
       await recharger();
-      setIdCreee(data.id);
-      return { id: data.id as string };
+      setIdCreee(resultat.id);
+      return resultat;
     } catch {
       return null;
     }
@@ -304,7 +297,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
     if (!supabase || !compte) return;
     // J'étais le dernier inscrit : la session disparaît, et la carte la fait éclater
     const session = sessions.find((s) => s.id === id);
-    if (session && session.idsInscrits.every((inscrit) => inscrit === compte.id)) {
+    if (session && dernierInscrit(session, compte.id)) {
       // Depuis un autre écran, on attend d'être revenu sur la carte pour que ça se voie
       eclater(session, ensuite ? 450 : 150);
     }
@@ -375,17 +368,12 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
   }
 
   function annuler(session: Session, ensuite?: () => void) {
+    const choix = choixAnnulation(session, compte?.id ?? null, { libre: annulationLibre(session) });
     // L'organisateur ne quitte pas sa session : il l'annule pour tout le monde
-    if (compte && session.organisateurId === compte.id) {
-      const autres = session.idsInscrits.filter((inscrit) => inscrit !== compte.id).length;
+    if (choix === 'annuler_session' && compte) {
       demander({
         titre: 'Annuler la session ?',
-        texte:
-          autres === 0
-            ? 'Elle disparaîtra de la carte.'
-            : autres === 1
-              ? 'Elle disparaîtra de la carte et la personne inscrite sera prévenue.'
-              : `Elle disparaîtra de la carte et les ${autres} inscrits seront prévenus.`,
+        texte: texteAnnulationSession(session, compte.id),
         confirmer: 'Annuler la session',
         refuser: 'La garder',
         destructif: true,
@@ -394,7 +382,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
       return;
     }
     // Annuler plutôt que confirmer : on ne demande que si c'est trop tard pour annuler librement
-    if (annulationLibre(session)) {
+    if (choix === 'quitter') {
       quitter(session.id, ensuite);
       return;
     }

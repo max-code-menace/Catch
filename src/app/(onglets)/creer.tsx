@@ -33,6 +33,7 @@ import { LIEU_PAR_DEFAUT, nommer, type Lieu } from '@/lib/lieux';
 import { lieuA, lieuxDuSport, texteType, useLieuxSport, type LieuSport } from '@/lib/lieux-sport';
 import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
+import { etapePublication } from '@/lib/regles-sessions';
 
 const MINUTE = 60_000;
 /** Place prise par le pied (récapitulatif + bouton Publier) au-dessus de la barre */
@@ -276,19 +277,20 @@ export default function Creer() {
   }
 
   function publier() {
+    const etape = etapePublication({ sportChoisi: !!sport, lieuChoisi: lieu.choisi, connecte: !!compte?.prenom });
     // Sport pas encore choisi : la phrase du bas dit ce qui manque
-    if (!sport) {
+    if (etape === 'sport') {
       vibrer.avertissement();
       return;
     }
     // Pas de lieu par défaut publié par mégarde : on ouvre la carte pour le choisir
-    if (!lieu.choisi) {
+    if (etape === 'lieu') {
       vibrer.avertissement();
       setLieuDemande(true);
       setCarteOuverte(true);
       return;
     }
-    if (compte?.prenom) {
+    if (etape === 'envoyer') {
       envoyer();
       return;
     }
