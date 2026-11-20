@@ -165,7 +165,7 @@ export default function ReglagesNotifications() {
                 <View style={styles.trait} />
                 <Ligne
                   titre="Nouveaux messages"
-                  detail="Quand quelqu’un écrit dans une de tes sessions."
+                  detail="Quand quelqu’un écrit dans une de tes sessions. Une seule fois tant que tu n’as pas lu, pas de rafale."
                   valeur={reglages.message}
                   onChange={(message) => changer({ ...reglages, message })}
                 />
