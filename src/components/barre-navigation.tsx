@@ -1,23 +1,30 @@
-import type { TabTriggerSlotProps } from 'expo-router/ui';
-import { useEffect } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import type { TabTriggerSlotProps } from "expo-router/ui";
+import { useEffect } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withTiming,
-} from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BarreNavigation as Mesures, Durees, Polices, Rayons, Ressorts, Tailles } from '@/constants/theme';
-import { IconeCreer } from '@/components/icones';
-import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
+import {
+  BarreNavigation as Mesures,
+  Durees,
+  Polices,
+  Rayons,
+  Ressorts,
+  Tailles,
+} from "@/constants/theme";
+import { IconeCreer } from "@/components/icones";
+import { useCouleurs, useStyles, type Palette } from "@/lib/theme";
 
 const PressableAnime = Animated.createAnimatedComponent(Pressable);
 
 type Icone = (props: { couleur: string; taille?: number }) => React.ReactNode;
 
-type OngletProps = Omit<TabTriggerSlotProps, 'ref'> & {
+type OngletProps = Omit<TabTriggerSlotProps, "ref"> & {
   ref?: React.Ref<any>;
   titre: string;
   Icone: Icone;
@@ -25,7 +32,16 @@ type OngletProps = Omit<TabTriggerSlotProps, 'ref'> & {
   pastille?: number;
 };
 
-export function Onglet({ titre, Icone, pastille = 0, isFocused, onPressIn, onPressOut, style, ...props }: OngletProps) {
+export function Onglet({
+  titre,
+  Icone,
+  pastille = 0,
+  isFocused,
+  onPressIn,
+  onPressOut,
+  style,
+  ...props
+}: OngletProps) {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const echelle = useSharedValue(1);
@@ -35,7 +51,9 @@ export function Onglet({ titre, Icone, pastille = 0, isFocused, onPressIn, onPre
     actif.set(withTiming(isFocused ? 1 : 0, { duration: Durees.standard }));
   }, [isFocused, actif]);
 
-  const styleOnglet = useAnimatedStyle(() => ({ transform: [{ scale: echelle.get() }] }));
+  const styleOnglet = useAnimatedStyle(() => ({
+    transform: [{ scale: echelle.get() }],
+  }));
   const styleFond = useAnimatedStyle(() => ({ opacity: actif.get() }));
   const couleur = isFocused ? c.surRouge : c.texteSecondaire;
 
@@ -43,7 +61,9 @@ export function Onglet({ titre, Icone, pastille = 0, isFocused, onPressIn, onPre
     <PressableAnime
       accessibilityRole="tab"
       accessibilityState={{ selected: !!isFocused }}
-      accessibilityLabel={pastille > 0 ? `${titre}, ${pastille} non lus` : titre}
+      accessibilityLabel={
+        pastille > 0 ? `${titre}, ${pastille} non lus` : titre
+      }
       onPressIn={(e) => {
         echelle.set(withSpring(0.96, Ressorts.snappy));
         onPressIn?.(e);
@@ -53,57 +73,88 @@ export function Onglet({ titre, Icone, pastille = 0, isFocused, onPressIn, onPre
         onPressOut?.(e);
       }}
       style={[styles.onglet, styleOnglet]}
-      {...props}>
+      {...props}
+    >
       <Animated.View style={[styles.fondActif, styleFond]} />
       <View>
         <Icone couleur={couleur} taille={22} />
         {pastille > 0 && (
           <View style={styles.pastille}>
-            <Text maxFontSizeMultiplier={1.3} style={styles.pastilleTexte}>{pastille > 9 ? '9+' : pastille}</Text>
+            <Text maxFontSizeMultiplier={1.3} style={styles.pastilleTexte}>
+              {pastille > 9 ? "9+" : pastille}
+            </Text>
           </View>
         )}
       </View>
-      <Text maxFontSizeMultiplier={1.3} style={[styles.titre, { color: couleur }]}>{titre}</Text>
+      <Text
+        maxFontSizeMultiplier={1.3}
+        style={[styles.titre, { color: couleur }]}
+      >
+        {titre}
+      </Text>
     </PressableAnime>
   );
 }
 
-type BoutonCreerProps = Omit<TabTriggerSlotProps, 'ref'> & { ref?: React.Ref<any> };
+type BoutonCreerProps = Omit<TabTriggerSlotProps, "ref"> & {
+  ref?: React.Ref<any>;
+};
 
 /**
- * Gros bouton « Créer » rouge orangé, posé au-dessus de la barre flottante.
+ * Bouton « + Créer » rouge orangé, compact et centré au-dessus de la barre flottante.
  * Caché sur l'écran Créer lui-même (son bouton « Publier » prend la place).
  */
-export function BoutonCreer({ isFocused, onPressIn, onPressOut, style, ...props }: BoutonCreerProps) {
+export function BoutonCreer({
+  isFocused,
+  onPressIn,
+  onPressOut,
+  style,
+  ...props
+}: BoutonCreerProps) {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const { bottom } = useSafeAreaInsets();
   const echelle = useSharedValue(1);
-  const styleAnime = useAnimatedStyle(() => ({ transform: [{ scale: echelle.get() }] }));
+  const styleAnime = useAnimatedStyle(() => ({
+    transform: [{ scale: echelle.get() }],
+  }));
 
   if (isFocused) return null;
 
   return (
-    <PressableAnime
-      accessibilityRole="button"
-      accessibilityLabel="Créer une session"
-      onPressIn={(e) => {
-        echelle.set(withSpring(0.96, Ressorts.snappy));
-        onPressIn?.(e);
-      }}
-      onPressOut={(e) => {
-        echelle.set(withSpring(1, Ressorts.snappy));
-        onPressOut?.(e);
-      }}
+    // Bande pleine largeur qui laisse passer les touchers : seul le bouton au milieu les prend
+    <View
+      pointerEvents="box-none"
       style={[
-        styles.creer,
-        { bottom: Math.max(bottom, Mesures.margeBas) + Mesures.hauteur + Mesures.ecartCreer },
-        styleAnime,
+        styles.bandeCreer,
+        {
+          bottom:
+            Math.max(bottom, Mesures.margeBas) +
+            Mesures.hauteur +
+            Mesures.ecartCreer,
+        },
       ]}
-      {...props}>
-      <IconeCreer couleur={c.surCreer} taille={22} />
-      <Text maxFontSizeMultiplier={1.3} style={styles.creerTexte}>Créer une session</Text>
-    </PressableAnime>
+    >
+      <PressableAnime
+        accessibilityRole="button"
+        accessibilityLabel="Créer une session"
+        onPressIn={(e) => {
+          echelle.set(withSpring(0.96, Ressorts.snappy));
+          onPressIn?.(e);
+        }}
+        onPressOut={(e) => {
+          echelle.set(withSpring(1, Ressorts.snappy));
+          onPressOut?.(e);
+        }}
+        style={[styles.creer, styleAnime]}
+        {...props}
+      >
+        <IconeCreer couleur={c.surCreer} taille={22} />
+        <Text maxFontSizeMultiplier={1.3} style={styles.creerTexte}>
+          Créer
+        </Text>
+      </PressableAnime>
+    </View>
   );
 }
 
@@ -117,13 +168,13 @@ export function useStyleBarre() {
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
     barre: {
-      position: 'absolute',
+      position: "absolute",
       left: Mesures.margeCotes,
       right: Mesures.margeCotes,
       height: Mesures.hauteur,
       padding: 6,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
+      flexDirection: "row",
+      justifyContent: "space-between",
       backgroundColor: c.carte,
       borderRadius: Rayons.pilule,
       borderWidth: 1,
@@ -133,30 +184,35 @@ const creerStyles = (c: Palette) =>
     onglet: {
       // Chaque onglet part de la largeur de son texte (« Mes sessions » est plus long), puis le reste est partagé
       flexGrow: 1,
-      flexBasis: 'auto',
+      flexBasis: "auto",
       paddingHorizontal: 10,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       gap: 2,
       borderRadius: Rayons.pilule,
     },
     pastille: {
-      position: 'absolute',
+      position: "absolute",
       top: -5,
       right: -10,
       minWidth: 18,
       height: 18,
       paddingHorizontal: 4,
       borderRadius: Rayons.pilule,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       backgroundColor: c.rouge,
       borderWidth: 2,
       borderColor: c.carte,
     },
-    pastilleTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.minuscule, lineHeight: 12, color: c.surRouge },
+    pastilleTexte: {
+      fontFamily: Polices.texteDemi,
+      fontSize: Tailles.minuscule,
+      lineHeight: 12,
+      color: c.surRouge,
+    },
     fondActif: {
-      position: 'absolute',
+      position: "absolute",
       top: 0,
       right: 0,
       bottom: 0,
@@ -165,14 +221,19 @@ const creerStyles = (c: Palette) =>
       borderRadius: Rayons.pilule,
     },
     titre: { fontFamily: Polices.texteMoyen, fontSize: Tailles.micro },
+    bandeCreer: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      alignItems: "center",
+    },
     creer: {
-      position: 'absolute',
-      left: Mesures.margeCotes,
-      right: Mesures.margeCotes,
       height: Mesures.hauteurCreer,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
+      paddingLeft: 22,
+      paddingRight: 26,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
       gap: 8,
       borderRadius: Rayons.pilule,
       // Couleur unie si le dégradé n'est pas pris en charge
@@ -180,5 +241,9 @@ const creerStyles = (c: Palette) =>
       experimental_backgroundImage: `linear-gradient(90deg, ${c.creerDebut}, ${c.creerFin})`,
       boxShadow: c.ombreFlottante,
     },
-    creerTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.accent, color: c.surCreer },
+    creerTexte: {
+      fontFamily: Polices.texteDemi,
+      fontSize: Tailles.accent,
+      color: c.surCreer,
+    },
   });
