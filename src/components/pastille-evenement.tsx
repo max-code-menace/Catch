@@ -14,7 +14,7 @@ export function PastilleEvenement({ choisi }: { choisi: boolean }) {
   return (
     <View style={styles.zone}>
       <View style={[styles.drapeau, choisi && styles.choisi]}>
-        <IconeDrapeau couleur={c.surEncre} taille={choisi ? 22 : 18} />
+        <IconeDrapeau couleur={c.surEncre} taille={choisi ? 26 : 22} />
       </View>
     </View>
   );
@@ -31,9 +31,9 @@ const creerStyles = (c: Palette) =>
       justifyContent: 'center',
     },
     drapeau: {
-      width: 34,
-      height: 34,
-      borderRadius: 10,
+      width: 40,
+      height: 40,
+      borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: c.encre,
@@ -41,5 +41,5 @@ const creerStyles = (c: Palette) =>
       borderColor: c.carte,
       boxShadow: c.ombre,
     },
-    choisi: { width: 42, height: 42, borderRadius: 12, borderColor: c.rouge },
+    choisi: { width: 48, height: 48, borderRadius: 14, borderColor: c.rouge },
   });

@@ -9,6 +9,7 @@ Audit en lecture seule : aucun fichier de code modifié. Vérifié dans le code,
 - **S4** : âge minimum 16 ans confirmé. Adresse Gmail perso gardée jusqu'à la publication sur les stores. Conditions et Confidentialité relues et validées par Maxime (19 nov.) : ajout de « Qui édite Catch » (Maxime Draux, à titre personnel, pas de numéro BCE), « Si tu as 16 ou 17 ans », « Responsabilité », « Changements ». Reste avant les stores : adresse postale de l'éditeur et adresse de contact dédiée.
 - **Publication** : corrections et nouveaux textes légaux (commit `198a41f`) publiés sur Expo (canal `main`) et sur le site le 20 novembre, depuis le PC de Maxime.
 - **U1** (20 nov.) : chaque pastille de la carte (session, lieu, groupe de lieux, événement) a une zone de toucher invisible d'au moins 44 × 44 px, sans changer son dessin. VoiceOver lit « Foot, ce soir 19h, 3 places libres », « Nom du lieu, gratuit », « 12 salles et terrains » ou « Événement : … » (`descriptionPastille` dans `src/lib/formats.ts`, testée). Vérifié sur la version web (captures clair et sombre) ; pas encore vu sur iPhone avec VoiceOver.
+- **Pastilles plus grandes** (20 nov., demande de Maxime : lisibilité) : sessions 40 px de haut au lieu de 34 et texte en 14 au lieu de 12 ; lieux 34 px au lieu de 28 ; événements 40 px au lieu de 34 ; groupe « 12 lieux » 32 px, texte en 13.
 
 ## L'app en bref
 

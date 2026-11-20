@@ -52,7 +52,7 @@ export function PastilleSession({ session, choisie }: { session: Session; choisi
   const bordure = enDirect ? c.rouge : manqueUn ? c.orange : c.trait;
 
   return (
-    // Zone invisible d'au moins 44 px autour de la pastille (34 px de haut) : plus facile à toucher
+    // Zone invisible d'au moins 44 px autour de la pastille (40 px de haut) : plus facile à toucher
     <View style={styles.zoneToucher}>
       <View
         style={[
@@ -61,7 +61,7 @@ export function PastilleSession({ session, choisie }: { session: Session; choisi
           choisie && styles.choisie,
         ]}>
         <View style={styles.picto}>
-          <PictoSport sport={session.sport} taille={20} />
+          <PictoSport sport={session.sport} taille={24} />
         </View>
         {enDirect && <PointEnDirect couleur={c.surRouge} />}
         <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.texte, { color: texte }]}>
@@ -143,24 +143,24 @@ const creerStyles = (c: Palette) =>
     pastille: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
+      gap: 7,
       paddingLeft: 4,
-      paddingRight: 12,
-      height: 34,
+      paddingRight: 14,
+      height: 40,
       borderRadius: Rayons.pilule,
       borderWidth: 1,
       boxShadow: c.ombrePetite,
     },
     choisie: { borderWidth: 2 },
     picto: {
-      width: 26,
-      height: 26,
-      borderRadius: 13,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       backgroundColor: c.rondPicto,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille },
+    texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit },
     point: { width: 8, height: 8 },
     rond: { position: 'absolute', width: 8, height: 8, borderRadius: 4 },
     // Assez de place autour de la pastille pour que les morceaux ne soient pas coupés
