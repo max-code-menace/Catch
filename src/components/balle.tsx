@@ -30,5 +30,5 @@ export function Balle({ taille = 22 }: { taille?: number }) {
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
     balle: { backgroundColor: c.orange },
-    reflet: { position: 'absolute', backgroundColor: 'rgba(255, 255, 255, 0.4)' },
+    reflet: { position: 'absolute', backgroundColor: c.refletBalle },
   });

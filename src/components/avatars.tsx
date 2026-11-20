@@ -3,19 +3,19 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Polices, Tailles } from '@/constants/theme';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
-const TEINTES = ['#F5C3B5', '#FAD9B8', '#EFC9A4', '#E9D5C6'];
 
 /** Rangée d'avatars qui se chevauchent, avec « +3 » s'il y en a plus. */
 export function Avatars({ initiales, max = 3 }: { initiales: string[]; max?: number }) {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
+  const teintes = [c.avatar1, c.avatar2, c.avatar3, c.avatar4];
   const visibles = initiales.slice(0, max);
   const reste = initiales.length - visibles.length;
 
   return (
     <View style={styles.rangee} accessibilityLabel={`${initiales.length} inscrits`}>
       {visibles.map((nom, i) => (
-        <View key={`${nom}-${i}`} style={[styles.avatar, { backgroundColor: TEINTES[i % TEINTES.length] }]}>
+        <View key={`${nom}-${i}`} style={[styles.avatar, { backgroundColor: teintes[i % teintes.length] }]}>
           <Text maxFontSizeMultiplier={1.3} style={styles.texte}>{nom}</Text>
         </View>
       ))}

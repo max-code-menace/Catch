@@ -26,6 +26,13 @@ export const Palettes = {
     rondPicto: '#FFFFFF',
     /** Texte des avatars, posés sur des teintes claires dans les deux thèmes */
     surAvatar: '#1C1412',
+    /** Fonds des avatars (initiales des inscrits), utilisés à tour de rôle */
+    avatar1: '#F5C3B5',
+    avatar2: '#FAD9B8',
+    avatar3: '#EFC9A4',
+    avatar4: '#E9D5C6',
+    /** Reflet clair sur la balle orange */
+    refletBalle: 'rgba(255, 255, 255, 0.4)',
     /** Fond de secours quand il n'y a pas de vraie carte (navigateur) */
     fondCarte: '#EFE9E2',
     /** Ombres (boxShadow) : petite (pastilles, boutons sur la carte), normale (en-têtes), flottante (barre, fiches), vers le haut (panneaux du bas), forte (toast) */
@@ -54,6 +61,12 @@ export const Palettes = {
     beige: '#2A2320',
     rondPicto: '#FFFFFF',
     surAvatar: '#1C1412',
+    // Un peu moins lumineux qu'en clair pour ne pas éblouir sur fond sombre ; le texte foncé reste très lisible
+    avatar1: '#E3AE9F',
+    avatar2: '#E6C29F',
+    avatar3: '#D9B48F',
+    avatar4: '#CFBCAD',
+    refletBalle: 'rgba(255, 255, 255, 0.4)',
     fondCarte: '#1B1614',
     // Sur fond sombre, une ombre doit être noire et plus marquée pour se voir
     ombrePetite: '0 2px 8px rgba(0, 0, 0, 0.40)',
