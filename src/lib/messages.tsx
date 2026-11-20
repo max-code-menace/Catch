@@ -40,7 +40,8 @@ type Valeur = {
   etat: 'chargement' | 'pretes' | 'erreur';
   /** Total des messages non lus, pour la pastille de l'onglet */
   nonLus: number;
-  recharger: () => Promise<void>;
+  /** Relit les conversations ; renvoie `false` si la lecture a échoué (pas de réseau) */
+  recharger: () => Promise<boolean>;
   /** J'ai ouvert cette conversation : tout est lu */
   marquerLue: (id: string) => void;
 };
@@ -76,7 +77,7 @@ export function FournisseurMessages({ children }: { children: React.ReactNode })
     if (!supabase || !moi) {
       setConversations([]);
       setEtat('pretes');
-      return;
+      return true;
     }
     try {
       const { data, error } = await supabase.from('conversations').select('*');
@@ -110,8 +111,10 @@ export function FournisseurMessages({ children }: { children: React.ReactNode })
       );
       setConversations(lues);
       setEtat('pretes');
+      return true;
     } catch {
       setEtat((avant) => (avant === 'pretes' ? 'pretes' : 'erreur'));
+      return false;
     }
   }, [moi]);
 

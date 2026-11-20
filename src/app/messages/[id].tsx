@@ -69,8 +69,8 @@ export default function ConversationSession() {
   const styles = useStyles(creerStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { top, bottom } = useSafeAreaInsets();
-  const { compte } = useCompte();
-  const { conversations, etat, recharger, marquerLue } = useMessages();
+  const { compte, pret } = useCompte();
+  const { conversations, recharger, marquerLue } = useMessages();
   const conversation = conversations.find((x) => x.id === id);
 
   const [messages, setMessages] = useState<Message[] | null>(null);
@@ -96,11 +96,31 @@ export default function ConversationSession() {
     return ecouterMessages(id, relire);
   }, [id, relire]);
 
-  // Ouverte par une notification : la liste des conversations n'est peut-être pas encore à jour
-  const absente = !conversation && etat !== 'chargement';
+  // Ouverte par une notification, ou après avoir quitté la session : la liste gardée en mémoire n'est
+  // peut-être plus à jour. On la relit à chaque ouverture avant de dire quoi que ce soit.
+  const [verifiee, setVerifiee] = useState(false);
+  const [sansReseau, setSansReseau] = useState(false);
+  const verifier = useCallback(async () => {
+    const reussi = await recharger();
+    setSansReseau(!reussi);
+    setVerifiee(true);
+  }, [recharger]);
+  const moi = compte?.id;
   useEffect(() => {
-    if (absente) recharger();
-  }, [absente, recharger]);
+    // Sans compte (ou tant que la connexion gardée sur le téléphone n'est pas relue), rien à vérifier
+    if (!moi) return;
+    let actif = true;
+    recharger().then((reussi) => {
+      if (!actif) return;
+      setSansReseau(!reussi);
+      setVerifiee(true);
+    });
+    return () => {
+      actif = false;
+    };
+  }, [id, moi, recharger]);
+  // Relue sur le serveur et absente : on n'est plus inscrit (ou la session n'existe plus)
+  const plusInscrit = verifiee && !conversation;
 
   // Tant que l'écran est ouvert, tout ce qui arrive est lu
   const nombre = messages?.length ?? 0;
@@ -200,20 +220,60 @@ export default function ConversationSession() {
     }
   }
 
-  if (!conversation) {
+  const retour = () => (router.canGoBack() ? router.back() : router.replace('/messages'));
+
+  if (!compte && pret) {
     return (
       <View style={[styles.ecran, styles.seul]}>
-        {etat === 'chargement' ? (
+        <Text accessibilityRole="header" style={styles.titreSeul}>
+          Connecte-toi pour lire les messages
+        </Text>
+        <Text style={styles.aide}>La conversation est réservée aux inscrits de la session.</Text>
+        <Bouton titre="Me connecter" onPress={() => router.push('/connexion')} />
+        <Bouton variante="lien" titre="Retour" onPress={retour} />
+      </View>
+    );
+  }
+
+  if (!conversation || plusInscrit) {
+    if (!verifiee || !compte) {
+      return (
+        <View style={[styles.ecran, styles.seul]}>
           <Text style={styles.aide}>Ouverture de la conversation…</Text>
-        ) : (
-          <>
-            <Text accessibilityRole="header" style={styles.titreSeul}>
-              Cette conversation n’est plus disponible
-            </Text>
-            <Text style={styles.aide}>Elle est réservée aux inscrits de la session.</Text>
-            <Bouton titre="Retour" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
-          </>
-        )}
+        </View>
+      );
+    }
+    if (sansReseau) {
+      return (
+        <View style={[styles.ecran, styles.seul]}>
+          <Text accessibilityRole="header" style={styles.titreSeul}>
+            Pas de réseau
+          </Text>
+          <Text style={styles.aide}>Impossible d’ouvrir la conversation. Vérifie ta connexion.</Text>
+          <Bouton
+            titre="Réessayer"
+            onPress={() => {
+              setVerifiee(false);
+              verifier();
+            }}
+          />
+          <Bouton variante="lien" titre="Retour" onPress={retour} />
+        </View>
+      );
+    }
+    return (
+      <View style={[styles.ecran, styles.seul]}>
+        <Text accessibilityRole="header" style={styles.titreSeul}>
+          Tu n’es plus dans cette session
+        </Text>
+        <Text style={styles.aideCentree}>
+          Tu l’as quittée, ou elle a été annulée. Les messages sont réservés aux inscrits.
+        </Text>
+        <Bouton
+          titre="Voir la session"
+          onPress={() => router.replace({ pathname: '/session/[id]', params: { id } })}
+        />
+        <Bouton variante="lien" titre="Retour" onPress={retour} />
       </View>
     );
   }
@@ -230,7 +290,7 @@ export default function ConversationSession() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Retour"
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/messages'))}
+          onPress={retour}
           hitSlop={4}
           style={({ pressed }) => [styles.retour, pressed && styles.presse]}>
           <IconeRetour couleur={c.encre} taille={22} />
@@ -355,6 +415,7 @@ const creerStyles = (c: Palette) =>
     enteteTextes: { flex: 1, minHeight: Espaces.cibleTactile, justifyContent: 'center' },
     titre: { fontFamily: Polices.texteDemi, fontSize: Tailles.accent, color: c.encre },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+    aideCentree: { fontFamily: Polices.texte, fontSize: Tailles.courant, color: c.texteSecondaire, textAlign: 'center' },
     lieu: {
       flexDirection: 'row',
       alignItems: 'center',
