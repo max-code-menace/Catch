@@ -50,6 +50,7 @@ Les fichiers `design/canvas/*.dc.html` sont générés par `design/canvas/genere
 - **S5, notifications « nouveau message » sans rafale (20 novembre)** : migration `20261120000000_avis_messages.sql` (appliquée) : `private.prevenir_message` ne prévient une personne qu'au premier message d'une conversation, puis plus rien tant qu'elle n'a pas lu (`lectures.lu_le`) ou pendant 10 minutes (`private.avis_messages`). Pas testé sur un vrai téléphone.
 - **B4, conversation d'une session quittée (20 novembre)** : `messages/[id]` relit les conversations sur le serveur à l'ouverture (`recharger` renvoie `false` sans réseau) avant de conclure ; écrans « Tu n’es plus dans cette session » (+ « Voir la session »), « Pas de réseau » (+ « Réessayer »), « Connecte-toi pour lire les messages ». Pas vu sur iPhone. Note captures : `CI=1 npx expo start --web` ne relit pas les fichiers modifiés, relancer le serveur après chaque changement.
 - **B5, messages en direct plus légers (20 novembre)** : à l'arrivée d'un message, `messages/[id]` ne relit que les messages après le dernier affiché (`lireMessages(id, apres)`), fusionnés par `fusionnerMessages` (`lib/fil-messages.ts`, testé). Pas vu sur iPhone.
+- **S7, droits inutiles retirés (20 novembre)** : migration `20261120010000_droits_lieux_evenements.sql` (appliquée) : `lieux` et `evenements` en lecture seule pour `anon` et `authenticated`, plus de TRUNCATE / REFERENCES / TRIGGER par défaut sur les nouvelles tables du schéma `public`.
 
 Plan complet dans `docs/produit.md`.
 
