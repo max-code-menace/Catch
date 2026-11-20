@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Bouton } from '@/components/bouton';
 import { IconeChevron, IconeDrapeau } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
-import { BarreNavigation, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
+import { BarreNavigation, RESERVE_BAS, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
 import { ficheSport } from '@/donnees/sports';
 import type { Evenement } from '@/lib/evenements';
@@ -28,7 +28,7 @@ export function FicheEvenement({ evenement, distance, sessions, onOuvrirSession,
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const { bottom } = useSafeAreaInsets();
-  const bas = Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur + 12;
+  const bas = Math.max(bottom, BarreNavigation.margeBas) + RESERVE_BAS + 12;
 
   return (
     <Animated.View

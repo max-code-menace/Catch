@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BarreNavigation, Espaces, Polices, Tailles } from '@/constants/theme';
+import { BarreNavigation, RESERVE_BAS, Espaces, Polices, Tailles } from '@/constants/theme';
 import { useStyles, type Palette } from '@/lib/theme';
 
 type Props = {
@@ -56,14 +56,14 @@ const creerStyles = (c: Palette) =>
       flex: 1,
       paddingHorizontal: Espaces.marge,
       paddingTop: 24,
-      paddingBottom: BarreNavigation.hauteur + BarreNavigation.margeBas + 24,
+      paddingBottom: RESERVE_BAS + BarreNavigation.margeBas + 24,
       gap: 12,
     },
     contenuDefilant: {
       flexGrow: 1,
       paddingHorizontal: Espaces.marge,
       paddingTop: 24,
-      paddingBottom: BarreNavigation.hauteur + BarreNavigation.margeBas + 24,
+      paddingBottom: RESERVE_BAS + BarreNavigation.margeBas + 24,
       gap: 12,
     },
     titre: { fontFamily: Polices.titre, fontSize: Tailles.titreEcran, color: c.encre },

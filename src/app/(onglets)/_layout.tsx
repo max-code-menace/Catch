@@ -1,8 +1,8 @@
 import { TabList, TabSlot, TabTrigger, Tabs } from 'expo-router/ui';
 import { StyleSheet } from 'react-native';
 
-import { Onglet, useStyleBarre } from '@/components/barre-navigation';
-import { IconeCarte, IconeCreer, IconeMessages, IconeProfil } from '@/components/icones';
+import { BoutonCreer, Onglet, useStyleBarre } from '@/components/barre-navigation';
+import { IconeCalendrier, IconeCarte, IconeMessages, IconeProfil } from '@/components/icones';
 import { useMessages } from '@/lib/messages';
 import { useStyles, type Palette } from '@/lib/theme';
 
@@ -14,13 +14,17 @@ export default function Onglets() {
   return (
     <Tabs style={styles.racine}>
       <TabSlot />
-      {/* Ordre des onglets : Créer · Carte · Messages · Profil */}
+      {/* « Créer » : gros bouton au-dessus de la barre (caché sur l'écran Créer) */}
+      <TabTrigger name="creer" asChild>
+        <BoutonCreer />
+      </TabTrigger>
+      {/* Ordre des onglets : Carte · Mes sessions · Messages · Profil */}
       <TabList style={styleBarre}>
-        <TabTrigger name="creer" href="/creer" asChild>
-          <Onglet titre="Créer" Icone={IconeCreer} />
-        </TabTrigger>
         <TabTrigger name="index" href="/" asChild>
           <Onglet titre="Carte" Icone={IconeCarte} />
+        </TabTrigger>
+        <TabTrigger name="mes-sessions" href="/mes-sessions" asChild>
+          <Onglet titre="Mes sessions" Icone={IconeCalendrier} />
         </TabTrigger>
         <TabTrigger name="messages" href="/messages" asChild>
           <Onglet titre="Messages" Icone={IconeMessages} pastille={nonLus} />
@@ -28,6 +32,8 @@ export default function Onglets() {
         <TabTrigger name="profil" href="/profil" asChild>
           <Onglet titre="Profil" Icone={IconeProfil} />
         </TabTrigger>
+        {/* L'écran Créer reste un onglet, sans place dans la barre */}
+        <TabTrigger name="creer" href="/creer" style={styles.cache} />
       </TabList>
     </Tabs>
   );
@@ -36,4 +42,5 @@ export default function Onglets() {
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
     racine: { flex: 1, backgroundColor: c.fond },
+    cache: { display: 'none' },
   });

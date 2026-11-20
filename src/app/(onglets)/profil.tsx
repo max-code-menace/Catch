@@ -8,14 +8,11 @@ import { Linking, Pressable, StyleSheet, Switch, Text, View } from 'react-native
 import { Bouton } from '@/components/bouton';
 import { Aide, Ecran } from '@/components/ecran';
 import { IconeChevron } from '@/components/icones';
-import { PictoSport } from '@/components/picto-sport';
 import { Polices, Rayons, Tailles } from '@/constants/theme';
 import { EMAIL_CONTACT } from '@/constants/liens';
 import { useCompte } from '@/lib/compte';
-import { quand, quandPhrase } from '@/lib/formats';
 import { reglerVibrations, vibrationsActives, vibrer } from '@/lib/haptics';
 import { demander } from '@/lib/moderation';
-import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, useTheme, type Apparence, type Palette } from '@/lib/theme';
 
 // Ses déclarations de types datent d'avant React 19 : on le présente comme un composant ordinaire
@@ -113,59 +110,6 @@ function Securite({ connecte }: { connecte: boolean }) {
   );
 }
 
-/** Les sessions à venir où je suis inscrit : la prochaine en premier. */
-function MesSessions({ moi }: { moi: string }) {
-  const styles = useStyles(creerStyles);
-  const c = useCouleurs();
-  const { sessions, etat } = useSessions();
-  const miennes = sessions
-    .filter((s) => s.idsInscrits.includes(moi))
-    .sort((a, b) => a.debut.getTime() - b.debut.getTime());
-
-  return (
-    <View style={styles.reglages}>
-      <Text style={styles.section}>Tes sessions à venir</Text>
-      {miennes.length === 0 && (
-        <View style={styles.carte}>
-          <Text style={styles.aide}>
-            {etat === 'chargement'
-              ? 'Recherche de tes sessions…'
-              : etat === 'erreur'
-                ? 'Impossible de charger tes sessions. Vérifie ta connexion.'
-                : 'Aucune session prévue. Catches-en une, ou crée la tienne.'}
-          </Text>
-          {etat === 'pretes' && (
-            <Bouton titre="Voir les sessions" variante="secondaire" onPress={() => router.navigate('/')} />
-          )}
-        </View>
-      )}
-      {miennes.map((session) => (
-        <Pressable
-          key={session.id}
-          accessibilityRole="button"
-          accessibilityLabel={`${session.titre}, ${quandPhrase(session)}, ${session.lieu}`}
-          onPress={() => router.push({ pathname: '/session/[id]', params: { id: session.id } })}
-          style={({ pressed }) => [styles.carte, styles.session, pressed && { backgroundColor: c.beige }]}>
-          <View style={styles.picto}>
-            <PictoSport sport={session.sport} taille={30} />
-          </View>
-          <View style={styles.textes}>
-            <Text style={styles.libelle} numberOfLines={1}>
-              {session.titre} · {quand(session.debut)}
-            </Text>
-            <Text style={styles.aide} numberOfLines={1}>
-              {session.lieu}
-              {session.commune ? `, ${session.commune}` : ''}
-              {session.organisateurId === moi ? ' · tu organises' : ''}
-            </Text>
-          </View>
-          <IconeChevron couleur={c.texteSecondaire} taille={20} />
-        </Pressable>
-      ))}
-    </View>
-  );
-}
-
 export default function Profil() {
   const { compte, pret, deconnecter } = useCompte();
   const [erreur, setErreur] = useState<string | null>(null);
@@ -197,7 +141,6 @@ export default function Profil() {
 
   return (
     <Ecran titre={compte.prenom ?? 'Profil'} defile>
-      <MesSessions moi={compte.id} />
       <Reglages />
       <Securite connecte />
       <View style={styles.fin}>
@@ -228,15 +171,5 @@ const creerStyles = (c: Palette) =>
     libelle: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
     segments: { height: 36 },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
-    session: { flexDirection: 'row', alignItems: 'center' },
-    picto: {
-      width: 44,
-      height: 44,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: c.beige,
-    },
-    textes: { flex: 1, gap: 2 },
     fin: { gap: 8, marginTop: 12 },
   });

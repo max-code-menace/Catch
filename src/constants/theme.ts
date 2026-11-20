@@ -13,6 +13,10 @@ export const Palettes = {
     orange: '#E35A0C',
     orangeTexte: '#863404',
     orangeDoux: '#FDE6D2',
+    /** Bouton « Créer » au-dessus de la barre : dégradé orange vers rouge, bien voyant */
+    creerDebut: '#F26A1B',
+    creerFin: '#D9361A',
+    surCreer: '#FFFFFF',
     encre: '#1C1412',
     /** Texte posé sur un fond couleur encre (filtre actif, toast) */
     surEncre: '#FFFFFF',
@@ -51,6 +55,9 @@ export const Palettes = {
     orange: '#FF8A3D',
     orangeTexte: '#FFC08F',
     orangeDoux: '#3B2410',
+    creerDebut: '#FF7A33',
+    creerFin: '#E8432A',
+    surCreer: '#FFFFFF',
     encre: '#F5EEE9',
     surEncre: '#1C1412',
     surEncreDoux: 'rgba(28, 20, 18, 0.10)',
@@ -142,4 +149,10 @@ export const BarreNavigation = {
   hauteur: 64,
   margeCotes: 20,
   margeBas: 26,
+  /** Bouton « Créer » posé au-dessus de la barre, et l'espace entre les deux */
+  hauteurCreer: 52,
+  ecartCreer: 10,
 } as const;
+
+/** Place à réserver en bas d'un écran à onglets : la barre et le bouton « Créer » au-dessus. */
+export const RESERVE_BAS = BarreNavigation.hauteur + BarreNavigation.hauteurCreer + BarreNavigation.ecartCreer;

@@ -9,7 +9,7 @@ import { Bouton } from '@/components/bouton';
 import { BoutonCatch } from '@/components/bouton-catch';
 import { IconeInviter } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
-import { BarreNavigation, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
+import { BarreNavigation, RESERVE_BAS, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
 import { estEnDirect, heure, placesLibres, quand, texteDistance, textePlaces } from '@/lib/formats';
 import { inviter } from '@/lib/invitation';
@@ -39,7 +39,7 @@ export function FicheSession({ session, distance, catchee, organisee, onOuvrir, 
   const enDirect = estEnDirect(session);
   const complet = placesLibres(session) === 0;
   const avecBadge = enDirect || placesLibres(session) === 1;
-  const bas = Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur + 12;
+  const bas = Math.max(bottom, BarreNavigation.margeBas) + RESERVE_BAS + 12;
 
   return (
     <Animated.View

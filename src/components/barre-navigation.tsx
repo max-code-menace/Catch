@@ -10,6 +10,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BarreNavigation as Mesures, Durees, Polices, Rayons, Ressorts, Tailles } from '@/constants/theme';
+import { IconeCreer } from '@/components/icones';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 const PressableAnime = Animated.createAnimatedComponent(Pressable);
@@ -67,6 +68,45 @@ export function Onglet({ titre, Icone, pastille = 0, isFocused, onPressIn, onPre
   );
 }
 
+type BoutonCreerProps = Omit<TabTriggerSlotProps, 'ref'> & { ref?: React.Ref<any> };
+
+/**
+ * Gros bouton « Créer » rouge orangé, posé au-dessus de la barre flottante.
+ * Caché sur l'écran Créer lui-même (son bouton « Publier » prend la place).
+ */
+export function BoutonCreer({ isFocused, onPressIn, onPressOut, style, ...props }: BoutonCreerProps) {
+  const c = useCouleurs();
+  const styles = useStyles(creerStyles);
+  const { bottom } = useSafeAreaInsets();
+  const echelle = useSharedValue(1);
+  const styleAnime = useAnimatedStyle(() => ({ transform: [{ scale: echelle.get() }] }));
+
+  if (isFocused) return null;
+
+  return (
+    <PressableAnime
+      accessibilityRole="button"
+      accessibilityLabel="Créer une session"
+      onPressIn={(e) => {
+        echelle.set(withSpring(0.96, Ressorts.snappy));
+        onPressIn?.(e);
+      }}
+      onPressOut={(e) => {
+        echelle.set(withSpring(1, Ressorts.snappy));
+        onPressOut?.(e);
+      }}
+      style={[
+        styles.creer,
+        { bottom: Math.max(bottom, Mesures.margeBas) + Mesures.hauteur + Mesures.ecartCreer },
+        styleAnime,
+      ]}
+      {...props}>
+      <IconeCreer couleur={c.surCreer} taille={22} />
+      <Text maxFontSizeMultiplier={1.3} style={styles.creerTexte}>Créer une session</Text>
+    </PressableAnime>
+  );
+}
+
 /** Style de la pilule blanche flottante, à poser sur <TabList> dans src/app/_layout.tsx. */
 export function useStyleBarre() {
   const styles = useStyles(creerStyles);
@@ -91,7 +131,10 @@ const creerStyles = (c: Palette) =>
       boxShadow: c.ombreFlottante,
     },
     onglet: {
-      flex: 1,
+      // Chaque onglet part de la largeur de son texte (« Mes sessions » est plus long), puis le reste est partagé
+      flexGrow: 1,
+      flexBasis: 'auto',
+      paddingHorizontal: 10,
       alignItems: 'center',
       justifyContent: 'center',
       gap: 2,
@@ -122,4 +165,20 @@ const creerStyles = (c: Palette) =>
       borderRadius: Rayons.pilule,
     },
     titre: { fontFamily: Polices.texteMoyen, fontSize: Tailles.micro },
+    creer: {
+      position: 'absolute',
+      left: Mesures.margeCotes,
+      right: Mesures.margeCotes,
+      height: Mesures.hauteurCreer,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      borderRadius: Rayons.pilule,
+      // Couleur unie si le dégradé n'est pas pris en charge
+      backgroundColor: c.creerFin,
+      experimental_backgroundImage: `linear-gradient(90deg, ${c.creerDebut}, ${c.creerFin})`,
+      boxShadow: c.ombreFlottante,
+    },
+    creerTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.accent, color: c.surCreer },
   });

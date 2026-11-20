@@ -21,6 +21,7 @@ import {
   Rayons,
   Ressorts,
   Tailles,
+  RESERVE_BAS,
 } from '@/constants/theme';
 import type { Coordonnees, Session } from '@/donnees/sessions';
 import {
@@ -144,7 +145,7 @@ export function ListeSessions({ sessions, origine, onOuvrir, onRafraichir, plusL
         keyExtractor={(s) => s.id}
         contentContainerStyle={{
           paddingTop: top + HAUTEUR_BARRE_HAUT + 8,
-          paddingBottom: Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur + 24,
+          paddingBottom: Math.max(bottom, BarreNavigation.margeBas) + RESERVE_BAS + 24,
           paddingHorizontal: Espaces.marge,
           gap: 12,
         }}

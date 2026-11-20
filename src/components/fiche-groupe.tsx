@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconeChevron } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
-import { BarreNavigation, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
+import { BarreNavigation, RESERVE_BAS, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
 import { descriptionPastille, estEnDirect, quand, texteDistance, textePlaces } from '@/lib/formats';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
@@ -22,7 +22,7 @@ export function FicheGroupe({ sessions, distance, onChoisir }: Props) {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const { bottom } = useSafeAreaInsets();
-  const bas = Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur + 12;
+  const bas = Math.max(bottom, BarreNavigation.margeBas) + RESERVE_BAS + 12;
   const triees = [...sessions].sort((a, b) => a.debut.getTime() - b.debut.getTime());
   const lieu = triees[0]?.lieu;
 

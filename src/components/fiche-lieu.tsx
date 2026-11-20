@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Bouton } from '@/components/bouton';
 import { IconeChevron, IconeCreer } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
-import { BarreNavigation, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
+import { BarreNavigation, RESERVE_BAS, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Sport } from '@/donnees/pictos';
 import type { Session } from '@/donnees/sessions';
 import { ficheSport } from '@/donnees/sports';
@@ -32,7 +32,7 @@ export function FicheLieu({ lieu, distance, sessions, onOuvrirSession, onLancer 
   const styles = useStyles(creerStyles);
   const { bottom } = useSafeAreaInsets();
   const [sport, setSport] = useState<Sport>(lieu.sports[0]);
-  const bas = Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur + 12;
+  const bas = Math.max(bottom, BarreNavigation.margeBas) + RESERVE_BAS + 12;
   const plusieurs = lieu.sports.length > 1;
   const lien = lienDuLieu(lieu, sport);
 
