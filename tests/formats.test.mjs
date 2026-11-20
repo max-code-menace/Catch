@@ -5,6 +5,7 @@ import { test } from 'node:test';
 
 import {
   annulationLibre,
+  descriptionPastille,
   distance,
   estEnDirect,
   heure,
@@ -101,4 +102,12 @@ test('distance : Grand-Place → Atomium ≈ 5,5 km, et son texte', () => {
   assert.equal(texteDistance(20), 'à 50 m');
   assert.equal(texteDistance(620), 'à 600 m');
   assert.equal(texteDistance(metres), 'à 5 km');
+});
+
+test('VoiceOver : la pastille dit le sport, le moment et les places', () => {
+  const soir = new Date(2026, 10, 16, 19, 0);
+  assert.equal(descriptionPastille(session(soir), maintenant), 'Foot, ce soir 19h, 7 places libres');
+  const enCours = new Date(maintenant.getTime() - HEURE / 2);
+  assert.equal(descriptionPastille(session(enCours, { inscrits: 9 }), maintenant), 'Foot, en ce moment, 1 place libre');
+  assert.equal(descriptionPastille(session(soir, { inscrits: 10 }), maintenant), 'Foot, ce soir 19h, complet');
 });

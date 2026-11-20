@@ -8,8 +8,8 @@ import { PastilleGroupeLieux, PastilleLieu } from '@/components/pastille-lieu';
 import { PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
 import { CENTRE_ZONE, type Coordonnees, type Session } from '@/donnees/sessions';
 import type { Evenement } from '@/lib/evenements';
-import { estEnDirect } from '@/lib/formats';
-import type { LieuSport } from '@/lib/lieux-sport';
+import { descriptionPastille, estEnDirect } from '@/lib/formats';
+import { texteType, type LieuSport } from '@/lib/lieux-sport';
 import { OUVERTURE_REGROUPEMENT, regrouper } from '@/lib/regroupement';
 import type { Eclat } from '@/lib/sessions';
 import { useTheme } from '@/lib/theme';
@@ -93,6 +93,9 @@ export function CarteSessions({
               anchor={{ x: 0.5, y: 0.5 }}
               tracksViewChanges={false}
               zIndex={0}
+              accessibilityRole="button"
+              accessibilityLabel={`${groupe.elements.length} salles et terrains`}
+              accessibilityHint="Zoome pour voir chaque lieu"
               onPress={(e) => {
                 e.stopPropagation();
                 // On zoome sur le groupe jusqu'à voir chaque lieu
@@ -115,7 +118,8 @@ export function CarteSessions({
             anchor={{ x: 0.5, y: 0.5 }}
             tracksViewChanges={false}
             zIndex={choisi ? 2 : 0}
-            accessibilityLabel={lieu.nom}
+            accessibilityRole="button"
+            accessibilityLabel={`${lieu.nom}, ${texteType(lieu).toLowerCase()}`}
             onPress={(e) => {
               e.stopPropagation();
               onChoisirLieu(lieu.id);
@@ -134,6 +138,8 @@ export function CarteSessions({
             // Android fige les marqueurs en image : on ne les redessine que s'ils bougent
             tracksViewChanges={choisie || estEnDirect(session)}
             zIndex={choisie ? 2 : 1}
+            accessibilityRole="button"
+            accessibilityLabel={descriptionPastille(session)}
             onPress={(e) => {
               e.stopPropagation();
               onChoisir(session.id);
@@ -152,7 +158,8 @@ export function CarteSessions({
             tracksViewChanges={false}
             // Au-dessus des sessions : celles qui y vont ensemble partent du même endroit, la fiche les liste
             zIndex={choisi ? 4 : 2}
-            accessibilityLabel={evenement.nom}
+            accessibilityRole="button"
+            accessibilityLabel={`Événement : ${evenement.nom}`}
             onPress={(e) => {
               e.stopPropagation();
               onChoisirEvenement(evenement.id);

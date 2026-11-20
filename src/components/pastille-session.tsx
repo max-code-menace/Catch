@@ -12,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { PictoSport } from '@/components/picto-sport';
-import { Polices, Rayons, Tailles } from '@/constants/theme';
+import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
 import { estEnDirect, placesLibres, textePastille } from '@/lib/formats';
 import { DUREE_ECLAT } from '@/lib/sessions';
@@ -52,19 +52,22 @@ export function PastilleSession({ session, choisie }: { session: Session; choisi
   const bordure = enDirect ? c.rouge : manqueUn ? c.orange : c.trait;
 
   return (
-    <View
-      style={[
-        styles.pastille,
-        { backgroundColor: fond, borderColor: choisie ? c.encre : bordure },
-        choisie && styles.choisie,
-      ]}>
-      <View style={styles.picto}>
-        <PictoSport sport={session.sport} taille={20} />
+    // Zone invisible d'au moins 44 px autour de la pastille (34 px de haut) : plus facile à toucher
+    <View style={styles.zoneToucher}>
+      <View
+        style={[
+          styles.pastille,
+          { backgroundColor: fond, borderColor: choisie ? c.encre : bordure },
+          choisie && styles.choisie,
+        ]}>
+        <View style={styles.picto}>
+          <PictoSport sport={session.sport} taille={20} />
+        </View>
+        {enDirect && <PointEnDirect couleur={c.surRouge} />}
+        <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.texte, { color: texte }]}>
+          {textePastille(session)}
+        </Text>
       </View>
-      {enDirect && <PointEnDirect couleur={c.surRouge} />}
-      <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.texte, { color: texte }]}>
-        {textePastille(session)}
-      </Text>
     </View>
   );
 }
@@ -131,6 +134,12 @@ export function PastilleQuiEclate({ session, delai }: { session: Session; delai:
 
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
+    zoneToucher: {
+      minWidth: Espaces.cibleTactile,
+      minHeight: Espaces.cibleTactile,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     pastille: {
       flexDirection: 'row',
       alignItems: 'center',

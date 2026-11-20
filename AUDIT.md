@@ -8,6 +8,7 @@ Audit en lecture seule : aucun fichier de code modifié. Vérifié dans le code,
 - **S6, B2, B3** : migration `20261119090000_organisateur_reste.sql` (appliquée, testée) ; « Je ne peux plus » relit la session sur le serveur avant d'agir (`src/lib/sessions.tsx`) ; lien d'invitation sans réseau → « Pas de réseau » + « Réessayer » (`src/app/session/[id].tsx`). Publié sur Expo et sur le site le 20 novembre.
 - **S4** : âge minimum 16 ans confirmé. Adresse Gmail perso gardée jusqu'à la publication sur les stores. Conditions et Confidentialité relues et validées par Maxime (19 nov.) : ajout de « Qui édite Catch » (Maxime Draux, à titre personnel, pas de numéro BCE), « Si tu as 16 ou 17 ans », « Responsabilité », « Changements ». Reste avant les stores : adresse postale de l'éditeur et adresse de contact dédiée.
 - **Publication** : corrections et nouveaux textes légaux (commit `198a41f`) publiés sur Expo (canal `main`) et sur le site le 20 novembre, depuis le PC de Maxime.
+- **U1** (20 nov.) : chaque pastille de la carte (session, lieu, groupe de lieux, événement) a une zone de toucher invisible d'au moins 44 × 44 px, sans changer son dessin. VoiceOver lit « Foot, ce soir 19h, 3 places libres », « Nom du lieu, gratuit », « 12 salles et terrains » ou « Événement : … » (`descriptionPastille` dans `src/lib/formats.ts`, testée). Vérifié sur la version web (captures clair et sombre) ; pas encore vu sur iPhone avec VoiceOver.
 
 ## L'app en bref
 
@@ -44,7 +45,7 @@ Audit en lecture seule : aucun fichier de code modifié. Vérifié dans le code,
 | B6 | Bugs | Les tests automatiques ne couvrent que les dates et le regroupement sur la carte, pas Catch / créer / annuler. | Mineur | `tests/` | M |
 | B7 | Bugs | Pas de clé Google Maps pour Android : carte vide dans une vraie app Android. | Mineur | `app.json` | S |
 | B8 | Bugs | Table vide `sessions_ancienne` qui traîne dans la base. | Mineur | base Supabase | S |
-| U1 | Design / UX | Pastilles de la carte trop petites à toucher (26 à 34 px, le minimum conseillé est 44) et muettes pour les lecteurs d'écran. | Important | `src/components/pastille-session.tsx`, `pastille-lieu.tsx`, `pastille-evenement.tsx` | S |
+| U1 ✅ corrigé | Design / UX | Pastilles de la carte trop petites à toucher (26 à 34 px, le minimum conseillé est 44) et muettes pour les lecteurs d'écran. | Important | `src/components/pastille-session.tsx`, `pastille-lieu.tsx`, `pastille-evenement.tsx` | S |
 | U2 | Design / UX | Lieux et liens « Réserver » pas vérifiés : un faux lieu ou un lien cassé gâche la première impression. | Important | `docs/lieux-a-verifier.md`, table `lieux` | S |
 | U3 | Design / UX | Couleurs des avatars écrites en dur, contre la règle du design system (risque de mauvais contraste en sombre). | Mineur | `src/components/avatars.tsx` | S |
 | U4 | Design / UX | App en français seulement, alors que Bruxelles est bilingue (déjà prévu « plus tard »). | Mineur | toute l'app | L |

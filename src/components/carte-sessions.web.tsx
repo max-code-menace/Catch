@@ -7,6 +7,8 @@ import { PastilleEvenement } from '@/components/pastille-evenement';
 import { PastilleLieu } from '@/components/pastille-lieu';
 import { PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
 import { CENTRE_ZONE, type Coordonnees } from '@/donnees/sessions';
+import { descriptionPastille } from '@/lib/formats';
+import { texteType } from '@/lib/lieux-sport';
 import { useStyles, type Palette } from '@/lib/theme';
 
 const ETENDUE = 0.13;
@@ -37,7 +39,10 @@ export function CarteSessions({
         const { x, y } = placer(lieu);
         return (
           <View key={lieu.id} style={[styles.marqueur, { left: `${x}%`, top: `${y}%` }]}>
-            <Pressable accessibilityLabel={lieu.nom} onPress={() => onChoisirLieu(lieu.id)}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${lieu.nom}, ${texteType(lieu).toLowerCase()}`}
+              onPress={() => onChoisirLieu(lieu.id)}>
               <PastilleLieu lieu={lieu} choisi={lieu.id === idLieuChoisi} />
             </Pressable>
           </View>
@@ -47,7 +52,10 @@ export function CarteSessions({
         const { x, y } = placer(session);
         return (
           <View key={session.id} style={[styles.marqueur, { left: `${x}%`, top: `${y}%` }]}>
-            <Pressable onPress={() => onChoisir(session.id)}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={descriptionPastille(session)}
+              onPress={() => onChoisir(session.id)}>
               <PastilleSession session={session} choisie={session.id === idChoisie} />
             </Pressable>
           </View>
@@ -57,7 +65,10 @@ export function CarteSessions({
         const { x, y } = placer(evenement);
         return (
           <View key={evenement.id} style={[styles.marqueur, { left: `${x}%`, top: `${y}%` }]}>
-            <Pressable accessibilityLabel={evenement.nom} onPress={() => onChoisirEvenement(evenement.id)}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Événement : ${evenement.nom}`}
+              onPress={() => onChoisirEvenement(evenement.id)}>
               <PastilleEvenement choisi={evenement.id === idEvenementChoisi} />
             </Pressable>
           </View>

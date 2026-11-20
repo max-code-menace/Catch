@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { IconeDrapeau } from '@/components/icones';
+import { Espaces } from '@/constants/theme';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 /**
@@ -21,7 +22,14 @@ export function PastilleEvenement({ choisi }: { choisi: boolean }) {
 
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
-    zone: { padding: 4 },
+    // Zone invisible d'au moins 44 px autour du drapeau : plus facile à toucher
+    zone: {
+      minWidth: Espaces.cibleTactile,
+      minHeight: Espaces.cibleTactile,
+      padding: 4,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     drapeau: {
       width: 34,
       height: 34,

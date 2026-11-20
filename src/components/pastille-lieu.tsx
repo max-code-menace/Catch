@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { PictoSport } from '@/components/picto-sport';
-import { Polices, Rayons, Tailles } from '@/constants/theme';
+import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { LieuSport } from '@/lib/lieux-sport';
 import { useStyles, type Palette } from '@/lib/theme';
 
@@ -12,17 +12,20 @@ import { useStyles, type Palette } from '@/lib/theme';
 export function PastilleLieu({ lieu, choisi }: { lieu: LieuSport; choisi: boolean }) {
   const styles = useStyles(creerStyles);
   return (
-    <View style={styles.zone}>
-      <View style={[styles.rond, choisi && styles.choisi]}>
-        <PictoSport sport={lieu.sports[0]} taille={choisi ? 22 : 17} />
-      </View>
-      {lieu.type === 'payant' && (
-        <View style={styles.euro}>
-          <Text maxFontSizeMultiplier={1} style={styles.euroTexte}>
-            €
-          </Text>
+    // Zone invisible de 44 px autour du petit rond (28 px) : plus facile à toucher
+    <View style={styles.zoneToucher}>
+      <View style={styles.zone}>
+        <View style={[styles.rond, choisi && styles.choisi]}>
+          <PictoSport sport={lieu.sports[0]} taille={choisi ? 22 : 17} />
         </View>
-      )}
+        {lieu.type === 'payant' && (
+          <View style={styles.euro}>
+            <Text maxFontSizeMultiplier={1} style={styles.euroTexte}>
+              €
+            </Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 }
@@ -31,16 +34,24 @@ export function PastilleLieu({ lieu, choisi }: { lieu: LieuSport; choisi: boolea
 export function PastilleGroupeLieux({ nombre }: { nombre: number }) {
   const styles = useStyles(creerStyles);
   return (
-    <View style={styles.groupe}>
-      <Text maxFontSizeMultiplier={1.3} style={styles.groupeTexte}>
-        {nombre} lieux
-      </Text>
+    <View style={styles.zoneToucher}>
+      <View style={styles.groupe}>
+        <Text maxFontSizeMultiplier={1.3} style={styles.groupeTexte}>
+          {nombre} lieux
+        </Text>
+      </View>
     </View>
   );
 }
 
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
+    zoneToucher: {
+      minWidth: Espaces.cibleTactile,
+      minHeight: Espaces.cibleTactile,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     // Un peu de marge pour que le « € » ne soit pas coupé
     zone: { padding: 4 },
     rond: {

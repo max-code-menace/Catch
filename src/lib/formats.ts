@@ -38,6 +38,11 @@ export function textePastille(session: Session) {
   return `${session.nomSport} · ${quand(session.debut).toLowerCase()}`;
 }
 
+/** Ce que VoiceOver lit sur la pastille d'une session : « Foot, ce soir 19h, 3 places libres » */
+export function descriptionPastille(session: Session, maintenant = new Date()) {
+  return `${session.nomSport}, ${quandPhrase(session, maintenant)}, ${textePlaces(session).toLowerCase()}`;
+}
+
 /** « 3 places libres », « 1 place libre », « Complet » */
 export function textePlaces(session: Session) {
   const libres = placesLibres(session);
