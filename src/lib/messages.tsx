@@ -180,16 +180,16 @@ function lire(ligne: LigneMessage): Message {
 
 const CHAMPS = 'id, auteur_id, texte, cree_le, auteur:profils(prenom)';
 
-/** Les 200 derniers messages d'une conversation, du plus ancien au plus récent. `null` si la lecture échoue. */
-export async function lireMessages(sessionId: string): Promise<Message[] | null> {
+/**
+ * Les 200 derniers messages d'une conversation, du plus ancien au plus récent. `null` si la lecture échoue.
+ * Avec `apres` : seulement ceux arrivés depuis (quand un message arrive, on ne relit pas tout).
+ */
+export async function lireMessages(sessionId: string, apres?: Date): Promise<Message[] | null> {
   if (!supabase) return null;
   try {
-    const { data, error } = await supabase
-      .from('messages')
-      .select(CHAMPS)
-      .eq('session_id', sessionId)
-      .order('cree_le', { ascending: false })
-      .limit(200);
+    let requete = supabase.from('messages').select(CHAMPS).eq('session_id', sessionId);
+    if (apres) requete = requete.gt('cree_le', apres.toISOString());
+    const { data, error } = await requete.order('cree_le', { ascending: false }).limit(200);
     if (error) return null;
     return (data as unknown as LigneMessage[]).map(lire).reverse();
   } catch {

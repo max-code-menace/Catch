@@ -31,6 +31,7 @@ import {
   useMessages,
   type Message,
 } from '@/lib/messages';
+import { fusionnerMessages } from '@/lib/fil-messages';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 /** Une bulle : à droite en rouge pour moi, à gauche avec le prénom pour les autres. */
@@ -90,11 +91,23 @@ export default function ConversationSession() {
     setMessages((avant) => [...lus, ...(avant ?? []).filter((m) => m.enAttente)]);
   }, [id]);
 
+  // Quand un message arrive : seulement ceux postérieurs au dernier qu'on a déjà (pas les 200 derniers)
+  const dernier = useRef<Date | null>(null);
+  useEffect(() => {
+    dernier.current = messages?.filter((m) => !m.enAttente).at(-1)?.date ?? null;
+  }, [messages]);
+  const lireNouveaux = useCallback(async () => {
+    const depuis = dernier.current;
+    if (!depuis) return relire();
+    const nouveaux = await lireMessages(id, depuis);
+    if (nouveaux?.length) setMessages((avant) => fusionnerMessages(avant ?? [], nouveaux));
+  }, [id, relire]);
+
   // Lecture à l'ouverture, puis en direct à chaque nouveau message
   useEffect(() => {
     Promise.resolve().then(relire);
-    return ecouterMessages(id, relire);
-  }, [id, relire]);
+    return ecouterMessages(id, lireNouveaux);
+  }, [id, relire, lireNouveaux]);
 
   // Ouverte par une notification, ou après avoir quitté la session : la liste gardée en mémoire n'est
   // peut-être plus à jour. On la relit à chaque ouverture avant de dire quoi que ce soit.
