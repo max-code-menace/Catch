@@ -11,7 +11,7 @@ export default function Confidentialite() {
     <EcranSecondaire titre="Confidentialité">
       <Paragraphe>
         Catch sert à trouver des sessions de sport près de chez toi et à y retrouver des gens. On garde le strict
-        nécessaire pour ça, on ne vend rien et il n’y a pas de publicité. Dernière mise à jour : 19 novembre 2026.
+        nécessaire pour ça, on ne vend rien et il n’y a pas de publicité. Dernière mise à jour : 20 novembre 2026.
       </Paragraphe>
 
       <Partie titre="Qui édite Catch">
@@ -89,7 +89,10 @@ export default function Confidentialite() {
       </Partie>
 
       <Partie titre="Âge">
-        <Paragraphe>Catch s’adresse aux personnes de 16 ans et plus.</Paragraphe>
+        <Paragraphe>
+          Catch est réservé aux personnes de 18 ans et plus. Si on apprend qu’un compte appartient à une personne de
+          moins de 18 ans, on le supprime avec ses données.
+        </Paragraphe>
       </Partie>
     </EcranSecondaire>
   );

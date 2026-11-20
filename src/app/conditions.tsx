@@ -8,7 +8,7 @@ export default function Conditions() {
     <EcranSecondaire titre="Conditions d’utilisation">
       <Paragraphe>
         Catch met en relation des personnes qui veulent faire du sport ensemble. L’app est gratuite. En créant un
-        compte, tu acceptes ce qui suit. Dernière mise à jour : 19 novembre 2026.
+        compte, tu acceptes ce qui suit. Dernière mise à jour : 20 novembre 2026.
       </Paragraphe>
 
       <Partie titre="Qui édite Catch">
@@ -29,7 +29,7 @@ export default function Conditions() {
 
       <Partie titre="Ce qu’on attend de toi">
         <Paragraphe>
-          Tu as 16 ans ou plus. Tu utilises ton vrai prénom. Tu ne crées que des sessions qui auront vraiment lieu,
+          Tu as 18 ans ou plus. Tu utilises ton vrai prénom. Tu ne crées que des sessions qui auront vraiment lieu,
           dans un endroit où on a le droit de jouer.
         </Paragraphe>
         <Paragraphe>
@@ -42,11 +42,10 @@ export default function Conditions() {
         </Paragraphe>
       </Partie>
 
-      <Partie titre="Si tu as 16 ou 17 ans">
+      <Partie titre="Âge minimum : 18 ans">
         <Paragraphe>
-          Tu peux utiliser Catch dès 16 ans. Avant ta première session, parles-en à un parent ou à un adulte de
-          confiance : dis-lui où tu vas et avec qui. Choisis un lieu public. Si quelqu’un te demande ton adresse, des
-          photos ou de l’argent, signale-le et bloque cette personne.
+          Catch est réservé aux personnes de 18 ans et plus. Si on apprend qu’un compte appartient à une personne de
+          moins de 18 ans, on le supprime. Si tu penses qu’un participant est mineur, signale-le depuis l’app.
         </Paragraphe>
       </Partie>
 

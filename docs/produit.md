@@ -60,6 +60,29 @@ But : une carte jamais vide, sans fausses sessions. Règle de tri : chaque élé
 - **Paiement** : prix indicatif payé sur place, pas de paiement dans l'app.
 - **Obligations stores** : bouton signaler / bloquer, contact visible et suppression de compte dès la v1, dans l'app et par un lien web (exigé par Google Play).
 - **Niveau d'exigence** : la v1 est un vrai produit, fini et fiable sur ce qu'il fait. On n'ajoute pas de variantes expérimentales (phrase à trous, grille à peindre, balayage).
+- **Âge minimum : 18 ans** (décidé par Maxime le 20 novembre 2026, au lieu de 16). Raison : Catch va vers des messages privés entre inconnus (voir « Vision » plus bas), ce qui n'est pas acceptable avec des mineurs. On ne vérifie pas l'âge (pas de pièce d'identité) : l'utilisateur le déclare en acceptant les Conditions, et un compte signalé comme mineur est supprimé.
+
+## Vision : l'app pour rencontrer des gens par le sport (20 novembre 2026)
+
+Ce que Maxime veut que Catch devienne : pas seulement une carte de sessions, mais **l'endroit où on rencontre des partenaires de sport et où on garde contact avec eux**. Les gens continueront d'utiliser WhatsApp ou Messenger pour le reste ; Catch doit être là où on rencontre, avant et après la session. Modèle : BlaBlaCar (on peut écrire au conducteur avant de réserver, sans y être obligé).
+
+Ce qui en découle, dans l'ordre proposé (chaque étape sert seule ; rien n'est construit avant la fin de l'audit et l'accord de Maxime) :
+
+1. **« Écrire à l'organisateur »** depuis le détail d'une session, avant de catcher : poser une question, voir si la personne est sérieuse. Pas obligatoire pour catcher.
+2. **« Ils cherchent aussi »** : deux sessions du même sport, à la même heure, proches, qui manquent toutes les deux de joueurs (exemple : deux tennis à 18h) → on propose aux deux organisateurs de s'écrire pour jouer ensemble. Affiché dans l'app (bandeau sur sa session), **pas par notification** (on reste à 4 types). Rien n'est fusionné automatiquement.
+3. **Amis** : « Ajouter en ami » une personne avec qui on a joué (acceptée des deux côtés). Profil d'ami : sports, prochaines sessions. Messages privés entre amis.
+4. **Groupes d'amis** (exemple : « le foot du jeudi ») : rejoint l'idée des sessions qui se répètent.
+5. Pas de pièces jointes pour l'instant (aucune utilité claire).
+
+**Onglet Messages séparé en deux espaces** (demande de Maxime, 20 novembre), pour ne pas mélanger les conversations des gens avec qui on *va* jouer et de ceux avec qui on *a* passé un bon moment :
+- **Sessions** : les groupes créés automatiquement pour chaque session (comme aujourd'hui), plus « Écrire à l'organisateur » et « Ils cherchent aussi ». Une fois la session passée, sa conversation descend dans « Terminées » (repliée) au lieu d'encombrer la liste.
+- **Amis** : les conversations privées avec ses amis et les groupes d'amis.
+- Une pastille de non-lus par espace, pour voir d'un coup d'œil où ça bouge.
+
+Garde-fous à respecter :
+- **La conversation de groupe d'une session reste** (« j'arrive », « terrain 3 ») : Maxime trouvait les groupes peu utiles, mais sans eux l'organisateur d'un foot à 10 aurait 9 conversations séparées. Les messages privés s'ajoutent, ils ne remplacent pas.
+- **Vie privée** : ce qu'on voit d'une personne (sessions à venir, sports) est réservé à ses amis acceptés, jamais public (même logique que la correction S1 de l'audit : on ne doit pas pouvoir suivre où va quelqu'un).
+- **Sécurité** : signaler et bloquer marchent dans les messages privés comme dans les groupes ; limite d'envoi contre le spam (point S5 de l'audit).
 
 ## Fonctionnalités prévues plus tard (v2)
 
