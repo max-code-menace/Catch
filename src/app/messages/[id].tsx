@@ -15,51 +15,84 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Bouton } from '@/components/bouton';
-import { IconeEnvoyer, IconeLieu, IconeRetour } from '@/components/icones';
+import { IconeEnvoyer, IconeRetour } from '@/components/icones';
+import { PictoSport } from '@/components/picto-sport';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { prevenir } from '@/lib/alerte';
 import { useCompte } from '@/lib/compte';
 import { heure, quand } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
-import { ouvrirItineraire } from '@/lib/itineraire';
 import { bloquer, demander } from '@/lib/moderation';
 import {
   ecouterMessages,
   envoyerMessage,
   lireMessages,
-  quandMessage,
   useMessages,
   type Message,
 } from '@/lib/messages';
-import { fusionnerMessages } from '@/lib/fil-messages';
+import {
+  fusionnerMessages,
+  initiale,
+  placesDansLeFil,
+  teinte,
+  texteSeparateur,
+  type PlaceDansLeFil,
+} from '@/lib/fil-messages';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
-/** Une bulle : à droite en rouge pour moi, à gauche avec le prénom pour les autres. */
+/**
+ * Une bulle, comme dans Messenger : à droite en rouge pour moi, à gauche en gris pour les autres.
+ * Les messages qui se suivent sont collés (coins resserrés du côté de l'auteur), le prénom n'apparaît
+ * qu'au-dessus du premier et le petit rond de l'auteur qu'à côté du dernier.
+ */
 function Bulle({
   message,
   deMoi,
-  avecPrenom,
+  place,
   onOptions,
 }: {
   message: Message;
   deMoi: boolean;
-  avecPrenom: boolean;
+  place: PlaceDansLeFil;
   /** Appui long sur le message d'un autre : signaler ou bloquer */
   onOptions: (message: Message) => void;
 }) {
+  const c = useCouleurs();
   const styles = useStyles(creerStyles);
+  const teintes = [c.avatar1, c.avatar2, c.avatar3, c.avatar4];
+  const { debutGroupe, finGroupe } = place;
+  // Coins resserrés du côté de l'auteur, là où la bulle touche sa voisine
+  const coins = deMoi
+    ? { borderTopRightRadius: debutGroupe ? 18 : 4, borderBottomRightRadius: finGroupe ? 18 : 4 }
+    : { borderTopLeftRadius: debutGroupe ? 18 : 4, borderBottomLeftRadius: finGroupe ? 18 : 4 };
   return (
-    <View style={[styles.rangee, deMoi && styles.rangeeMoi]}>
-      {avecPrenom && <Text style={styles.prenom}>{message.prenom || 'Quelqu’un'}</Text>}
-      <Pressable
-        accessibilityHint={deMoi ? undefined : 'Appui long pour signaler ou bloquer'}
-        accessibilityActions={deMoi ? undefined : [{ name: 'longpress', label: 'Signaler ou bloquer' }]}
-        onAccessibilityAction={() => onOptions(message)}
-        onLongPress={deMoi ? undefined : () => onOptions(message)}
-        delayLongPress={350}
-        style={[styles.bulle, deMoi ? styles.bulleMoi : styles.bulleAutre, message.enAttente && styles.enAttente]}>
-        <Text style={[styles.bulleTexte, deMoi && styles.bulleTexteMoi]}>{message.texte}</Text>
-      </Pressable>
+    <View style={finGroupe && styles.finGroupe}>
+      {place.separateur && <Text style={styles.separateur}>{texteSeparateur(place.separateur)}</Text>}
+      {!deMoi && place.avecPrenom && <Text style={styles.prenom}>{message.prenom || 'Quelqu’un'}</Text>}
+      <View style={[styles.rangee, deMoi && styles.rangeeMoi]}>
+        {!deMoi &&
+          (finGroupe ? (
+            <View
+              importantForAccessibility="no"
+              style={[styles.avatar, { backgroundColor: teintes[teinte(message.auteurId)] }]}>
+              <Text maxFontSizeMultiplier={1.3} style={styles.avatarTexte}>
+                {initiale(message.prenom)}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.avatarVide} />
+          ))}
+        <Pressable
+          accessibilityLabel={deMoi ? `Toi : ${message.texte}` : `${message.prenom || 'Quelqu’un'} : ${message.texte}`}
+          accessibilityHint={deMoi ? undefined : 'Appui long pour signaler ou bloquer'}
+          accessibilityActions={deMoi ? undefined : [{ name: 'longpress', label: 'Signaler ou bloquer' }]}
+          onAccessibilityAction={() => onOptions(message)}
+          onLongPress={deMoi ? undefined : () => onOptions(message)}
+          delayLongPress={350}
+          style={[styles.bulle, deMoi ? styles.bulleMoi : styles.bulleAutre, coins, message.enAttente && styles.enAttente]}>
+          <Text style={[styles.bulleTexte, deMoi && styles.bulleTexteMoi]}>{message.texte}</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -294,6 +327,8 @@ export default function ConversationSession() {
   const enDirect = conversation.debut <= new Date() && new Date() < conversation.fin;
   const titre = conversation.commune ? `${conversation.titre} · ${conversation.commune}` : conversation.titre;
   const peutEnvoyer = texte.trim().length > 0;
+  const places = placesDansLeFil(messages ?? []);
+  const inscrits = `${conversation.inscrits} ${conversation.inscrits > 1 ? 'inscrits' : 'inscrit'}`;
 
   return (
     <KeyboardAvoidingView
@@ -312,28 +347,18 @@ export default function ConversationSession() {
           accessibilityRole="button"
           accessibilityLabel={`${titre}, voir la session`}
           onPress={() => router.push({ pathname: '/session/[id]', params: { id } })}
-          style={styles.enteteTextes}>
-          <Text accessibilityRole="header" style={styles.titre} numberOfLines={1}>
-            {titre}
-          </Text>
-          <Text style={styles.aide} numberOfLines={1}>
-            {enDirect ? `En direct · jusqu’à ${heure(conversation.fin)}` : quand(conversation.debut)} ·{' '}
-            {conversation.inscrits} {conversation.inscrits > 1 ? 'inscrits' : 'inscrit'}
-          </Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.lieu}>
-        <IconeLieu couleur={c.rougeTexte} taille={18} />
-        <Text style={styles.lieuTexte} numberOfLines={1}>
-          {conversation.lieu}
-        </Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Itinéraire vers ${conversation.lieu}`}
-          onPress={() => ouvrirItineraire(conversation.position)}
-          hitSlop={8}>
-          <Text style={styles.lieuLien}>Itinéraire</Text>
+          style={({ pressed }) => [styles.enteteTextes, pressed && { opacity: 0.6 }]}>
+          <View style={styles.rondEntete}>
+            <PictoSport sport={conversation.sport} taille={24} />
+          </View>
+          <View style={styles.enteteColonne}>
+            <Text accessibilityRole="header" style={styles.titre} numberOfLines={1}>
+              {conversation.titre}
+            </Text>
+            <Text style={[styles.aide, enDirect && styles.enDirect]} numberOfLines={1}>
+              {enDirect ? `En direct · jusqu’à ${heure(conversation.fin)}` : quand(conversation.debut)}
+            </Text>
+          </View>
         </Pressable>
       </View>
 
@@ -345,11 +370,22 @@ export default function ConversationSession() {
         contentContainerStyle={styles.filContenu}
         keyboardShouldPersistTaps="handled"
         onContentSizeChange={() => liste.current?.scrollToEnd({ animated: false })}
+        // En haut du fil, comme au début d'une conversation Messenger : de quoi il s'agit, une seule fois
         ListHeaderComponent={
-          <Text style={styles.systeme}>
-            Tu as rejoint la session · {quandMessage(conversation.inscritLe)}
-            {'\n'}Appui long sur un message pour le signaler ou bloquer son auteur
-          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${titre}, ${conversation.lieu}, ${inscrits}. Voir la session`}
+            onPress={() => router.push({ pathname: '/session/[id]', params: { id } })}
+            style={styles.intro}>
+            <View style={styles.rondIntro}>
+              <PictoSport sport={conversation.sport} taille={44} />
+            </View>
+            <Text style={styles.introTitre}>{titre}</Text>
+            <Text style={styles.aideCentree} numberOfLines={2}>
+              {conversation.lieu} · {inscrits}
+            </Text>
+            <Text style={styles.introLien}>Voir la session</Text>
+          </Pressable>
         }
         ListEmptyComponent={
           <Text style={styles.vide}>
@@ -361,13 +397,11 @@ export default function ConversationSession() {
           </Text>
         }
         renderItem={({ item, index }) => {
-          const deMoi = item.auteurId === compte?.id;
-          const precedent = messages?.[index - 1];
           return (
             <Bulle
               message={item}
-              deMoi={deMoi}
-              avecPrenom={!deMoi && precedent?.auteurId !== item.auteurId}
+              deMoi={item.auteurId === compte?.id}
+              place={places[index]}
               onOptions={options}
             />
           );
@@ -383,21 +417,24 @@ export default function ConversationSession() {
         <TextInput
           value={texte}
           onChangeText={setTexte}
-          placeholder="Écrire au groupe"
+          placeholder="Message"
           placeholderTextColor={c.texteSecondaire}
           multiline
           maxLength={1000}
+          numberOfLines={1}
           style={styles.champ}
         />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Envoyer"
-          accessibilityState={{ disabled: !peutEnvoyer }}
-          disabled={!peutEnvoyer}
-          onPress={envoyer}
-          style={({ pressed }) => [styles.envoyer, !peutEnvoyer && styles.envoyerInactif, pressed && { opacity: 0.8 }]}>
-          <IconeEnvoyer couleur={c.surRouge} taille={20} />
-        </Pressable>
+        {/* Comme Messenger : le bouton d'envoi n'apparaît que quand il y a quelque chose à envoyer */}
+        {peutEnvoyer && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Envoyer"
+            onPress={envoyer}
+            hitSlop={4}
+            style={({ pressed }) => [styles.envoyer, pressed && { opacity: 0.6 }]}>
+            <IconeEnvoyer couleur={c.rouge} taille={26} />
+          </Pressable>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
@@ -425,44 +462,64 @@ const creerStyles = (c: Palette) =>
       justifyContent: 'center',
     },
     presse: { backgroundColor: c.beige },
-    enteteTextes: { flex: 1, minHeight: Espaces.cibleTactile, justifyContent: 'center' },
-    titre: { fontFamily: Polices.texteDemi, fontSize: Tailles.accent, color: c.encre },
-    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
-    aideCentree: { fontFamily: Polices.texte, fontSize: Tailles.courant, color: c.texteSecondaire, textAlign: 'center' },
-    lieu: {
+    enteteTextes: {
+      flex: 1,
+      minHeight: Espaces.cibleTactile,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
-      marginHorizontal: 12,
-      marginTop: 10,
-      paddingHorizontal: 14,
-      minHeight: Espaces.cibleTactile,
-      borderRadius: Rayons.bouton,
-      backgroundColor: c.rougeDoux,
+      gap: 10,
     },
-    lieuTexte: { flex: 1, fontFamily: Polices.texteMoyen, fontSize: Tailles.petit, color: c.rougeTexte },
-    lieuLien: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.rougeTexte },
+    rondEntete: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.beige,
+    },
+    enteteColonne: { flex: 1 },
+    titre: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
+    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+    enDirect: { color: c.rougeTexte },
+    aideCentree: { fontFamily: Polices.texte, fontSize: Tailles.courant, color: c.texteSecondaire, textAlign: 'center' },
     fil: { flex: 1 },
-    filContenu: { padding: Espaces.marge, gap: 6, flexGrow: 1 },
-    systeme: {
-      textAlign: 'center',
-      fontFamily: Polices.texte,
-      fontSize: Tailles.pastille,
-      color: c.texteSecondaire,
-      paddingBottom: 8,
+    filContenu: { paddingHorizontal: 12, paddingBottom: 8, flexGrow: 1 },
+    intro: { alignItems: 'center', gap: 4, paddingTop: 28, paddingBottom: 20, paddingHorizontal: Espaces.marge },
+    rondIntro: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.beige,
+      marginBottom: 6,
     },
-    vide: { textAlign: 'center', fontFamily: Polices.texte, fontSize: Tailles.courant, color: c.texteSecondaire, paddingTop: 24 },
-    rangee: { alignItems: 'flex-start', gap: 2 },
-    rangeeMoi: { alignItems: 'flex-end' },
-    prenom: {
+    introTitre: { fontFamily: Polices.titreDemi, fontSize: Tailles.sousTitre, color: c.encre, textAlign: 'center' },
+    introLien: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.rougeTexte, paddingTop: 6 },
+    vide: { textAlign: 'center', fontFamily: Polices.texte, fontSize: Tailles.courant, color: c.texteSecondaire, paddingTop: 8 },
+    finGroupe: { marginBottom: 10 },
+    separateur: {
+      textAlign: 'center',
       fontFamily: Polices.texteMoyen,
       fontSize: Tailles.pastille,
       color: c.texteSecondaire,
-      paddingLeft: 12,
-      paddingTop: 6,
+      paddingTop: 8,
+      paddingBottom: 12,
     },
-    bulle: { maxWidth: '80%', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 18 },
-    bulleAutre: { backgroundColor: c.carte, borderWidth: 1, borderColor: c.trait },
+    rangee: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginTop: 2 },
+    rangeeMoi: { justifyContent: 'flex-end' },
+    avatar: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+    avatarVide: { width: 28 },
+    avatarTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille, color: c.surAvatar },
+    prenom: {
+      fontFamily: Polices.texte,
+      fontSize: Tailles.pastille,
+      color: c.texteSecondaire,
+      paddingLeft: 48,
+      paddingBottom: 2,
+    },
+    bulle: { maxWidth: '75%', paddingVertical: 9, paddingHorizontal: 13, borderRadius: 18 },
+    bulleAutre: { backgroundColor: c.beige },
     bulleMoi: { backgroundColor: c.rouge },
     enAttente: { opacity: 0.6 },
     bulleTexte: { fontFamily: Polices.texte, fontSize: Tailles.courant, lineHeight: 21, color: c.encre },
@@ -479,33 +536,27 @@ const creerStyles = (c: Palette) =>
       flexDirection: 'row',
       alignItems: 'flex-end',
       gap: 8,
-      paddingTop: 10,
+      paddingTop: 8,
       paddingHorizontal: 12,
-      borderTopWidth: 1,
-      borderTopColor: c.trait,
       backgroundColor: c.fond,
     },
     champ: {
       flex: 1,
-      minHeight: Espaces.cibleTactile,
+      minHeight: 40,
       maxHeight: 120,
-      paddingVertical: 10,
+      paddingTop: 10,
+      paddingBottom: 10,
       paddingHorizontal: 16,
-      borderRadius: 22,
-      backgroundColor: c.carte,
-      borderWidth: 1,
-      borderColor: c.trait,
+      borderRadius: 20,
+      backgroundColor: c.beige,
       fontFamily: Polices.texte,
       fontSize: Tailles.courant,
       color: c.encre,
     },
     envoyer: {
-      width: Espaces.cibleTactile,
-      height: Espaces.cibleTactile,
-      borderRadius: Rayons.pilule,
+      width: 40,
+      height: 40,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: c.rouge,
     },
-    envoyerInactif: { opacity: 0.4 },
   });

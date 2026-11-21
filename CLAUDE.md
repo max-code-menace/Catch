@@ -60,6 +60,8 @@ Les fichiers `design/canvas/*.dc.html` sont générés par `design/canvas/genere
 
 - **Carte vide revue (21 novembre, choix de Maxime après maquettes)** : le grand panneau « Rien à 5 km » (voile, 3 boutons) est remplacé par une petite carte au-dessus de « + Créer » (`components/carte-plus-proche.tsx`) : picto, « Rien à 5 km · la plus proche », la session la plus proche à moins de 30 km (heure, distance, places), toucher ouvre son détail ; à droite une vraie pastille orange « +N autres » (ou « Sur la carte » s'il n'y en a qu'une) qui élargit le rayon ; croix en bulle sur le coin. Sans session : l'événement le plus proche, sinon le lieu le plus proche (toucher ouvre sa fiche, pastille « Voir autour ») ; sans rien du tout : la balle et « Lance la première session du coin ». Revient avec « recentrer ». Pas vu sur un vrai iPhone.
 
+- **Messages allégés façon Messenger (21 novembre, demande de Maxime : « trop de charge mentale »)** : liste sans titre de section ni traits, gros rond avec le picto, aperçu et heure sur une seule ligne (« Lucas : … · 11h44 »), non lu = gras + point rouge (plus de compteur). Conversation : en-tête réduit (rond, nom, quand), plus de bandeau lieu/Itinéraire ni de texte « Appui long… » (le lieu et « Voir la session » sont en haut du fil, une seule fois) ; bulles grises sans bordure, messages d'une même personne collés (`placesDansLeFil` dans `lib/fil-messages.ts`, testé), prénom seulement quand l'auteur change, petit rond à initiale à côté du dernier message, heure au milieu du fil seulement après 1 h de pause ; champ « Message » sans bordure, bouton d'envoi qui n'apparaît que quand on a écrit. Pas vu sur un vrai iPhone.
+
 Plan complet dans `docs/produit.md`.
 
 - [x] 0. Projet Expo

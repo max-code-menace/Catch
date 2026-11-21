@@ -13,39 +13,41 @@ import { useStyles, type Palette } from '@/lib/theme';
 /** « Lucas : on est devant la buvette », « Toi : j'arrive », ou une invitation à écrire le premier. */
 function apercu(conversation: Conversation) {
   const { dernier } = conversation;
-  if (!dernier) return 'Aucun message pour l’instant';
+  if (!dernier) return 'Dis bonjour au groupe';
   return `${dernier.deMoi ? 'Toi' : dernier.prenom || 'Quelqu’un'} : ${dernier.texte}`;
 }
 
+/**
+ * Une ligne comme dans Messenger : un rond, le nom, l'aperçu suivi de l'heure sur la même ligne.
+ * Non lu = texte en gras et un point rouge à droite, rien de plus.
+ */
 function LigneConversation({ conversation }: { conversation: Conversation }) {
   const styles = useStyles(creerStyles);
   const nonLue = conversation.nonLus > 0;
-  const titre = conversation.commune ? `${conversation.titre} · ${conversation.commune}` : conversation.titre;
+  const quandTexte = quandMessage(conversation.dernier?.date ?? conversation.inscritLe);
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${titre}, ${nonLue ? `${conversation.nonLus} non lus, ` : ''}${apercu(conversation)}`}
+      accessibilityLabel={`${conversation.titre}, ${nonLue ? 'non lu, ' : ''}${apercu(conversation)}, ${quandTexte}`}
       onPress={() => router.push({ pathname: '/messages/[id]', params: { id: conversation.id } })}
       style={({ pressed }) => [styles.ligne, pressed && styles.presse]}>
-      <View style={styles.picto}>
-        <PictoSport sport={conversation.sport} taille={36} />
+      <View style={styles.rond}>
+        <PictoSport sport={conversation.sport} taille={34} />
       </View>
       <View style={styles.textes}>
-        <Text style={styles.titre} numberOfLines={1}>
-          {titre}
+        <Text style={[styles.titre, nonLue && styles.gras]} numberOfLines={1}>
+          {conversation.titre}
         </Text>
-        <Text style={[styles.apercu, nonLue && styles.apercuNonLu]} numberOfLines={1}>
-          {apercu(conversation)}
-        </Text>
+        <View style={styles.ligneApercu}>
+          <Text style={[styles.apercu, nonLue && styles.apercuNonLu]} numberOfLines={1}>
+            {apercu(conversation)}
+          </Text>
+          <Text style={[styles.quand, nonLue && styles.apercuNonLu]} numberOfLines={1}>
+            {` · ${quandTexte}`}
+          </Text>
+        </View>
       </View>
-      <View style={styles.droite}>
-        <Text style={styles.quand}>{quandMessage(conversation.dernier?.date ?? conversation.inscritLe)}</Text>
-        {nonLue && (
-          <View style={styles.pastille}>
-            <Text style={styles.pastilleTexte}>{conversation.nonLus > 9 ? '9+' : conversation.nonLus}</Text>
-          </View>
-        )}
-      </View>
+      {nonLue && <View style={styles.point} />}
     </Pressable>
   );
 }
@@ -108,8 +110,7 @@ export default function Messages() {
     // Tout l'écran défile (comme Mes sessions) : la liste passe sous la barre et « + Créer »,
     // au lieu de s'arrêter au-dessus en laissant une bande vide.
     <Ecran titre="Messages" defile>
-      <View>
-        <Text style={styles.section}>Tes sessions</Text>
+      <View style={styles.liste}>
         {conversations.map((conversation) => (
           <LigneConversation key={conversation.id} conversation={conversation} />
         ))}
@@ -120,44 +121,32 @@ export default function Messages() {
 
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
-    section: {
-      fontFamily: Polices.texteDemi,
-      fontSize: Tailles.aide,
-      color: c.texteSecondaire,
-      paddingBottom: 4,
-    },
+    // Le fond pressé déborde un peu des marges, comme dans Messenger
+    liste: { marginHorizontal: -10 },
     ligne: {
-      minHeight: 72,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
-      paddingVertical: 10,
-      borderBottomWidth: 1,
-      borderBottomColor: c.trait,
+      paddingVertical: 8,
+      paddingHorizontal: 10,
+      borderRadius: Rayons.bouton,
     },
-    presse: { opacity: 0.6 },
-    picto: {
-      width: 48,
-      height: 48,
-      borderRadius: 14,
+    presse: { backgroundColor: c.beige },
+    rond: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: c.beige,
     },
     textes: { flex: 1, gap: 2 },
-    titre: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
-    apercu: { fontFamily: Polices.texte, fontSize: Tailles.petit, color: c.texteSecondaire },
-    apercuNonLu: { fontFamily: Polices.texteMoyen, color: c.encre },
-    droite: { alignItems: 'flex-end', gap: 6 },
-    quand: { fontFamily: Polices.texte, fontSize: Tailles.pastille, color: c.texteSecondaire },
-    pastille: {
-      minWidth: 20,
-      height: 20,
-      paddingHorizontal: 6,
-      borderRadius: Rayons.pilule,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: c.rouge,
-    },
-    pastilleTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.micro, color: c.surRouge },
+    titre: { fontFamily: Polices.texteMoyen, fontSize: Tailles.texte, color: c.encre },
+    gras: { fontFamily: Polices.texteDemi },
+    ligneApercu: { flexDirection: 'row' },
+    apercu: { flexShrink: 1, fontFamily: Polices.texte, fontSize: Tailles.petit, color: c.texteSecondaire },
+    // L'heure ne se coupe jamais : c'est l'aperçu qui raccourcit
+    quand: { flexShrink: 0, fontFamily: Polices.texte, fontSize: Tailles.petit, color: c.texteSecondaire },
+    apercuNonLu: { fontFamily: Polices.texteDemi, color: c.encre },
+    point: { width: 12, height: 12, borderRadius: 6, backgroundColor: c.rouge },
   });
