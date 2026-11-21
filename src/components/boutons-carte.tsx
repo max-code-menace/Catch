@@ -47,7 +47,7 @@ export function BulleMesSports({ onPress }: { onPress: () => void }) {
       <View style={styles.pointe} />
       <Pressable accessibilityRole="button" onPress={onPress} style={styles.bulle}>
         <Text maxFontSizeMultiplier={1.3} style={styles.bulleTexte}>
-          Choisis tes sports pour ne voir qu’eux sur la carte.
+          Choisis tes sports : ensuite, l’étoile passe de tes sports à tous en un toucher.
         </Text>
       </Pressable>
     </Animated.View>

@@ -14,6 +14,7 @@ import { FicheSession } from '@/components/fiche-session';
 import { BoutonPresDeMoi, BulleMesSports } from '@/components/boutons-carte';
 import { CartePlusProche } from '@/components/carte-plus-proche';
 import { FeuilleMesSports, TOUS_LES_TYPES, type TypesCarte } from '@/components/feuille-mes-sports';
+import { ToastMesSports } from '@/components/toast-mes-sports';
 import { IconeDrapeau, IconeSansReseau } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
 import { ListeSessions } from '@/components/liste-sessions';
@@ -73,6 +74,8 @@ export default function Carte() {
   const filtre = filtreActif(choix);
   const [types, setTypes] = useState<TypesCarte>(TOUS_LES_TYPES);
   const [feuilleOuverte, setFeuilleOuverte] = useState(false);
+  // Message sous la barre après un toucher de l'étoile (« Tes sports · … » / « Tous les sports »)
+  const [annonce, setAnnonce] = useState<{ cle: number; tous: boolean } | null>(null);
   const bulle = useBulleMesSports(mesSports.pret && mesSports.sports.length === 0);
   const voirSessions = types.sessions;
   const { sessions, eclats, lieux, evenements } = useFiltreMesSports({
@@ -359,9 +362,29 @@ export default function Carte() {
         onMesSports={() => {
           vibrer.selection();
           bulle.cacher();
-          setFeuilleOuverte(true);
+          // Pas encore de sports choisis : on les choisit d'abord. Ensuite l'étoile bascule en un toucher.
+          if (mesSports.sports.length === 0) {
+            setFeuilleOuverte(true);
+            return;
+          }
+          const tous = !mesSports.tous;
+          mesSports.setTous(tous);
+          setAnnonce({ cle: Date.now(), tous });
+          setPanneauFerme(false);
         }}
       />
+      {annonce && !feuilleOuverte && (
+        <ToastMesSports
+          cle={annonce.cle}
+          tous={annonce.tous}
+          sports={listeSports(mesSports.sports, nomSport)}
+          onModifier={() => {
+            setAnnonce(null);
+            setFeuilleOuverte(true);
+          }}
+          onFini={() => setAnnonce(null)}
+        />
+      )}
       {bulle.afficher && !feuilleOuverte && (
         <BulleMesSports
           onPress={() => {

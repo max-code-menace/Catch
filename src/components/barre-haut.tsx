@@ -48,7 +48,7 @@ export function BarreHaut({ zone, vue, onBasculer, nombreSports, descriptionSpor
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={descriptionSports}
-        accessibilityHint="Choisir les sports à montrer"
+        accessibilityHint="Passe de tes sports à tous les sports"
         onPress={onMesSports}
         hitSlop={4}
         style={({ pressed }) => [styles.etoile, nombreSports > 0 && styles.etoileActive, pressed && styles.presse]}>
