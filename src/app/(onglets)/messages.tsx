@@ -1,6 +1,6 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Bouton } from '@/components/bouton';
 import { Aide, Ecran } from '@/components/ecran';
@@ -105,20 +105,21 @@ export default function Messages() {
   }
 
   return (
-    <Ecran titre="Messages">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.liste}>
+    // Tout l'écran défile (comme Mes sessions) : la liste passe sous la barre et « + Créer »,
+    // au lieu de s'arrêter au-dessus en laissant une bande vide.
+    <Ecran titre="Messages" defile>
+      <View>
         <Text style={styles.section}>Tes sessions</Text>
         {conversations.map((conversation) => (
           <LigneConversation key={conversation.id} conversation={conversation} />
         ))}
-      </ScrollView>
+      </View>
     </Ecran>
   );
 }
 
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
-    liste: { paddingBottom: 24 },
     section: {
       fontFamily: Polices.texteDemi,
       fontSize: Tailles.aide,
