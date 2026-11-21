@@ -183,3 +183,18 @@ export function descriptionGroupe(sessions: Session[], maintenant = new Date()) 
   if (enDirect) parties.push(aVenir.length ? `dont ${enDirect} en ce moment` : 'en ce moment');
   return parties.join(', ');
 }
+
+/**
+ * Le compte à rebours en grand dans l'en-tête du détail :
+ * « En direct », « Dans 45 min », « Dans 3 h », « Ce soir », « Demain », « Dans 4 jours », « Terminée ».
+ */
+export function compteARebours(session: Session, maintenant = new Date()) {
+  if (maintenant >= session.fin) return 'Terminée';
+  if (estEnDirect(session, maintenant)) return 'En direct';
+  const minutes = Math.round((session.debut.getTime() - maintenant.getTime()) / 60_000);
+  if (minutes < 60) return `Dans ${Math.max(1, minutes)} min`;
+  const ecart = joursEntre(maintenant, session.debut);
+  if (ecart === 0) return minutes < 4 * 60 ? `Dans ${Math.round(minutes / 60)} h` : session.debut.getHours() >= 18 ? 'Ce soir' : "Aujourd'hui";
+  if (ecart === 1) return 'Demain';
+  return `Dans ${ecart} jours`;
+}

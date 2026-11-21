@@ -20,5 +20,5 @@ export function ApercuCarte(_: PropsApercu) {
 
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
-    fond: { backgroundColor: c.fondCarte, alignItems: 'center', justifyContent: 'center', paddingBottom: 30 },
+    fond: { backgroundColor: c.fondCarte, alignItems: 'center', justifyContent: 'center', paddingBottom: 0 },
   });

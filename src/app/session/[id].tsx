@@ -4,11 +4,11 @@ import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ApercuCarte } from '@/components/apercu-carte';
-import { Avatars } from '@/components/avatars';
 import { BadgeSession } from '@/components/badge-session';
 import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
 import { BoutonCatch } from '@/components/bouton-catch';
+import { EquipeSession } from '@/components/equipe-session';
 import {
   IconeCalendrier,
   IconeDrapeau,
@@ -19,16 +19,16 @@ import {
   IconeRetour,
 } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
+import { TerrainSport } from '@/components/terrain-sport';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import {
   annulationLibre,
+  compteARebours,
   distance,
-  estEnDirect,
   placesLibres,
   quandDetail,
   texteDistance,
   texteDuree,
-  textePlaces,
 } from '@/lib/formats';
 import { useCatch } from '@/lib/catch';
 import { useCompte } from '@/lib/compte';
@@ -39,7 +39,9 @@ import { ouvrirItineraire } from '@/lib/itineraire';
 import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
-const HAUTEUR_CARTE = 250;
+/** Hauteur de l'en-tête rouge, sous la barre d'état */
+const HAUTEUR_ENTETE = 230;
+const HAUTEUR_CARTE = 130;
 
 type Icone = (props: { couleur: string; taille?: number }) => React.ReactNode;
 
@@ -136,7 +138,6 @@ export default function DetailSession() {
 
   const catchee = estCatchee(session.id);
   const organisee = session.organisateurId === compte?.id;
-  const enDirect = estEnDirect(session);
   const libres = placesLibres(session);
   const nombre = session.inscrits.length;
 
@@ -148,21 +149,28 @@ export default function DetailSession() {
   return (
     <View style={styles.ecran}>
       <ScrollView contentContainerStyle={styles.defilement} showsVerticalScrollIndicator={false}>
-        <View style={styles.carte}>
-          <ApercuCarte position={session.position} />
+        <View style={[styles.enteteSport, { height: top + HAUTEUR_ENTETE, paddingTop: top }]}>
+          <TerrainSport sport={session.sport} couleur={c.surRouge} />
+          {/* Page d'invitation (web) : le logo défile avec l'en-tête rouge */}
+          {invitation && (
+            <Text accessibilityLabel="Catch" style={[styles.logo, { top: top + 16 }]}>
+              catch
+            </Text>
+          )}
+          <View style={styles.rondPicto}>
+            <PictoSport sport={session.sport} taille={56} />
+          </View>
+          <Text style={styles.rebours} maxFontSizeMultiplier={1.3}>
+            {compteARebours(session)}
+          </Text>
         </View>
 
         <View style={styles.fiche}>
           <BadgeSession session={session} />
 
-          <View style={styles.entete}>
-            <View style={styles.picto}>
-              <PictoSport sport={session.sport} taille={36} />
-            </View>
-            <Text accessibilityRole="header" style={styles.titre}>
-              {session.titre}
-            </Text>
-          </View>
+          <Text accessibilityRole="header" style={styles.titre}>
+            {session.titre}
+          </Text>
 
           <Text style={styles.organisateur}>
             {invitation ? `${session.organisateur} t’invite à jouer` : `Organisée par ${session.organisateur}`}
@@ -221,17 +229,15 @@ export default function DetailSession() {
             )}
           </View>
 
-          <View style={styles.places}>
-            <View style={styles.ligneTextes}>
-              <Text style={[styles.placesTitre, libres === 0 && { color: c.encre }]}>
-                {textePlaces(session)}
-              </Text>
-              <Text style={styles.aide}>
-                {nombre} {enDirect ? 'jouent' : nombre === 1 ? 'inscrit' : 'inscrits'} sur {session.joueurs}
-              </Text>
-            </View>
-            <Avatars initiales={session.inscrits} />
-          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Itinéraire vers ${session.lieu}`}
+            onPress={() => ouvrirItineraire(session.position)}
+            style={({ pressed }) => [styles.carte, pressed && styles.cartePressee]}>
+            <ApercuCarte position={session.position} />
+          </Pressable>
+
+          <EquipeSession session={session} onInviter={invitation ? undefined : () => inviter(session)} />
 
           {/* On ne se signale pas soi-même */}
           {session.organisateurId !== compte?.id && (
@@ -267,11 +273,7 @@ export default function DetailSession() {
         </Pressable>
       )}
 
-      {invitation ? (
-        <Text accessibilityLabel="Catch" style={[styles.logo, { top: top + 16 }]}>
-          catch
-        </Text>
-      ) : (
+      {!invitation && (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Inviter"
@@ -342,7 +344,32 @@ const creerStyles = (c: Palette) =>
   StyleSheet.create({
     ecran: { flex: 1, backgroundColor: c.fond },
     defilement: { flexGrow: 1 },
-    carte: { height: HAUTEUR_CARTE, backgroundColor: c.beige },
+    enteteSport: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+      overflow: 'hidden',
+      backgroundColor: c.rouge,
+    },
+    rondPicto: {
+      width: 84,
+      height: 84,
+      borderRadius: 42,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.rondPicto,
+      boxShadow: c.ombre,
+    },
+    rebours: { fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, color: c.surRouge, marginBottom: 12 },
+    carte: {
+      height: HAUTEUR_CARTE,
+      overflow: 'hidden',
+      borderRadius: Rayons.carte,
+      borderWidth: 1,
+      borderColor: c.trait,
+      backgroundColor: c.fondCarte,
+    },
+    cartePressee: { opacity: 0.8 },
     fiche: {
       flexGrow: 1,
       marginTop: -24,
@@ -354,16 +381,7 @@ const creerStyles = (c: Palette) =>
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
     },
-    entete: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    picto: {
-      width: 48,
-      height: 48,
-      borderRadius: 14,
-      backgroundColor: c.beige,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    titre: { flex: 1, fontFamily: Polices.titre, fontSize: Tailles.titreDetail, lineHeight: 38, color: c.encre },
+    titre: { fontFamily: Polices.titre, fontSize: Tailles.titreDetail, lineHeight: 38, color: c.encre },
     organisateur: { fontFamily: Polices.texte, fontSize: Tailles.courant, color: c.texteSecondaire },
     pastille: {
       alignSelf: 'flex-start',
@@ -398,17 +416,6 @@ const creerStyles = (c: Palette) =>
     },
     itineraireTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
     presse: { backgroundColor: c.beige },
-    places: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      padding: 16,
-      backgroundColor: c.carte,
-      borderRadius: Rayons.carte,
-      borderWidth: 1,
-      borderColor: c.trait,
-    },
-    placesTitre: { fontFamily: Polices.titre, fontSize: Tailles.sousTitre, color: c.rouge },
     attente: { alignItems: 'center', justifyContent: 'center', gap: 12, padding: Espaces.marge },
     inviter: { left: undefined, right: 16 },
     titreSeul: { flex: 0, fontSize: Tailles.titreSession, lineHeight: 30, textAlign: 'center' },
@@ -417,7 +424,8 @@ const creerStyles = (c: Palette) =>
       right: Espaces.marge,
       fontFamily: Polices.titre,
       fontSize: Tailles.titreMoyen,
-      color: c.rouge,
+      // Posé sur l'en-tête rouge
+      color: c.surRouge,
     },
     retour: {
       position: 'absolute',

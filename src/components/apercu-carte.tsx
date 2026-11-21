@@ -7,7 +7,7 @@ import { useTheme } from '@/lib/theme';
 
 export type PropsApercu = { position: Coordonnees };
 
-/** Petite carte fixe en haut du détail, avec une épingle sur le lieu de la session. */
+/** Petite carte fixe (détail d'une session, Créer), avec une épingle au centre, sur le lieu. */
 export function ApercuCarte({ position }: PropsApercu) {
   const { c, theme } = useTheme();
   return (
@@ -15,12 +15,11 @@ export function ApercuCarte({ position }: PropsApercu) {
       style={StyleSheet.absoluteFill}
       {...themeCarte(theme)}
       pointerEvents="none"
-      // Le lieu est placé un peu au-dessus du centre : le bas est caché par la fiche
       initialRegion={{
-        latitude: position.latitude - 0.002,
+        latitude: position.latitude,
         longitude: position.longitude,
-        latitudeDelta: 0.02,
-        longitudeDelta: 0.02,
+        latitudeDelta: 0.012,
+        longitudeDelta: 0.012,
       }}
       mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
       liteMode
