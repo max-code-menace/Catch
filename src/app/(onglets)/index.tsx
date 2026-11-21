@@ -12,13 +12,15 @@ import { FicheGroupe } from '@/components/fiche-groupe';
 import { FicheLieu } from '@/components/fiche-lieu';
 import { FiltresCarte, HAUTEUR_FILTRES_CARTE, type FiltreCarte } from '@/components/filtres-carte';
 import { FicheSession } from '@/components/fiche-session';
-import { IconeCreer, IconeDrapeau, IconeSansReseau } from '@/components/icones';
+import { CartePlusProche } from '@/components/carte-plus-proche';
+import { IconeDrapeau, IconeSansReseau } from '@/components/icones';
+import { PictoSport } from '@/components/picto-sport';
 import { ListeSessions } from '@/components/liste-sessions';
 import { PanneauCarte } from '@/components/panneau-carte';
 import { CENTRE_ZONE, NOM_ZONE, type Coordonnees, type Session } from '@/donnees/sessions';
 import { useCatch } from '@/lib/catch';
 import { sessionsDeLEvenement, useEvenements } from '@/lib/evenements';
-import { distance } from '@/lib/formats';
+import { distance, quand, texteDistance, textePlaces } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { maPosition } from '@/lib/lieux';
 import { sessionsDuLieu, useLieuxSport } from '@/lib/lieux-sport';
@@ -29,6 +31,11 @@ import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 /** Rayon affiché par défaut, et distance au-delà de laquelle on ne propose plus d'aller voir */
 const RAYON_KM = 5;
 const RAYON_MAX_KM = 30;
+
+/** L'élément le plus proche d'un point (événement, lieu), ou rien si la liste est vide */
+function plusProcheDe<T extends { position: Coordonnees }>(point: Coordonnees, liste: T[]): T | undefined {
+  return [...liste].sort((a, b) => distance(point, a.position) - distance(point, b.position))[0];
+}
 
 export default function Carte() {
   const styles = useStyles(creerStyles);
@@ -150,6 +157,65 @@ export default function Carte() {
       ? `Voir les ${plusLoin.length} sessions à ${rayonElargi} km`
       : `Voir la session à ${rayonElargi} km`
     : null;
+  // Rien dans le rayon : une petite carte montre ce qu'il y a de plus proche, plutôt qu'un grand panneau
+  const sessionsPlusLoin = sessions
+    .map((session, i) => ({ session, km: distancesKm[i] }))
+    .filter(({ km }) => km > rayon && km <= RAYON_MAX_KM)
+    .sort((a, b) => a.km - b.km);
+  const sessionProche = sessionsPlusLoin[0]?.session;
+  const evenementProche = plusProcheDe(origine, evenements);
+  const lieuProche = evenementProche ? undefined : plusProcheDe(origine, lieux);
+
+  /** Ferme la petite carte, ouvre la fiche et centre la carte dessus */
+  function montrer(point: Coordonnees, ouvrirFiche: () => void) {
+    setPanneauFerme(true);
+    ouvrirFiche();
+    setCible({ ...point, cle: Date.now() });
+  }
+
+  const plusProcheAffiche: Omit<React.ComponentProps<typeof CartePlusProche>, 'onFermer'> = sessionProche
+    ? {
+        picto: <PictoSport sport={sessionProche.sport} taille={30} />,
+        surtitre: `Rien à ${rayon} km · la plus proche`,
+        titre: `${sessionProche.titre} · ${quand(sessionProche.debut)}`,
+        detail: `${texteDistance(distance(origine, sessionProche.position))} · ${textePlaces(sessionProche)}`,
+        onOuvrir: () => ouvrir(sessionProche),
+        bouton: rayonElargi
+          ? {
+              titre:
+                sessionsPlusLoin.length > 2
+                  ? `+${sessionsPlusLoin.length - 1} autres`
+                  : sessionsPlusLoin.length === 2
+                    ? '+1 autre'
+                    : 'Sur la carte',
+              onPress: () => voirPlusLoin(rayonElargi),
+            }
+          : undefined,
+      }
+    : evenementProche
+      ? {
+          picto: <PictoSport sport={evenementProche.sport} taille={30} />,
+          surtitre: `Rien à ${rayon} km · à faire autour`,
+          titre: evenementProche.nom,
+          detail: `${quand(evenementProche.debut)} · ${texteDistance(distance(origine, evenementProche.position))}`,
+          onOuvrir: () => montrer(evenementProche.position, () => choisirEvenement(evenementProche.id)),
+          bouton: { titre: 'Voir autour', onPress: voirAutour },
+        }
+      : lieuProche
+        ? {
+            picto: <PictoSport sport={lieuProche.sports[0]} taille={30} />,
+            surtitre: `Rien à ${rayon} km · à faire autour`,
+            titre: lieuProche.nom,
+            detail: `${lieuProche.type === 'gratuit' ? 'Gratuit' : 'Payant'} · ${texteDistance(distance(origine, lieuProche.position))}`,
+            onOuvrir: () => montrer(lieuProche.position, () => choisirLieu(lieuProche.id)),
+            bouton: { titre: 'Voir autour', onPress: voirAutour },
+          }
+        : {
+            picto: <Balle taille={28} />,
+            surtitre: `Rien à ${rayon} km pour l’instant`,
+            titre: 'Lance la première session du coin',
+          };
+
   // La liste montre les mêmes sessions que la carte : celles du rayon, les plus proches d'abord à heure égale
   const dansLeRayon = sessions.filter((_, i) => distancesKm[i] <= rayon);
 
@@ -201,18 +267,7 @@ export default function Carte() {
       )}
       {/* On laisse la session finir d'éclater avant d'afficher « Rien à 5 km » */}
       {vue === 'carte' && voirSessions && rienIci && !panneauFerme && !choisie && !lieuChoisi && !evenementChoisi && eclats.length === 0 && (
-        <PanneauCarte
-          entete={<Balle taille={32} />}
-          titre={`Rien à ${rayon} km pour l’instant`}
-          texte="Crée la première session ici, pour toi et les joueurs du coin.">
-          <Bouton titre="Créer une session" Icone={IconeCreer} onPress={() => router.navigate('/creer')} />
-          {rayonElargi && titrePlusLoin && (
-            <Bouton variante="secondaire" titre={titrePlusLoin} onPress={() => voirPlusLoin(rayonElargi)} />
-          )}
-          {(evenements.length > 0 || lieux.length > 0) && (
-            <Bouton variante="lien" titre="Voir les événements, salles et terrains" onPress={voirAutour} />
-          )}
-        </PanneauCarte>
+        <CartePlusProche {...plusProcheAffiche} onFermer={() => setPanneauFerme(true)} />
       )}
       {vue === 'carte' && filtre === 'evenements' && evenements.length === 0 && etat !== 'erreur' && (
         <PanneauCarte

@@ -179,3 +179,11 @@ export function IconeDrapeau(props: Props) {
     </Base>
   );
 }
+
+export function IconeFermer(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M6 6l12 12M18 6 6 18" />
+    </Base>
+  );
+}
