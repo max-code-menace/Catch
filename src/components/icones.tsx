@@ -187,3 +187,19 @@ export function IconeFermer(props: Props) {
     </Base>
   );
 }
+
+/** Étoile « Mes sports » : pleine quand la carte est filtrée */
+export function IconeEtoile({ pleine, ...props }: Props & { pleine?: boolean }) {
+  return (
+    <Svg
+      width={props.taille ?? 24}
+      height={props.taille ?? 24}
+      viewBox="0 0 24 24"
+      fill={pleine ? props.couleur : 'none'}
+      stroke={props.couleur}
+      strokeWidth={1.8}
+      strokeLinejoin="round">
+      <Path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" />
+    </Svg>
+  );
+}

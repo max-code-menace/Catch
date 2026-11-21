@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { IconeCarte, IconeListe, IconeRecentrer } from '@/components/icones';
+import { IconeCarte, IconeEtoile, IconeListe } from '@/components/icones';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
@@ -11,14 +11,18 @@ type Props = {
   zone: string;
   vue: Vue;
   onBasculer: () => void;
-  onRecentrer: () => void;
+  /** Nombre de sports choisis quand la carte est filtrée (0 : elle montre tout) */
+  nombreSports: number;
+  /** Lu par VoiceOver sur l'étoile */
+  descriptionSports: string;
+  onMesSports: () => void;
 };
 
 /** Hauteur occupée par la barre du haut, marge comprise : sert à décaler la liste. */
 export const HAUTEUR_BARRE_HAUT = 68;
 
-/** Barre flottante du haut : logo, zone, bascule Liste / Carte, bouton recentrer. */
-export function BarreHaut({ zone, vue, onBasculer, onRecentrer }: Props) {
+/** Barre flottante du haut : logo, zone, bascule Liste / Carte, étoile « Mes sports ». */
+export function BarreHaut({ zone, vue, onBasculer, nombreSports, descriptionSports, onMesSports }: Props) {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const { top } = useSafeAreaInsets();
@@ -40,14 +44,22 @@ export function BarreHaut({ zone, vue, onBasculer, onRecentrer }: Props) {
         <Icone couleur={c.encre} taille={18} />
         <Text maxFontSizeMultiplier={1.3} style={styles.basculeTexte}>{versListe ? 'Liste' : 'Carte'}</Text>
       </Pressable>
-      {/* Le bouton garde sa place en vue liste pour que la barre ne bouge pas */}
+      {/* L'étoile garde sa place en vue liste : le filtre vaut aussi pour la liste */}
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Recentrer sur ma position"
-        onPress={onRecentrer}
+        accessibilityLabel={descriptionSports}
+        accessibilityHint="Choisir les sports à montrer"
+        onPress={onMesSports}
         hitSlop={4}
-        style={({ pressed }) => [styles.bouton, pressed && styles.presse]}>
-        <IconeRecentrer couleur={c.encre} taille={20} />
+        style={({ pressed }) => [styles.etoile, nombreSports > 0 && styles.etoileActive, pressed && styles.presse]}>
+        <IconeEtoile couleur={nombreSports > 0 ? c.rouge : c.encre} taille={22} pleine={nombreSports > 0} />
+        {nombreSports > 0 && (
+          <View style={styles.compteur}>
+            <Text maxFontSizeMultiplier={1.2} style={styles.compteurTexte}>
+              {nombreSports}
+            </Text>
+          </View>
+        )}
       </Pressable>
     </View>
   );
@@ -86,12 +98,31 @@ const creerStyles = (c: Palette) =>
       borderColor: c.trait,
     },
     basculeTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
-    bouton: {
+    etoile: {
       width: Espaces.cibleTactile,
       height: 40,
       borderRadius: Rayons.pilule,
       alignItems: 'center',
       justifyContent: 'center',
+      backgroundColor: c.fond,
+      borderWidth: 1,
+      borderColor: c.trait,
     },
+    etoileActive: { backgroundColor: c.rougeDoux, borderColor: c.rougeBordure },
+    compteur: {
+      position: 'absolute',
+      top: -5,
+      right: -3,
+      minWidth: 18,
+      height: 18,
+      paddingHorizontal: 4,
+      borderRadius: Rayons.pilule,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.rouge,
+      borderWidth: 2,
+      borderColor: c.carte,
+    },
+    compteurTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.minuscule, color: c.surRouge },
     presse: { backgroundColor: c.beige },
   });

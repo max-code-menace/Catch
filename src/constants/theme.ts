@@ -39,6 +39,8 @@ export const Palettes = {
     refletBalle: 'rgba(255, 255, 255, 0.4)',
     /** Fond de secours quand il n'y a pas de vraie carte (navigateur) */
     fondCarte: '#EFE9E2',
+    /** Fond assombri derrière une feuille ouverte par-dessus la carte */
+    voile: 'rgba(28, 20, 18, 0.38)',
     /** Ombres (boxShadow) : petite (pastilles, boutons sur la carte), normale (en-têtes), flottante (barre, fiches), vers le haut (panneaux du bas), forte (toast) */
     ombrePetite: '0 2px 8px rgba(28, 20, 18, 0.14)',
     ombre: '0 4px 16px rgba(28, 20, 18, 0.10)',
@@ -75,6 +77,7 @@ export const Palettes = {
     avatar4: '#CFBCAD',
     refletBalle: 'rgba(255, 255, 255, 0.4)',
     fondCarte: '#1B1614',
+    voile: 'rgba(0, 0, 0, 0.55)',
     // Sur fond sombre, une ombre doit être noire et plus marquée pour se voir
     ombrePetite: '0 2px 8px rgba(0, 0, 0, 0.40)',
     ombre: '0 4px 16px rgba(0, 0, 0, 0.35)',

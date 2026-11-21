@@ -7,11 +7,15 @@ import { Linking, Pressable, StyleSheet, Switch, Text, View } from 'react-native
 
 import { Bouton } from '@/components/bouton';
 import { Aide, Ecran } from '@/components/ecran';
-import { IconeChevron } from '@/components/icones';
+import { IconeChevron, IconeEtoile } from '@/components/icones';
+import { PictoSport } from '@/components/picto-sport';
 import { Polices, Rayons, Tailles } from '@/constants/theme';
 import { EMAIL_CONTACT } from '@/constants/liens';
+import { ficheSport } from '@/donnees/sports';
 import { useCompte } from '@/lib/compte';
+import { listeSports } from '@/lib/filtre-sports';
 import { reglerVibrations, vibrationsActives, vibrer } from '@/lib/haptics';
+import { useMesSports } from '@/lib/mes-sports';
 import { demander } from '@/lib/moderation';
 import { useCouleurs, useStyles, useTheme, type Apparence, type Palette } from '@/lib/theme';
 
@@ -77,6 +81,45 @@ function Reglages() {
   );
 }
 
+/** Mes sports : ce que la carte montre. Ouvre les mêmes tuiles que l'étoile de la carte. */
+function MesSports() {
+  const styles = useStyles(creerStyles);
+  const c = useCouleurs();
+  const { sports } = useMesSports();
+  const noms = sports.length ? listeSports(sports, (s) => ficheSport(s).nom) : 'Tous les sports';
+  return (
+    <View style={styles.reglages}>
+      <Text style={styles.section}>Mes sports</Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Mes sports : ${noms}`}
+        accessibilityHint="Choisir les sports que montre la carte"
+        onPress={() => router.push('/mes-sports')}
+        style={({ pressed }) => [styles.carte, styles.ligne, pressed && { backgroundColor: c.beige }]}>
+        <View style={styles.pictos}>
+          {sports.length ? (
+            sports.slice(0, 4).map((sport, i) => (
+              <View key={sport} style={[styles.rondPicto, i > 0 && styles.rondSuivant]}>
+                <PictoSport sport={sport} taille={34} />
+              </View>
+            ))
+          ) : (
+            <IconeEtoile couleur={c.encre} taille={24} />
+          )}
+        </View>
+        <View style={styles.textesSports}>
+          <Text style={styles.libelle} numberOfLines={1}>
+            {noms}
+          </Text>
+          <Text style={styles.aide}>{sports.length ? 'Modifier' : 'Choisir mes sports'}</Text>
+        </View>
+        <IconeChevron couleur={c.texteSecondaire} taille={20} />
+      </Pressable>
+      <Text style={styles.aide}>La carte et la liste ne montrent que ces sports.</Text>
+    </View>
+  );
+}
+
 /** Une ligne qui ouvre un écran ou un lien. */
 function LigneLien({ titre, onPress }: { titre: string; onPress: () => void }) {
   const styles = useStyles(creerStyles);
@@ -133,6 +176,7 @@ export default function Profil() {
         <View>
           <Bouton titre="Me connecter" onPress={() => router.push('/connexion')} />
         </View>
+        <MesSports />
         <Reglages />
         <Securite connecte={false} />
       </Ecran>
@@ -141,6 +185,7 @@ export default function Profil() {
 
   return (
     <Ecran titre={compte.prenom ?? 'Profil'} defile>
+      <MesSports />
       <Reglages />
       <Securite connecte />
       <View style={styles.fin}>
@@ -170,6 +215,10 @@ const creerStyles = (c: Palette) =>
     ligne: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     libelle: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
     segments: { height: 36 },
+    pictos: { flexDirection: 'row', alignItems: 'center' },
+    rondPicto: { borderRadius: Rayons.pilule, borderWidth: 2, borderColor: c.carte },
+    rondSuivant: { marginLeft: -12 },
+    textesSports: { flex: 1, gap: 2 },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     fin: { gap: 8, marginTop: 12 },
   });

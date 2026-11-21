@@ -10,20 +10,24 @@ import { CarteSessions } from '@/components/carte-sessions';
 import { FicheEvenement } from '@/components/fiche-evenement';
 import { FicheGroupe } from '@/components/fiche-groupe';
 import { FicheLieu } from '@/components/fiche-lieu';
-import { FiltresCarte, HAUTEUR_FILTRES_CARTE, type FiltreCarte } from '@/components/filtres-carte';
 import { FicheSession } from '@/components/fiche-session';
+import { BoutonPresDeMoi, BulleMesSports } from '@/components/boutons-carte';
 import { CartePlusProche } from '@/components/carte-plus-proche';
+import { FeuilleMesSports, TOUS_LES_TYPES, type TypesCarte } from '@/components/feuille-mes-sports';
 import { IconeDrapeau, IconeSansReseau } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
 import { ListeSessions } from '@/components/liste-sessions';
 import { PanneauCarte } from '@/components/panneau-carte';
 import { CENTRE_ZONE, NOM_ZONE, type Coordonnees, type Session } from '@/donnees/sessions';
+import { ficheSport } from '@/donnees/sports';
 import { useCatch } from '@/lib/catch';
 import { sessionsDeLEvenement, useEvenements } from '@/lib/evenements';
+import { filtreActif, listeSports, texteFiltre } from '@/lib/filtre-sports';
 import { distance, quand, texteDistance, textePlaces } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { maPosition } from '@/lib/lieux';
 import { sessionsDuLieu, useLieuxSport } from '@/lib/lieux-sport';
+import { useBulleMesSports, useFiltreMesSports, useMesSports } from '@/lib/mes-sports';
 import { useSessions } from '@/lib/sessions';
 import { Polices, Rayons, Tailles } from '@/constants/theme';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
@@ -31,6 +35,12 @@ import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 /** Rayon affiché par défaut, et distance au-delà de laquelle on ne propose plus d'aller voir */
 const RAYON_KM = 5;
 const RAYON_MAX_KM = 30;
+/** Au-delà, on s'est éloigné de chez soi : « Près de moi » apparaît */
+const LOIN_M = 1500;
+const ZOOM_DEPART = 0.11;
+/** Hauteur de la petite carte « Rien à 5 km » : « Près de moi » se pose au-dessus */
+const HAUTEUR_PLUS_PROCHE = 96;
+const nomSport = (sport: Session['sport']) => ficheSport(sport).nom;
 
 /** L'élément le plus proche d'un point (événement, lieu), ou rien si la liste est vide */
 function plusProcheDe<T extends { position: Coordonnees }>(point: Coordonnees, liste: T[]): T | undefined {
@@ -39,7 +49,7 @@ function plusProcheDe<T extends { position: Coordonnees }>(point: Coordonnees, l
 
 export default function Carte() {
   const styles = useStyles(creerStyles);
-  const { sessions, eclats, etat, recharger, estCatchee, estOrganisee, annuler, position, setPosition, origine } =
+  const { sessions: toutesLesSessions, eclats: tousLesEclats, etat, recharger, estCatchee, estOrganisee, annuler, position, setPosition, origine } =
     useSessions();
   const { autoriser, envoyer, confirmer } = useCatch();
   const c = useCouleurs();
@@ -56,13 +66,23 @@ export default function Carte() {
   }, [etat]);
   const [vue, setVue] = useState<Vue>('carte');
 
-  // Filtre de la carte : tout, ou seulement les sessions, les événements ou les salles et terrains
-  const [filtre, setFiltre] = useState<FiltreCarte>('tout');
-  const voirSessions = filtre === 'tout' || filtre === 'sessions';
-  const lieux = useLieuxSport();
-  const evenements = useEvenements();
-  const lieuxCarte = filtre === 'tout' || filtre === 'lieux' ? lieux : [];
-  const evenementsCarte = filtre === 'tout' || filtre === 'evenements' ? evenements : [];
+  // Filtre de la carte : « Mes sports » (étoile de la barre du haut), puis sessions, événements, salles et terrains
+  const mesSports = useMesSports();
+  // Seulement les données (pas les fonctions) pour les calculs de filtre
+  const choix = { sports: mesSports.sports, tous: mesSports.tous };
+  const filtre = filtreActif(choix);
+  const [types, setTypes] = useState<TypesCarte>(TOUS_LES_TYPES);
+  const [feuilleOuverte, setFeuilleOuverte] = useState(false);
+  const bulle = useBulleMesSports(mesSports.pret && mesSports.sports.length === 0);
+  const voirSessions = types.sessions;
+  const { sessions, eclats, lieux, evenements } = useFiltreMesSports({
+    sessions: toutesLesSessions,
+    eclats: tousLesEclats,
+    lieux: useLieuxSport(),
+    evenements: useEvenements(),
+  });
+  const lieuxCarte = types.lieux ? lieux : [];
+  const evenementsCarte = types.evenements ? evenements : [];
 
   const [idChoisie, setIdChoisie] = useState<string | null>(null);
   const choisie = voirSessions ? sessions.find((s) => s.id === idChoisie) : undefined;
@@ -94,6 +114,10 @@ export default function Carte() {
       recharger();
     }, [recharger]),
   );
+
+  // « Près de moi » : seulement quand la carte s'est éloignée, ou que la position n'est pas encore connue
+  const [loin, setLoin] = useState(false);
+  const [positionRefusee, setPositionRefusee] = useState(false);
 
   // Rien dans le rayon : on propose de créer, ou de voir un peu plus loin s'il y a des sessions
   const distancesKm = sessions.map((s) => distance(origine, s.position) / 1000);
@@ -129,6 +153,8 @@ export default function Carte() {
   async function recentrer() {
     const point = await maPosition();
     if (point) setPosition(point);
+    else setPositionRefusee(true);
+    setLoin(false);
     setRayon(RAYON_KM);
     // Position refusée ou indisponible : on recentre sur la zone
     setCible({ ...(point ?? CENTRE_ZONE), cle: Date.now() });
@@ -163,6 +189,20 @@ export default function Carte() {
     .filter(({ km }) => km > rayon && km <= RAYON_MAX_KM)
     .sort((a, b) => a.km - b.km);
   const sessionProche = sessionsPlusLoin[0]?.session;
+  // Filtre « Mes sports » : les sessions d'autres sports dans le rayon, pour ne jamais laisser une carte vide sans raison
+  const autresSports = filtre
+    ? toutesLesSessions.filter(
+        (s) => !mesSports.sports.includes(s.sport) && distance(origine, s.position) / 1000 <= rayon,
+      ).length
+    : 0;
+  const rien = filtre ? `Rien ${texteFiltre(choix, nomSport)}` : 'Rien';
+  function voirTousLesSports() {
+    vibrer.selection();
+    mesSports.setTous(true);
+  }
+  const boutonAutres = autresSports
+    ? { titre: autresSports > 1 ? `+${autresSports} autres sports` : '+1 autre sport', onPress: voirTousLesSports }
+    : undefined;
   const evenementProche = plusProcheDe(origine, evenements);
   const lieuProche = evenementProche ? undefined : plusProcheDe(origine, lieux);
 
@@ -176,11 +216,11 @@ export default function Carte() {
   const plusProcheAffiche: Omit<React.ComponentProps<typeof CartePlusProche>, 'onFermer'> = sessionProche
     ? {
         picto: <PictoSport sport={sessionProche.sport} taille={30} />,
-        surtitre: `Rien à ${rayon} km · la plus proche`,
+        surtitre: `${rien} à ${rayon} km · la plus proche`,
         titre: `${sessionProche.titre} · ${quand(sessionProche.debut)}`,
         detail: `${texteDistance(distance(origine, sessionProche.position))} · ${textePlaces(sessionProche)}`,
         onOuvrir: () => ouvrir(sessionProche),
-        bouton: rayonElargi
+        bouton: boutonAutres ?? (rayonElargi
           ? {
               titre:
                 sessionsPlusLoin.length > 2
@@ -190,12 +230,20 @@ export default function Carte() {
                     : 'Sur la carte',
               onPress: () => voirPlusLoin(rayonElargi),
             }
-          : undefined,
+          : undefined),
       }
+    : boutonAutres
+      ? {
+          picto: <Balle taille={28} />,
+          surtitre: `${rien} à ${rayon} km`,
+          titre: autresSports > 1 ? `${autresSports} autres sessions ici` : '1 autre session ici',
+          onOuvrir: voirTousLesSports,
+          bouton: { titre: 'Tout voir', onPress: voirTousLesSports },
+        }
     : evenementProche
       ? {
           picto: <PictoSport sport={evenementProche.sport} taille={30} />,
-          surtitre: `Rien à ${rayon} km · à faire autour`,
+          surtitre: `${rien} à ${rayon} km · à faire autour`,
           titre: evenementProche.nom,
           detail: `${quand(evenementProche.debut)} · ${texteDistance(distance(origine, evenementProche.position))}`,
           onOuvrir: () => montrer(evenementProche.position, () => choisirEvenement(evenementProche.id)),
@@ -204,7 +252,7 @@ export default function Carte() {
       : lieuProche
         ? {
             picto: <PictoSport sport={lieuProche.sports[0]} taille={30} />,
-            surtitre: `Rien à ${rayon} km · à faire autour`,
+            surtitre: `${rien} à ${rayon} km · à faire autour`,
             titre: lieuProche.nom,
             detail: `${lieuProche.type === 'gratuit' ? 'Gratuit' : 'Payant'} · ${texteDistance(distance(origine, lieuProche.position))}`,
             onOuvrir: () => montrer(lieuProche.position, () => choisirLieu(lieuProche.id)),
@@ -212,12 +260,17 @@ export default function Carte() {
           }
         : {
             picto: <Balle taille={28} />,
-            surtitre: `Rien à ${rayon} km pour l’instant`,
+            surtitre: `${rien} à ${rayon} km pour l’instant`,
             titre: 'Lance la première session du coin',
           };
 
   // La liste montre les mêmes sessions que la carte : celles du rayon, les plus proches d'abord à heure égale
   const dansLeRayon = sessions.filter((_, i) => distancesKm[i] <= rayon);
+
+  const aucuneFiche = !choisie && !lieuChoisi && !evenementChoisi && sessionsGroupe.length < 2;
+  const plusProcheVisible =
+    vue === 'carte' && voirSessions && rienIci && !panneauFerme && aucuneFiche && eclats.length === 0;
+  const seulementEvenements = types.evenements && !types.sessions && !types.lieux;
 
   function ouvrir(session: Session) {
     router.push({ pathname: '/session/[id]', params: { id: session.id } });
@@ -243,6 +296,9 @@ export default function Carte() {
         evenements={evenementsCarte}
         idEvenementChoisi={evenementChoisi?.id ?? null}
         onChoisirEvenement={choisirEvenement}
+        onDeplacer={(centre, longitudeDelta) =>
+          setLoin(distance(origine, centre) > LOIN_M || longitudeDelta > ZOOM_DEPART * 3)
+        }
       />
       {vue === 'liste' && (
         <ListeSessions
@@ -266,34 +322,63 @@ export default function Carte() {
         </PanneauCarte>
       )}
       {/* On laisse la session finir d'éclater avant d'afficher « Rien à 5 km » */}
-      {vue === 'carte' && voirSessions && rienIci && !panneauFerme && !choisie && !lieuChoisi && !evenementChoisi && eclats.length === 0 && (
-        <CartePlusProche {...plusProcheAffiche} onFermer={() => setPanneauFerme(true)} />
+      {plusProcheVisible && <CartePlusProche {...plusProcheAffiche} onFermer={() => setPanneauFerme(true)} />}
+      {vue === 'carte' && aucuneFiche && (loin || (position === null && !positionRefusee)) && (
+        <BoutonPresDeMoi
+          decalage={plusProcheVisible ? HAUTEUR_PLUS_PROCHE : 0}
+          onPress={() => {
+            vibrer.selection();
+            setPanneauFerme(false);
+            recentrer();
+          }}
+        />
       )}
-      {vue === 'carte' && filtre === 'evenements' && evenements.length === 0 && etat !== 'erreur' && (
+      {vue === 'carte' && seulementEvenements && evenements.length === 0 && etat !== 'erreur' && (
         <PanneauCarte
           entete={<IconeDrapeau couleur={c.encre} taille={32} />}
           titre="Pas d’événement pour l’instant"
           texte="Les courses et autres événements sportifs apparaissent ici 2 semaines avant le départ.">
-          <Bouton variante="secondaire" titre="Tout voir" onPress={() => setFiltre('tout')} />
+          <Bouton variante="secondaire" titre="Tout voir" onPress={() => setTypes(TOUS_LES_TYPES)} />
         </PanneauCarte>
       )}
       {etat === 'chargement' && attenteLongue && (
         <View
           pointerEvents="none"
-          style={[styles.attente, { top: top + HAUTEUR_BARRE_HAUT + HAUTEUR_FILTRES_CARTE + 8 }]}>
+          style={[styles.attente, { top: top + HAUTEUR_BARRE_HAUT + 8 }]}>
           <Text style={styles.attenteTexte}>Recherche des sessions…</Text>
         </View>
       )}
-      {vue === 'carte' && <FiltresCarte filtre={filtre} onChoisir={setFiltre} />}
       <BarreHaut
         zone={`${position ? 'Près de toi' : NOM_ZONE} · ${rayon} km`}
         vue={vue}
         onBasculer={() => setVue(vue === 'carte' ? 'liste' : 'carte')}
-        onRecentrer={() => {
-          setVue('carte');
-          setPanneauFerme(false);
-          recentrer();
+        nombreSports={filtre ? mesSports.sports.length : 0}
+        descriptionSports={
+          filtre ? `Mes sports : ${listeSports(mesSports.sports, nomSport)}` : 'Mes sports : tous les sports'
+        }
+        onMesSports={() => {
+          vibrer.selection();
+          bulle.cacher();
+          setFeuilleOuverte(true);
         }}
+      />
+      {bulle.afficher && !feuilleOuverte && (
+        <BulleMesSports
+          onPress={() => {
+            bulle.cacher();
+            setFeuilleOuverte(true);
+          }}
+        />
+      )}
+      <FeuilleMesSports
+        visible={feuilleOuverte}
+        onFermer={() => {
+          setFeuilleOuverte(false);
+          setPanneauFerme(false);
+        }}
+        types={types}
+        onTypes={setTypes}
+        nombreSessions={dansLeRayon.length}
       />
       {vue === 'carte' && choisie && (
         <FicheSession
@@ -322,7 +407,7 @@ export default function Carte() {
           key={lieuChoisi.id}
           lieu={lieuChoisi}
           distance={distance(origine, lieuChoisi.position)}
-          sessions={sessionsDuLieu(lieuChoisi, sessions)}
+          sessions={sessionsDuLieu(lieuChoisi, toutesLesSessions)}
           onOuvrirSession={ouvrir}
           onLancer={(sport) => {
             vibrer.selection();
@@ -335,7 +420,7 @@ export default function Carte() {
           key={evenementChoisi.id}
           evenement={evenementChoisi}
           distance={distance(origine, evenementChoisi.position)}
-          sessions={sessionsDeLEvenement(evenementChoisi, sessions)}
+          sessions={sessionsDeLEvenement(evenementChoisi, toutesLesSessions)}
           onOuvrirSession={ouvrir}
           onEnsemble={() => {
             vibrer.selection();

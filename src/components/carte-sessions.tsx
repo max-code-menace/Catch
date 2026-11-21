@@ -34,6 +34,8 @@ export type PropsCarte = {
   evenements: Evenement[];
   idEvenementChoisi: string | null;
   onChoisirEvenement: (id: string) => void;
+  /** À la fin d'un geste : où regarde la carte (sert à montrer « Près de moi » quand on s'est éloigné) */
+  onDeplacer?: (centre: Coordonnees, longitudeDelta: number) => void;
 };
 
 const ZOOM = { latitudeDelta: 0.11, longitudeDelta: 0.11 };
@@ -53,6 +55,7 @@ export function CarteSessions({
   evenements,
   idEvenementChoisi,
   onChoisirEvenement,
+  onDeplacer,
 }: PropsCarte) {
   const carte = useRef<MapView>(null);
   const { theme } = useTheme();
@@ -108,6 +111,7 @@ export function CarteSessions({
       onRegionChangeComplete={(region) => {
         setOuverture(region.latitudeDelta);
         setLongitudeDelta(region.longitudeDelta);
+        onDeplacer?.({ latitude: region.latitude, longitude: region.longitude }, region.longitudeDelta);
       }}
       onPress={() => onChoisir(null)}>
       {/* Les lieux d'abord et plus bas (zIndex 0) : les sessions restent les plus visibles */}
