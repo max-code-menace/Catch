@@ -20,6 +20,7 @@ import {
   IconeInviter,
   IconeLieu,
   IconeMessages,
+  IconeReglages,
   IconeRetour,
 } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
@@ -36,6 +37,7 @@ import {
   texteDistance,
   texteDuree,
 } from '@/lib/formats';
+import { choisir } from '@/lib/alerte';
 import { useCatch } from '@/lib/catch';
 import { useCompte } from '@/lib/compte';
 import { useEvenements } from '@/lib/evenements';
@@ -130,6 +132,36 @@ export default function DetailSession() {
     else router.replace('/');
   }
 
+  // L'engrenage : modifier ou annuler, rangés à l'écart (on ne les touche pas par hasard)
+  function ouvrirReglages() {
+    if (!session) return;
+    const s = session;
+    choisir({
+      titre: organisee ? 'Ta session' : s.titre,
+      couleur: c.rouge,
+      options: [
+        ...(organisee
+          ? [
+              {
+                texte: 'Modifier',
+                onPress: () =>
+                  router.push({
+                    pathname: '/modifier/[id]',
+                    params: { id: s.id },
+                  }),
+              },
+            ]
+          : []),
+        {
+          texte: organisee ? 'Annuler la session' : 'Annuler ma participation',
+          destructif: true,
+          // La session disparaît (organisateur, ou dernier inscrit) : on revient à l'écran précédent
+          onPress: () => annuler(s, organisee || nombre <= 1 ? retour : undefined),
+        },
+      ],
+    });
+  }
+
   return (
     <View style={styles.ecran}>
       <Animated.ScrollView
@@ -153,7 +185,36 @@ export default function DetailSession() {
           </Text>
         </View>
 
-        <View style={styles.fiche}>
+        <View style={[styles.fiche, catchee && { paddingBottom: Math.max(bottom, 16) + 16 }]}>
+          {/* Inscrit : son statut en haut, avec le groupe et l'engrenage (plus de barre collée en bas) */}
+          {catchee && (
+            <View style={styles.statut}>
+              <Balle taille={20} />
+              <Text numberOfLines={1} maxFontSizeMultiplier={1.3} style={styles.statutTexte}>
+                {organisee ? 'C’est ta session' : invitation ? 'Tu as rejoint la session' : 'Tu l’as catchée !'}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Écrire au groupe"
+                onPress={() =>
+                  router.push({
+                    pathname: '/messages/[id]',
+                    params: { id: session.id },
+                  })
+                }
+                style={({ pressed }) => [styles.rondAction, pressed && styles.presse]}>
+                <IconeMessages couleur={c.encre} taille={20} />
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={organisee ? 'Modifier ou annuler la session' : 'Annuler ma participation'}
+                onPress={ouvrirReglages}
+                style={({ pressed }) => [styles.rondAction, pressed && styles.presse]}>
+                <IconeReglages couleur={c.encre} taille={20} />
+              </Pressable>
+            </View>
+          )}
+
           <BadgeSession session={session} />
 
           <Text accessibilityRole="header" style={styles.titre}>
@@ -305,58 +366,24 @@ export default function DetailSession() {
         </Pressable>
       )}
 
-      <View style={[styles.bas, { paddingBottom: Math.max(bottom, 16) }]}>
-        {catchee ? (
-          <>
-            <View style={styles.catchee}>
-              <Balle taille={20} />
-              <Text style={styles.catcheeTexte}>
-                {organisee ? 'C’est ta session' : invitation ? 'Tu as rejoint la session' : 'Tu l’as catchée !'}
-              </Text>
-            </View>
-            <View style={styles.duo}>
-              <Bouton
-                titre="Écrire au groupe"
-                variante="secondaire"
-                Icone={IconeMessages}
-                style={styles.demi}
-                onPress={() => router.push({ pathname: '/messages/[id]', params: { id: session.id } })}
-              />
-              {organisee && (
-                <Bouton
-                  titre="Modifier"
-                  variante="secondaire"
-                  style={styles.demi}
-                  onPress={() => router.push({ pathname: '/modifier/[id]', params: { id: session.id } })}
-                />
-              )}
-            </View>
-            <Bouton
-              titre={organisee ? 'Annuler la session' : 'Annuler ma participation'}
-              variante="lien"
-              // La session disparaît (organisateur, ou dernier inscrit) : on revient à l'écran précédent
-              onPress={() => annuler(session, organisee || nombre <= 1 ? retour : undefined)}
-            />
-          </>
-        ) : (
-          <>
-            <BoutonCatch
-              titre={invitation ? 'Rejoindre la session' : 'Catch'}
-              complet={libres === 0}
-              onDemande={() => autoriser(session.id)}
-              onEnvoi={() => envoyer(session.id)}
-              onCatch={() => confirmer(session.id)}
-            />
-            <Text style={styles.mention}>
-              {libres === 0
-                ? 'Toutes les places sont prises'
-                : annulationLibre(session)
-                  ? 'Gratuit · Tu peux annuler jusqu’à 3h avant'
-                  : 'Gratuit'}
-            </Text>
-          </>
-        )}
-      </View>
+      {!catchee && (
+        <View style={[styles.bas, { paddingBottom: Math.max(bottom, 16) }]}>
+          <BoutonCatch
+            titre={invitation ? 'Rejoindre la session' : 'Catch'}
+            complet={libres === 0}
+            onDemande={() => autoriser(session.id)}
+            onEnvoi={() => envoyer(session.id)}
+            onCatch={() => confirmer(session.id)}
+          />
+          <Text style={styles.mention}>
+            {libres === 0
+              ? 'Toutes les places sont prises'
+              : annulationLibre(session)
+                ? 'Gratuit · Tu peux annuler jusqu’à 3h avant'
+                : 'Gratuit'}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -509,8 +536,30 @@ const creerStyles = (c: Palette) =>
       fontSize: Tailles.aide,
       color: c.texteSecondaire,
     },
-    catchee: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingTop: 4 },
-    duo: { flexDirection: 'row', gap: 8 },
-    demi: { flex: 1 },
-    catcheeTexte: { fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, color: c.encre },
+    statut: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingVertical: 8,
+      paddingLeft: 14,
+      paddingRight: 8,
+      borderRadius: Rayons.carte,
+      backgroundColor: c.carte,
+      borderWidth: 1,
+      borderColor: c.trait,
+    },
+    statutTexte: {
+      flex: 1,
+      fontFamily: Polices.titre,
+      fontSize: Tailles.titreCarte,
+      color: c.encre,
+    },
+    rondAction: {
+      width: Espaces.cibleTactile,
+      height: Espaces.cibleTactile,
+      borderRadius: Rayons.pilule,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.beige,
+    },
   });
