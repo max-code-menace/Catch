@@ -1,14 +1,16 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { Bouton } from '@/components/bouton';
 import { Aide, Ecran } from '@/components/ecran';
 import { PictoSport } from '@/components/picto-sport';
 import { CartesFantomes } from '@/components/chargement';
-import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
+import { Espaces, Polices, Rayons, Ressorts, Tailles } from '@/constants/theme';
 import { useCompte } from '@/lib/compte';
 import { initiale, teinte } from '@/lib/fil-messages';
+import { vibrer } from '@/lib/haptics';
 import { quandMessage, useMessages, type Conversation, type ConversationPrivee } from '@/lib/messages';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
@@ -96,7 +98,10 @@ function LignePrivee({ conversation }: { conversation: ConversationPrivee }) {
 
 type Espace = 'groupes' | 'prives';
 
-/** « Groupes » et « Privés » : deux pilules, avec un point rouge là où ça bouge. */
+/**
+ * « Groupes » / « Privés » : une grande pilule sur toute la largeur, avec une pastille blanche
+ * qui glisse sous l'espace choisi. Un point rouge là où il y a du non lu.
+ */
 function ChoixEspace({
   espace,
   onChoix,
@@ -109,7 +114,18 @@ function ChoixEspace({
   pointPrives: boolean;
 }) {
   const styles = useStyles(creerStyles);
-  const pilule = (valeur: Espace, titre: string, point: boolean) => {
+  const [largeur, setLargeur] = useState(0);
+  const position = useSharedValue(espace === 'prives' ? 1 : 0);
+  useEffect(() => {
+    position.set(withSpring(espace === 'prives' ? 1 : 0, Ressorts.snappy));
+  }, [espace, position]);
+  const moitie = Math.max(0, (largeur - 2 * MARGE_PILULE) / 2);
+  const styleCurseur = useAnimatedStyle(() => ({
+    width: moitie,
+    transform: [{ translateX: position.get() * moitie }],
+  }));
+
+  const choix = (valeur: Espace, titre: string, point: boolean) => {
     const actif = espace === valeur;
     return (
       <Pressable
@@ -117,22 +133,32 @@ function ChoixEspace({
         accessibilityRole="tab"
         accessibilityState={{ selected: actif }}
         accessibilityLabel={point ? `${titre}, non lu` : titre}
-        onPress={() => onChoix(valeur)}
-        style={({ pressed }) => [styles.pilule, actif && styles.piluleActive, pressed && !actif && styles.presse]}>
-        <Text maxFontSizeMultiplier={1.3} style={[styles.piluleTexte, actif && styles.piluleTexteActif]}>
+        onPress={() => {
+          if (!actif) vibrer.selection();
+          onChoix(valeur);
+        }}
+        style={styles.choix}>
+        <Text maxFontSizeMultiplier={1.3} style={[styles.choixTexte, actif && styles.choixTexteActif]}>
           {titre}
         </Text>
-        {point && <View style={[styles.pointPetit, actif && styles.pointSurActif]} />}
+        {point && <View style={[styles.pointPetit, actif && styles.pointSurRouge]} />}
       </Pressable>
     );
   };
   return (
-    <View accessibilityRole="tablist" style={styles.espaces}>
-      {pilule('groupes', 'Groupes', pointGroupes)}
-      {pilule('prives', 'Privés', pointPrives)}
+    <View
+      accessibilityRole="tablist"
+      style={styles.espaces}
+      onLayout={(e) => setLargeur(e.nativeEvent.layout.width)}>
+      {largeur > 0 && <Animated.View style={[styles.curseur, styleCurseur]} />}
+      {choix('groupes', 'Groupes', pointGroupes)}
+      {choix('prives', 'Privés', pointPrives)}
     </View>
   );
 }
+
+/** Espace entre le bord de la grande pilule et la pastille qui glisse */
+const MARGE_PILULE = 4;
 
 export default function Messages() {
   const styles = useStyles(creerStyles);
@@ -253,19 +279,32 @@ const creerStyles = (c: Palette) =>
     point: { width: 12, height: 12, borderRadius: 6, backgroundColor: c.rouge },
     initiale: { fontFamily: Polices.titreDemi, fontSize: Tailles.sousTitre, color: c.surAvatar },
     sujet: { fontFamily: Polices.texte, color: c.texteSecondaire },
-    espaces: { flexDirection: 'row', gap: 8, marginBottom: 4 },
-    pilule: {
+    espaces: {
       flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      minHeight: Espaces.cibleTactile - 6,
-      paddingHorizontal: 16,
+      padding: MARGE_PILULE,
+      marginBottom: 8,
       borderRadius: Rayons.pilule,
       backgroundColor: c.beige,
     },
-    piluleActive: { backgroundColor: c.encre },
-    piluleTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.encre },
-    piluleTexteActif: { color: c.surEncre },
+    curseur: {
+      position: 'absolute',
+      top: MARGE_PILULE,
+      bottom: MARGE_PILULE,
+      left: MARGE_PILULE,
+      borderRadius: Rayons.pilule,
+      backgroundColor: c.rouge,
+      boxShadow: c.ombrePetite,
+    },
+    choix: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      minHeight: Espaces.cibleTactile,
+    },
+    choixTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.texteSecondaire },
+    choixTexteActif: { color: c.surRouge },
+    pointSurRouge: { backgroundColor: c.surRouge },
     pointPetit: { width: 8, height: 8, borderRadius: 4, backgroundColor: c.rouge },
-    pointSurActif: { backgroundColor: c.rouge },
   });
