@@ -87,6 +87,16 @@ export function quandDetail(session: Session, maintenant = new Date()) {
   return `${majuscule(JOURS_LONGS[debut.getDay()])} ${debut.getDate()} ${MOIS[debut.getMonth()]} · ${heure(debut)}`;
 }
 
+/** Le jour, en haut de la tuile « Quand » du détail : « En ce moment », « Ce soir », « Demain », « Mar. 24 novembre » */
+export function jourDetail(session: Session, maintenant = new Date()) {
+  const { debut } = session;
+  if (estEnDirect(session, maintenant)) return 'En ce moment';
+  const ecart = joursEntre(maintenant, debut);
+  if (ecart === 0) return debut.getHours() >= 18 ? 'Ce soir' : "Aujourd'hui";
+  if (ecart === 1) return 'Demain';
+  return `${JOURS[debut.getDay()]} ${debut.getDate()} ${MOIS[debut.getMonth()]}`;
+}
+
 /** Dans une phrase : « jeudi 19h », « ce soir 19h », « en ce moment » */
 export function quandPhrase(session: Session, maintenant = new Date()) {
   const { debut } = session;

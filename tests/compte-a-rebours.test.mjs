@@ -24,3 +24,12 @@ test('compte à rebours : les jours suivants', () => {
   assert.equal(compteARebours(session(new Date(2026, 10, 17, 9, 0)), maintenant), 'Demain');
   assert.equal(compteARebours(session(new Date(2026, 10, 20, 19, 0)), maintenant), 'Dans 4 jours');
 });
+
+test('jour de la tuile « Quand »', async () => {
+  const { jourDetail } = await import('../src/lib/formats.ts');
+  assert.equal(jourDetail(session(new Date(2026, 10, 16, 11, 30)), maintenant), 'En ce moment');
+  assert.equal(jourDetail(session(new Date(2026, 10, 16, 19, 0)), maintenant), 'Ce soir');
+  assert.equal(jourDetail(session(new Date(2026, 10, 16, 14, 0)), maintenant), "Aujourd'hui");
+  assert.equal(jourDetail(session(new Date(2026, 10, 17, 18, 0)), maintenant), 'Demain');
+  assert.equal(jourDetail(session(new Date(2026, 10, 24, 18, 0)), maintenant), 'Mar. 24 novembre');
+});
