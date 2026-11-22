@@ -34,19 +34,18 @@ type Props = {
   nombreSessions: number;
 };
 
-/** Feuille ouverte par l'étoile : ses sports, « Tous les sports », et ce qu'on affiche. */
+/** Feuille « Modifier » (ou premier toucher de l'étoile) : ses sports à cocher, et ce qu'on affiche. */
 export function FeuilleMesSports({ visible, onFermer, types, onTypes, nombreSessions }: Props) {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const { bottom } = useSafeAreaInsets();
-  const { sports, tous, setTous } = useMesSports();
-  const mes = !tous;
+  const { sports } = useMesSports();
   // L'explication ne se montre qu'à l'ouverture, quand on n'a encore rien choisi : pas pendant qu'on coche
   const [aide, setAide] = useState(false);
   const [ouverte, setOuverte] = useState(visible);
   if (visible !== ouverte) {
     setOuverte(visible);
-    if (visible) setAide(sports.length === 0 && !tous);
+    if (visible) setAide(sports.length === 0);
   }
 
   function basculerType(cle: TypeCarte) {
@@ -73,7 +72,7 @@ export function FeuilleMesSports({ visible, onFermer, types, onTypes, nombreSess
         <View style={styles.poignee} />
         <View style={styles.entete}>
           <Text maxFontSizeMultiplier={1.3} accessibilityRole="header" style={styles.titre}>
-            Sur la carte
+            Mes sports
           </Text>
           <Pressable
             accessibilityRole="button"
@@ -85,43 +84,13 @@ export function FeuilleMesSports({ visible, onFermer, types, onTypes, nombreSess
           </Pressable>
         </View>
 
-        <View accessibilityRole="tablist" style={styles.segments}>
-          {[
-            {
-              actif: mes,
-              titre: sports.length ? `Mes sports · ${sports.length}` : 'Mes sports',
-              tous: false,
-            },
-            { actif: tous, titre: 'Tous les sports', tous: true },
-          ].map((segment) => (
-            <Pressable
-              key={segment.titre}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: segment.actif }}
-              onPress={() => {
-                if (segment.actif) return;
-                vibrer.selection();
-                setTous(segment.tous);
-              }}
-              style={[styles.segment, segment.actif && styles.segmentActif]}
-            >
-              <Text
-                maxFontSizeMultiplier={1.3}
-                style={[styles.segmentTexte, segment.actif && { color: c.encre }]}
-              >
-                {segment.titre}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
         <ScrollView style={styles.defile} contentContainerStyle={styles.defileContenu}>
           {aide && (
             <Text maxFontSizeMultiplier={1.3} style={styles.aide}>
               Choisis les sports qui t’intéressent : la carte ne montrera qu’eux.
             </Text>
           )}
-          <GrilleMesSports estompee={tous} />
+          <GrilleMesSports />
 
           <Text maxFontSizeMultiplier={1.3} style={styles.section}>
             Afficher
@@ -168,12 +137,12 @@ export function FeuilleMesSports({ visible, onFermer, types, onTypes, nombreSess
 }
 
 /** Les tuiles des sports à cocher : dans la feuille de la carte et dans Profil > Mes sports */
-export function GrilleMesSports({ estompee = false }: { estompee?: boolean }) {
+export function GrilleMesSports() {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const { sports, basculer } = useMesSports();
   return (
-    <View style={[styles.grille, estompee && { opacity: 0.45 }]}>
+    <View style={styles.grille}>
       {SPORTS_A_CHOISIR.map((fiche) => {
         const choisi = sports.includes(fiche.cle);
         return (
@@ -249,25 +218,6 @@ const creerStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: c.beige,
-    },
-    segments: {
-      flexDirection: 'row',
-      padding: 3,
-      borderRadius: 12,
-      backgroundColor: c.beige,
-    },
-    segment: {
-      flex: 1,
-      minHeight: 38,
-      borderRadius: 10,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    segmentActif: { backgroundColor: c.carte, boxShadow: c.ombrePetite },
-    segmentTexte: {
-      fontFamily: Polices.texteDemi,
-      fontSize: Tailles.petit,
-      color: c.texteSecondaire,
     },
     defile: { flexShrink: 1 },
     defileContenu: { gap: 10, paddingBottom: 4 },

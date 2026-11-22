@@ -11,8 +11,8 @@ export default function MesSports() {
   return (
     <EcranSecondaire titre="Mes sports">
       <Text style={styles.aide}>
-        La carte et la liste ne montrent que ces sports. Tu peux tout revoir à tout moment avec l’étoile, en haut de
-        la carte.
+        La carte et la liste ne montrent que ces sports. L’étoile, en haut de la carte, passe de tes sports à tous
+        les sports en un toucher.
       </Text>
       <GrilleMesSports />
     </EcranSecondaire>
