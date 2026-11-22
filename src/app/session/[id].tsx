@@ -1,9 +1,14 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ApercuCarte } from '@/components/apercu-carte';
 import { BadgeSession } from '@/components/badge-session';
 import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
@@ -12,7 +17,6 @@ import { EquipeSession } from '@/components/equipe-session';
 import {
   IconeCalendrier,
   IconeDrapeau,
-  IconeInfo,
   IconeInviter,
   IconeLieu,
   IconeMessages,
@@ -25,8 +29,9 @@ import {
   annulationLibre,
   compteARebours,
   distance,
+  heure,
+  jourDetail,
   placesLibres,
-  quandDetail,
   texteDistance,
   texteDuree,
 } from '@/lib/formats';
@@ -41,37 +46,6 @@ import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 /** Hauteur de l'en-tête rouge, sous la barre d'état */
 const HAUTEUR_ENTETE = 230;
-const HAUTEUR_CARTE = 130;
-
-type Icone = (props: { couleur: string; taille?: number }) => React.ReactNode;
-
-/** Une ligne d'information : icône, titre, précision, et parfois une action à droite. */
-function Ligne({
-  Icone,
-  titre,
-  detail,
-  children,
-}: {
-  Icone: Icone;
-  titre: string;
-  detail: string;
-  children?: React.ReactNode;
-}) {
-  const c = useCouleurs();
-  const styles = useStyles(creerStyles);
-  return (
-    <View style={styles.ligne}>
-      <View style={styles.ligneIcone}>
-        <Icone couleur={c.rouge} taille={20} />
-      </View>
-      <View style={styles.ligneTextes}>
-        <Text style={styles.ligneTitre}>{titre}</Text>
-        <Text style={styles.aide}>{detail}</Text>
-      </View>
-      {children}
-    </View>
-  );
-}
 
 export default function DetailSession() {
   const c = useCouleurs();
@@ -86,6 +60,15 @@ export default function DetailSession() {
   const evenement = session?.evenementId ? evenements.find((e) => e.id === session.evenementId) : undefined;
   // Sur le web, cette page est celle d'un lien d'invitation : on parle à quelqu'un qui ne connaît pas l'app
   const invitation = Platform.OS === 'web';
+
+  // En défilant, une barre unie apparaît en haut avec le titre : le texte ne passe plus sous l'heure ni sous les boutons
+  const defile = useSharedValue(0);
+  const surDefilement = useAnimatedScrollHandler((e) => {
+    defile.set(e.contentOffset.y);
+  });
+  const styleBarre = useAnimatedStyle(() => ({
+    opacity: interpolate(defile.get(), [HAUTEUR_ENTETE - 60, HAUTEUR_ENTETE], [0, 1], 'clamp'),
+  }));
 
   // Arrivée par un lien : la session n'est peut-être pas dans celles déjà lues, on va la chercher
   // `absente` : elle n'existe plus. `erreur` : pas de réseau, on propose de réessayer.
@@ -148,7 +131,11 @@ export default function DetailSession() {
 
   return (
     <View style={styles.ecran}>
-      <ScrollView contentContainerStyle={styles.defilement} showsVerticalScrollIndicator={false}>
+      <Animated.ScrollView
+        contentContainerStyle={styles.defilement}
+        showsVerticalScrollIndicator={false}
+        onScroll={surDefilement}
+        scrollEventThrottle={16}>
         <View style={[styles.enteteSport, { height: top + HAUTEUR_ENTETE, paddingTop: top }]}>
           <TerrainSport sport={session.sport} couleur={c.surRouge} />
           {/* Page d'invitation (web) : le logo défile avec l'en-tête rouge */}
@@ -182,60 +169,85 @@ export default function DetailSession() {
             </View>
           )}
 
-          <View style={styles.lignes}>
-            <Ligne Icone={IconeCalendrier} titre={quandDetail(session)} detail={texteDuree(session)}>
+          {/* Quand et où : deux tuiles côte à côte, l'essentiel en gros */}
+          <View style={styles.tuiles}>
+            <View style={styles.tuile}>
+              <View style={styles.tuileHaut}>
+                <IconeCalendrier couleur={c.rouge} taille={16} />
+                <Text numberOfLines={1} maxFontSizeMultiplier={1.3} style={styles.tuileEtiquette}>
+                  {jourDetail(session)}
+                </Text>
+              </View>
+              <Text maxFontSizeMultiplier={1.3} style={styles.tuileGrand}>
+                {heure(session.debut)}
+              </Text>
+              <Text style={styles.aide}>
+                Jusqu’à {heure(session.fin)} · {texteDuree(session).replace('Environ ', '')}
+              </Text>
               {catchee && calendrierDisponible && (
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Ajouter la session à mon calendrier"
                   onPress={() => ajouterAuCalendrier(session)}
-                  hitSlop={4}
-                  style={({ pressed }) => [styles.itineraire, pressed && styles.presse]}>
-                  <Text style={styles.itineraireTexte}>Ajouter</Text>
+                  hitSlop={8}
+                  style={({ pressed }) => [styles.tuileAction, pressed && styles.estompe]}>
+                  <Text style={styles.tuileActionTexte}>+ Calendrier</Text>
                 </Pressable>
               )}
-            </Ligne>
-            <Ligne
-              Icone={IconeLieu}
-              titre={session.lieu}
-              // Sur la page web, on ne connaît pas la position de la personne : pas de distance
-              detail={invitation ? session.commune : `${session.commune} · ${texteDistance(distance(origine, session.position))}`}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Itinéraire vers ${session.lieu}`}
-                onPress={() => ouvrirItineraire(session.position)}
-                hitSlop={4}
-                style={({ pressed }) => [styles.itineraire, pressed && styles.presse]}>
-                <Text style={styles.itineraireTexte}>Itinéraire</Text>
-              </Pressable>
-            </Ligne>
-            {evenement && (
-              <Ligne
-                Icone={IconeDrapeau}
-                titre={`Pour ${evenement.nom}`}
-                detail="Chacun s’inscrit sur le site de l’événement">
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`S’inscrire à ${evenement.nom} sur le site officiel`}
-                  onPress={() => Linking.openURL(evenement.lien).catch(() => {})}
-                  hitSlop={4}
-                  style={({ pressed }) => [styles.itineraire, pressed && styles.presse]}>
-                  <Text style={styles.itineraireTexte}>S’inscrire</Text>
-                </Pressable>
-              </Ligne>
-            )}
-            {session.aSavoir && (
-              <Ligne Icone={IconeInfo} titre={session.aSavoir.titre} detail={session.aSavoir.detail} />
-            )}
+            </View>
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${session.lieu}, ${session.commune}. Itinéraire`}
+              onPress={() => ouvrirItineraire(session.position)}
+              style={({ pressed }) => [styles.tuile, pressed && styles.presse]}>
+              <View style={styles.tuileHaut}>
+                <IconeLieu couleur={c.rouge} taille={16} />
+                <Text numberOfLines={1} maxFontSizeMultiplier={1.3} style={styles.tuileEtiquette}>
+                  {/* Sur la page web, on ne connaît pas la position de la personne : pas de distance */}
+                  {invitation ? session.commune : `À ${texteDistance(distance(origine, session.position))}`}
+                </Text>
+              </View>
+              <Text numberOfLines={2} maxFontSizeMultiplier={1.3} style={styles.tuileLieu}>
+                {session.lieu}
+              </Text>
+              {!invitation && <Text style={styles.aide}>{session.commune}</Text>}
+              <View style={styles.tuileAction}>
+                <Text style={styles.tuileActionTexte}>Itinéraire ›</Text>
+              </View>
+            </Pressable>
           </View>
 
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Itinéraire vers ${session.lieu}`}
-            onPress={() => ouvrirItineraire(session.position)}
-            style={({ pressed }) => [styles.carte, pressed && styles.cartePressee]}>
-            <ApercuCarte position={session.position} />
-          </Pressable>
+          {evenement && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Pour ${evenement.nom}. S’inscrire sur le site officiel`}
+              onPress={() => Linking.openURL(evenement.lien).catch(() => {})}
+              style={({ pressed }) => [styles.evenement, pressed && styles.presse]}>
+              <IconeDrapeau couleur={c.rouge} taille={20} />
+              <View style={styles.evenementTextes}>
+                <Text style={styles.evenementTitre}>Pour {evenement.nom}</Text>
+                <Text style={styles.aide}>Chacun s’inscrit sur le site de l’événement</Text>
+              </View>
+              <Text style={styles.tuileActionTexte}>S’inscrire ›</Text>
+            </Pressable>
+          )}
+
+          {/* « À savoir » : un petit mot de l'organisateur, comme un message */}
+          {session.aSavoir && (
+            <View style={styles.mot}>
+              <View style={styles.motAvatar}>
+                <Text maxFontSizeMultiplier={1.3} style={styles.motInitiale}>
+                  {session.organisateur.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+              <View style={styles.motBulle}>
+                <Text style={styles.motAuteur}>Le mot de {session.organisateur}</Text>
+                <Text style={styles.motTitre}>{session.aSavoir.titre}</Text>
+                {!!session.aSavoir.detail && <Text style={styles.motDetail}>{session.aSavoir.detail}</Text>}
+              </View>
+            </View>
+          )}
 
           <EquipeSession session={session} onInviter={invitation ? undefined : () => inviter(session)} />
 
@@ -259,7 +271,15 @@ export default function DetailSession() {
             />
           )}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
+
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.barreDefilee, { height: top + 8 + Espaces.cibleTactile + 8, paddingTop: top + 8 }, styleBarre]}>
+        <Text numberOfLines={1} maxFontSizeMultiplier={1.3} style={styles.barreTitre}>
+          {session.titre}
+        </Text>
+      </Animated.View>
 
       {/* Arrivé par un lien d'invitation : il n'y a pas d'écran précédent où revenir */}
       {(!invitation || router.canGoBack()) && (
@@ -361,15 +381,6 @@ const creerStyles = (c: Palette) =>
       boxShadow: c.ombre,
     },
     rebours: { fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, color: c.surRouge, marginBottom: 12 },
-    carte: {
-      height: HAUTEUR_CARTE,
-      overflow: 'hidden',
-      borderRadius: Rayons.carte,
-      borderWidth: 1,
-      borderColor: c.trait,
-      backgroundColor: c.fondCarte,
-    },
-    cartePressee: { opacity: 0.8 },
     fiche: {
       flexGrow: 1,
       marginTop: -24,
@@ -392,30 +403,72 @@ const creerStyles = (c: Palette) =>
       backgroundColor: c.beige,
     },
     pastilleTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.pastille, color: c.texteSecondaire },
-    lignes: { gap: 16, paddingVertical: 8 },
-    ligne: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-    ligneIcone: {
-      width: 40,
-      height: 40,
-      borderRadius: 12,
-      backgroundColor: c.rougeDoux,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    ligneTextes: { flex: 1, gap: 2 },
-    ligneTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
-    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
-    itineraire: {
-      height: 40,
-      paddingHorizontal: 14,
-      justifyContent: 'center',
-      borderRadius: Rayons.pilule,
+    tuiles: { flexDirection: 'row', gap: 10, paddingTop: 4 },
+    tuile: {
+      flex: 1,
+      gap: 4,
+      padding: 14,
+      borderRadius: Rayons.carte,
       backgroundColor: c.carte,
       borderWidth: 1,
       borderColor: c.trait,
     },
-    itineraireTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
+    tuileHaut: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    tuileEtiquette: { flexShrink: 1, fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTexte },
+    tuileGrand: { fontFamily: Polices.titre, fontSize: Tailles.grandNombre, color: c.encre },
+    tuileLieu: { fontFamily: Polices.titre, fontSize: Tailles.titreCarte, lineHeight: 24, color: c.encre },
+    // Poussée en bas de la tuile : les deux tuiles alignent leurs actions
+    tuileAction: { marginTop: 'auto', paddingTop: 8, alignSelf: 'flex-start' },
+    tuileActionTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTexte },
+    estompe: { opacity: 0.6 },
+    evenement: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 14,
+      borderRadius: Rayons.carte,
+      backgroundColor: c.carte,
+      borderWidth: 1,
+      borderColor: c.trait,
+    },
+    evenementTextes: { flex: 1, gap: 2 },
+    evenementTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
+    mot: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+    motAvatar: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.avatar1,
+    },
+    motInitiale: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.surAvatar },
+    motBulle: {
+      flex: 1,
+      gap: 2,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: 18,
+      borderBottomLeftRadius: 4,
+      backgroundColor: c.beige,
+    },
+    motAuteur: { fontFamily: Polices.texteMoyen, fontSize: Tailles.pastille, color: c.texteSecondaire },
+    motTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
+    motDetail: { fontFamily: Polices.texte, fontSize: Tailles.courant, lineHeight: 21, color: c.encre },
+    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     presse: { backgroundColor: c.beige },
+    barreDefilee: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 0,
+      paddingHorizontal: 16 + Espaces.cibleTactile + 12,
+      justifyContent: 'center',
+      backgroundColor: c.fond,
+      borderBottomWidth: 1,
+      borderBottomColor: c.trait,
+    },
+    barreTitre: { textAlign: 'center', fontFamily: Polices.titre, fontSize: Tailles.accent, color: c.encre },
     attente: { alignItems: 'center', justifyContent: 'center', gap: 12, padding: Espaces.marge },
     inviter: { left: undefined, right: 16 },
     titreSeul: { flex: 0, fontSize: Tailles.titreSession, lineHeight: 30, textAlign: 'center' },
