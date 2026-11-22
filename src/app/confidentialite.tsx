@@ -37,7 +37,8 @@ export default function Confidentialite() {
           tous sur la carte, même sans compte.
         </Paragraphe>
         <Paragraphe>
-          Tes messages, lisibles seulement par les inscrits de la session concernée.
+          Tes messages. Ceux d’un groupe sont lisibles seulement par les inscrits de la session concernée ; un
+          message privé, seulement par la personne à qui tu l’écris.
         </Paragraphe>
         <Paragraphe>
           Si tu actives les notifications : un identifiant de ton téléphone qui permet de te les envoyer, tes réglages,
@@ -74,8 +75,8 @@ export default function Confidentialite() {
         </Paragraphe>
         <Paragraphe>
           Une session et sa conversation sont effacées 30 jours après la fin de la session (7 jours si elle a été
-          annulée), sauf si un signalement est en cours de traitement. L’identifiant d’un téléphone qui ne reçoit
-          plus les notifications est oublié.
+          annulée), sauf si un signalement est en cours de traitement. Les messages privés restent tant que vos deux
+          comptes existent. L’identifiant d’un téléphone qui ne reçoit plus les notifications est oublié.
         </Paragraphe>
       </Partie>
 

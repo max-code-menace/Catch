@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Bouton } from '@/components/bouton';
 import { IconeInviter } from '@/components/icones';
@@ -14,7 +14,16 @@ const CASES_MAX = 15;
  * L'équipe d'une session : un rond par joueur inscrit (« Toi » en rouge) et un rond en pointillés
  * par place libre, pour voir d'un coup d'œil qui vient et ce qui reste à remplir.
  */
-export function EquipeSession({ session, onInviter }: { session: Session; onInviter?: () => void }) {
+export function EquipeSession({
+  session,
+  onInviter,
+  onEcrire,
+}: {
+  session: Session;
+  onInviter?: () => void;
+  /** Toucher un joueur (pas soi-même) lui écrit en privé. Sans cette fonction, les ronds ne réagissent pas. */
+  onEcrire?: (id: string, prenom: string) => void;
+}) {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const teintes = [c.avatar1, c.avatar2, c.avatar3, c.avatar4];
@@ -22,8 +31,8 @@ export function EquipeSession({ session, onInviter }: { session: Session; onInvi
   const nombre = session.inscrits.length;
 
   // Les cases : les inscrits puis les places libres, coupées à CASES_MAX avec un « +N » à la fin
-  const cases: ({ type: 'joueur'; nom: string } | { type: 'libre' })[] = [
-    ...session.inscrits.map((nom) => ({ type: 'joueur' as const, nom })),
+  const cases: ({ type: 'joueur'; nom: string; id: string | undefined } | { type: 'libre' })[] = [
+    ...session.inscrits.map((nom, i) => ({ type: 'joueur' as const, nom, id: session.idsInscrits[i] })),
     ...Array.from({ length: libres }, () => ({ type: 'libre' as const })),
   ];
   const coupees = cases.length > CASES_MAX ? cases.slice(0, CASES_MAX - 1) : cases;
@@ -44,27 +53,40 @@ export function EquipeSession({ session, onInviter }: { session: Session; onInvi
 
       <View
         style={styles.grille}
-        accessible
-        accessibilityLabel={`${session.inscrits.join(', ')}. ${resume}.`}>
-        {coupees.map((une, i) =>
-          une.type === 'joueur' ? (
+        accessible={!onEcrire}
+        accessibilityLabel={onEcrire ? undefined : `${session.inscrits.join(', ')}. ${resume}.`}>
+        {coupees.map((une, i) => {
+          if (une.type === 'libre') return <View key={i} style={[styles.rond, styles.libre]} />;
+          const moi = une.nom === 'Toi';
+          const rond = (presse: boolean) => (
             <View
-              key={i}
               style={[
                 styles.rond,
-                { backgroundColor: une.nom === 'Toi' ? c.rouge : teintes[i % teintes.length] },
+                { backgroundColor: moi ? c.rouge : teintes[i % teintes.length] },
+                presse && styles.presse,
               ]}>
               <Text
                 maxFontSizeMultiplier={1.3}
                 numberOfLines={1}
-                style={[styles.initiales, une.nom === 'Toi' && { color: c.surRouge }]}>
+                style={[styles.initiales, moi && { color: c.surRouge }]}>
                 {une.nom}
               </Text>
             </View>
-          ) : (
-            <View key={i} style={[styles.rond, styles.libre]} />
-          ),
-        )}
+          );
+          const id = une.id;
+          if (!onEcrire || moi || !id) return <View key={i}>{rond(false)}</View>;
+          // Dans la vue des sessions, seules les deux premières lettres du prénom sont connues
+          const prenom = i === 0 ? session.organisateur : une.nom;
+          return (
+            <Pressable
+              key={i}
+              accessibilityRole="button"
+              accessibilityLabel={`${prenom}. Lui écrire en privé`}
+              onPress={() => onEcrire(id, prenom)}>
+              {({ pressed }) => rond(pressed)}
+            </Pressable>
+          );
+        })}
         {reste > 0 && (
           <View style={[styles.rond, { backgroundColor: c.beige }]}>
             <Text maxFontSizeMultiplier={1.3} style={[styles.initiales, { color: c.encre }]}>
@@ -73,6 +95,7 @@ export function EquipeSession({ session, onInviter }: { session: Session; onInvi
           </View>
         )}
       </View>
+      {onEcrire && nombre > 1 && <Text style={styles.astuce}>Touche un joueur pour lui écrire en privé</Text>}
 
       <View style={styles.pied}>
         <Text style={[styles.resume, libres === 0 && { color: c.texteSecondaire }]}>{resume}</Text>
@@ -107,6 +130,8 @@ const creerStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
+    presse: { opacity: 0.6 },
+    astuce: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire, marginTop: -4 },
     libre: { borderWidth: 2, borderStyle: 'dashed', borderColor: c.rougeBordure },
     initiales: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.surAvatar },
     pied: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, minHeight: 44 },

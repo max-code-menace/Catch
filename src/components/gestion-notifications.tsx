@@ -54,7 +54,12 @@ export function GestionNotifications() {
     preparerNotifications();
 
     function reagir(reponse: Notifications.NotificationResponse) {
-      const { session, type } = reponse.notification.request.content.data ?? {};
+      const { session, type, prive } = reponse.notification.request.content.data ?? {};
+      // Message privé : on ouvre la conversation à deux
+      if (type === 'prive' && typeof prive === 'string') {
+        router.push({ pathname: '/prive/[id]', params: { id: prive } });
+        return;
+      }
       if (typeof session !== 'string') return;
       // Nouveau message : on ouvre la conversation
       if (type === 'message') {

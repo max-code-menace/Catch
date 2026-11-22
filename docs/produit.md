@@ -68,7 +68,7 @@ Ce que Maxime veut que Catch devienne : pas seulement une carte de sessions, mai
 
 Ce qui en découle, dans l'ordre proposé (chaque étape sert seule ; rien n'est construit avant la fin de l'audit et l'accord de Maxime) :
 
-1. **« Écrire à l'organisateur »** depuis le détail d'une session, avant de catcher : poser une question, voir si la personne est sérieuse. Pas obligatoire pour catcher.
+1. **« Écrire à l'organisateur »** depuis le détail d'une session, avant de catcher : poser une question, voir si la personne est sérieuse. Pas obligatoire pour catcher. **Fait le 22 novembre** avec les messages privés (voir CLAUDE.md).
 2. **« Ils cherchent aussi »** : deux sessions du même sport, à la même heure, proches, qui manquent toutes les deux de joueurs (exemple : deux tennis à 18h) → on propose aux deux organisateurs de s'écrire pour jouer ensemble. Affiché dans l'app (bandeau sur sa session), **pas par notification** (on reste à 4 types). Rien n'est fusionné automatiquement.
 3. **Amis** : « Ajouter en ami » une personne avec qui on a joué (acceptée des deux côtés). Profil d'ami : sports, prochaines sessions. Messages privés entre amis.
 4. **Groupes d'amis** (exemple : « le foot du jeudi ») : rejoint l'idée des sessions qui se répètent.

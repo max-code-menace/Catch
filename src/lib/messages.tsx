@@ -24,6 +24,25 @@ export type Conversation = {
   nonLus: number;
 };
 
+/** Une conversation privée : à deux, ouverte depuis une session (l'organisateur, ou un coéquipier). */
+export type ConversationPrivee = {
+  id: string;
+  autreId: string;
+  /** Prénom de l'autre personne */
+  prenom: string;
+  /** La session où on s'est croisés, si elle existe encore */
+  sessionId: string | null;
+  /** Titre et sport de cette session, recopiés à l'ouverture (« Foot à 5 ») */
+  sujet: string | null;
+  sport: Sport | null;
+  creeLe: Date;
+  dernier: { texte: string; date: Date; deMoi: boolean } | null;
+  nonLus: number;
+};
+
+/** De quel fil on parle : le groupe d'une session, ou une conversation privée. */
+export type Fil = { type: 'session' | 'prive'; id: string };
+
 export type Message = {
   id: string;
   auteurId: string;
@@ -36,14 +55,34 @@ export type Message = {
 
 type Valeur = {
   conversations: Conversation[];
+  /** Les conversations privées, la plus récemment active en premier (y compris celles encore vides) */
+  prives: ConversationPrivee[];
   /** `erreur` : la lecture a échoué et il n'y a rien à montrer */
   etat: 'chargement' | 'pretes' | 'erreur';
-  /** Total des messages non lus, pour la pastille de l'onglet */
+  /** Total des messages non lus (groupes + privés), pour la pastille de l'onglet */
   nonLus: number;
+  /** Conversations avec du non lu, par espace (pour les points sur « Groupes » et « Privés ») */
+  nonLusGroupes: number;
+  nonLusPrives: number;
   /** Relit les conversations ; renvoie `false` si la lecture a échoué (pas de réseau) */
   recharger: () => Promise<boolean>;
   /** J'ai ouvert cette conversation : tout est lu */
   marquerLue: (id: string) => void;
+  marquerPriveLue: (id: string) => void;
+};
+
+type LignePrivee = {
+  id: string;
+  autre_id: string;
+  autre_prenom: string | null;
+  session_id: string | null;
+  sujet: string | null;
+  sport: Sport | null;
+  cree_le: string;
+  dernier_texte: string | null;
+  dernier_le: string | null;
+  dernier_auteur: string | null;
+  non_lus: number;
 };
 
 type LigneConversation = {
@@ -71,17 +110,24 @@ export function FournisseurMessages({ children }: { children: React.ReactNode })
   const { compte } = useCompte();
   const moi = compte?.id ?? null;
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [prives, setPrives] = useState<ConversationPrivee[]>([]);
   const [etat, setEtat] = useState<Valeur['etat']>('chargement');
 
   const recharger = useCallback(async () => {
     if (!supabase || !moi) {
       setConversations([]);
+      setPrives([]);
       setEtat('pretes');
       return true;
     }
     try {
-      const { data, error } = await supabase.from('conversations').select('*');
+      const [groupes, privees] = await Promise.all([
+        supabase.from('conversations').select('*'),
+        supabase.from('conversations_privees').select('*'),
+      ]);
+      const { data, error } = groupes;
       if (error) throw error;
+      if (privees.error) throw privees.error;
       const lues = (data as LigneConversation[]).map(
         (l): Conversation => ({
           id: l.session_id,
@@ -109,7 +155,26 @@ export function FournisseurMessages({ children }: { children: React.ReactNode })
       lues.sort(
         (a, b) => (b.dernier?.date ?? b.inscritLe).getTime() - (a.dernier?.date ?? a.inscritLe).getTime(),
       );
+      const luesPrivees = (privees.data as LignePrivee[]).map(
+        (l): ConversationPrivee => ({
+          id: l.id,
+          autreId: l.autre_id,
+          prenom: l.autre_prenom ?? '',
+          sessionId: l.session_id,
+          sujet: l.sujet,
+          sport: l.sport,
+          creeLe: new Date(l.cree_le),
+          dernier: l.dernier_le
+            ? { texte: l.dernier_texte ?? '', date: new Date(l.dernier_le), deMoi: l.dernier_auteur === moi }
+            : null,
+          nonLus: l.non_lus,
+        }),
+      );
+      luesPrivees.sort(
+        (a, b) => (b.dernier?.date ?? b.creeLe).getTime() - (a.dernier?.date ?? a.creeLe).getTime(),
+      );
       setConversations(lues);
+      setPrives(luesPrivees);
       setEtat('pretes');
       return true;
     } catch {
@@ -140,14 +205,34 @@ export function FournisseurMessages({ children }: { children: React.ReactNode })
       );
   }
 
+  function marquerPriveLue(id: string) {
+    if (!supabase || !moi) return;
+    setPrives((liste) => liste.map((c) => (c.id === id ? { ...c, nonLus: 0 } : c)));
+    supabase
+      .from('lectures_privees')
+      .upsert({ prive_id: id, joueur_id: moi, lu_le: new Date().toISOString() })
+      .then(
+        () => {},
+        () => {},
+      );
+  }
+
+  const nonLusGroupes = conversations.filter((c) => c.nonLus > 0).length;
+  const nonLusPrives = prives.filter((c) => c.nonLus > 0).length;
+
   return (
     <Contexte
       value={{
         conversations,
+        prives,
         etat,
-        nonLus: conversations.reduce((total, c) => total + c.nonLus, 0),
+        nonLus:
+          conversations.reduce((total, c) => total + c.nonLus, 0) + prives.reduce((total, c) => total + c.nonLus, 0),
+        nonLusGroupes,
+        nonLusPrives,
         recharger,
         marquerLue,
+        marquerPriveLue,
       }}>
       {children}
     </Contexte>
@@ -180,14 +265,22 @@ function lire(ligne: LigneMessage): Message {
 
 const CHAMPS = 'id, auteur_id, texte, cree_le, auteur:profils(prenom)';
 
+/** Table et colonne de chaque sorte de fil */
+function tableDu(fil: Fil) {
+  return fil.type === 'session'
+    ? { table: 'messages', colonne: 'session_id' }
+    : { table: 'messages_prives', colonne: 'prive_id' };
+}
+
 /**
- * Les 200 derniers messages d'une conversation, du plus ancien au plus récent. `null` si la lecture échoue.
+ * Les 200 derniers messages d'un fil, du plus ancien au plus récent. `null` si la lecture échoue.
  * Avec `apres` : seulement ceux arrivés depuis (quand un message arrive, on ne relit pas tout).
  */
-export async function lireMessages(sessionId: string, apres?: Date): Promise<Message[] | null> {
+export async function lireFil(fil: Fil, apres?: Date): Promise<Message[] | null> {
   if (!supabase) return null;
+  const { table, colonne } = tableDu(fil);
   try {
-    let requete = supabase.from('messages').select(CHAMPS).eq('session_id', sessionId);
+    let requete = supabase.from(table).select(CHAMPS).eq(colonne, fil.id);
     if (apres) requete = requete.gt('cree_le', apres.toISOString());
     const { data, error } = await requete.order('cree_le', { ascending: false }).limit(200);
     if (error) return null;
@@ -198,12 +291,13 @@ export async function lireMessages(sessionId: string, apres?: Date): Promise<Mes
 }
 
 /** Envoie un message. Renvoie le message enregistré, ou `null` si l'envoi a échoué. */
-export async function envoyerMessage(sessionId: string, texte: string): Promise<Message | null> {
+export async function envoyerDansFil(fil: Fil, texte: string): Promise<Message | null> {
   if (!supabase) return null;
+  const { table, colonne } = tableDu(fil);
   try {
     const { data, error } = await supabase
-      .from('messages')
-      .insert({ session_id: sessionId, texte })
+      .from(table)
+      .insert({ [colonne]: fil.id, texte })
       .select(CHAMPS)
       .single();
     if (error || !data) return null;
@@ -213,21 +307,39 @@ export async function envoyerMessage(sessionId: string, texte: string): Promise<
   }
 }
 
-/** Prévient dès qu'un message arrive dans cette conversation. Renvoie de quoi arrêter l'écoute. */
-export function ecouterMessages(sessionId: string, quandCaArrive: () => void) {
+/** Prévient dès qu'un message arrive dans ce fil. Renvoie de quoi arrêter l'écoute. */
+export function ecouterFil(fil: Fil, quandCaArrive: () => void) {
   if (!supabase) return () => {};
   const client = supabase;
+  const { table, colonne } = tableDu(fil);
   const canal = client
-    .channel(`messages-${sessionId}`)
-    .on(
-      'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'messages', filter: `session_id=eq.${sessionId}` },
-      quandCaArrive,
-    )
+    .channel(`${table}-${fil.id}`)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table, filter: `${colonne}=eq.${fil.id}` }, quandCaArrive)
     .subscribe();
   return () => {
     client.removeChannel(canal);
   };
+}
+
+/**
+ * Ouvre (ou retrouve) une conversation privée avec quelqu'un. `sessionId` : la session d'où on écrit
+ * (obligatoire pour écrire à un organisateur sans avoir catché).
+ * Renvoie l'identifiant de la conversation, `interdit` (blocage, ou personne jamais croisée),
+ * `limite` (20 nouvelles conversations par 24 h) ou `erreur` (pas de réseau).
+ */
+export async function ouvrirPrive(autreId: string, sessionId?: string): Promise<{ id: string } | 'interdit' | 'limite' | 'erreur'> {
+  if (!supabase) return 'erreur';
+  try {
+    const { data, error } = await supabase.rpc('ouvrir_prive', { p_autre: autreId, p_session: sessionId ?? null });
+    if (error) {
+      if (error.message?.includes('limite_prives')) return 'limite';
+      if (error.message?.includes('interdit')) return 'interdit';
+      return 'erreur';
+    }
+    return typeof data === 'string' ? { id: data } : 'erreur';
+  } catch {
+    return 'erreur';
+  }
 }
 
 const JOURS = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'];

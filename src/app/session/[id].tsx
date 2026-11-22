@@ -37,6 +37,7 @@ import {
 } from '@/lib/formats';
 import { useCatch } from '@/lib/catch';
 import { useCompte } from '@/lib/compte';
+import { ecrireA } from '@/lib/ecrire-prive';
 import { useEvenements } from '@/lib/evenements';
 import { inviter } from '@/lib/invitation';
 import { ajouterAuCalendrier, calendrierDisponible } from '@/lib/calendrier';
@@ -159,9 +160,29 @@ export default function DetailSession() {
             {session.titre}
           </Text>
 
-          <Text style={styles.organisateur}>
-            {invitation ? `${session.organisateur} t’invite à jouer` : `Organisée par ${session.organisateur}`}
-          </Text>
+          <View style={styles.ligneOrganisateur}>
+            <Text style={styles.organisateur}>
+              {invitation ? `${session.organisateur} t’invite à jouer` : `Organisée par ${session.organisateur}`}
+            </Text>
+            {/* Une question avant de catcher ? Un message privé, que le groupe ne voit pas */}
+            {!invitation && !organisee && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Écrire à ${session.organisateur} en privé`}
+                onPress={() =>
+                  ecrireA({
+                    autreId: session.organisateurId,
+                    prenom: session.organisateur,
+                    sessionId: session.id,
+                    connecte: !!compte,
+                  })
+                }
+                hitSlop={10}
+                style={({ pressed }) => pressed && styles.estompe}>
+                <Text style={styles.tuileActionTexte}>Lui écrire ›</Text>
+              </Pressable>
+            )}
+          </View>
 
           {session.debutantsBienvenus && (
             <View style={styles.pastille}>
@@ -249,7 +270,16 @@ export default function DetailSession() {
             </View>
           )}
 
-          <EquipeSession session={session} onInviter={invitation ? undefined : () => inviter(session)} />
+          <EquipeSession
+            session={session}
+            onInviter={invitation ? undefined : () => inviter(session)}
+            // Inscrit : toucher un joueur lui écrit en privé
+            onEcrire={
+              catchee && compte && !invitation
+                ? (autreId, prenom) => ecrireA({ autreId, prenom, sessionId: session.id, connecte: true })
+                : undefined
+            }
+          />
 
           {/* On ne se signale pas soi-même */}
           {session.organisateurId !== compte?.id && (
@@ -393,6 +423,7 @@ const creerStyles = (c: Palette) =>
       borderTopRightRadius: 24,
     },
     titre: { fontFamily: Polices.titre, fontSize: Tailles.titreDetail, lineHeight: 38, color: c.encre },
+    ligneOrganisateur: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 12, rowGap: 4 },
     organisateur: { fontFamily: Polices.texte, fontSize: Tailles.courant, color: c.texteSecondaire },
     pastille: {
       alignSelf: 'flex-start',
