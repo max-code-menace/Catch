@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -40,6 +41,13 @@ export function FeuilleMesSports({ visible, onFermer, types, onTypes, nombreSess
   const { bottom } = useSafeAreaInsets();
   const { sports, tous, setTous } = useMesSports();
   const mes = !tous;
+  // L'explication ne se montre qu'à l'ouverture, quand on n'a encore rien choisi : pas pendant qu'on coche
+  const [aide, setAide] = useState(false);
+  const [ouverte, setOuverte] = useState(visible);
+  if (visible !== ouverte) {
+    setOuverte(visible);
+    if (visible) setAide(sports.length === 0 && !tous);
+  }
 
   function basculerType(cle: TypeCarte) {
     const nouveau = { ...types, [cle]: !types[cle] };
@@ -108,13 +116,11 @@ export function FeuilleMesSports({ visible, onFermer, types, onTypes, nombreSess
         </View>
 
         <ScrollView style={styles.defile} contentContainerStyle={styles.defileContenu}>
-          <Text maxFontSizeMultiplier={1.3} style={styles.aide}>
-            {tous
-              ? 'Tu vois tous les sports. Tes sports restent gardés pour la prochaine fois.'
-              : sports.length
-                ? 'Touche un sport pour l’ajouter ou le retirer.'
-                : 'Choisis les sports qui t’intéressent : la carte ne montrera qu’eux.'}
-          </Text>
+          {aide && (
+            <Text maxFontSizeMultiplier={1.3} style={styles.aide}>
+              Choisis les sports qui t’intéressent : la carte ne montrera qu’eux.
+            </Text>
+          )}
           <GrilleMesSports estompee={tous} />
 
           <Text maxFontSizeMultiplier={1.3} style={styles.section}>
