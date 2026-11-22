@@ -10,6 +10,8 @@ export const Palettes = {
     rougeTexte: '#A12A14',
     rougeDoux: '#FCE6E0',
     rougeBordure: '#E9A58F',
+    /** Tranche sous les boutons rouges : le bouton s'y enfonce sous le doigt */
+    rougeTranche: '#8F2410',
     orange: '#E35A0C',
     orangeTexte: '#863404',
     orangeDoux: '#FDE6D2',
@@ -54,6 +56,7 @@ export const Palettes = {
     rougeTexte: '#FFB4A3',
     rougeDoux: '#3A1D16',
     rougeBordure: '#7A3A2A',
+    rougeTranche: '#9E3523',
     orange: '#FF8A3D',
     orangeTexte: '#FFC08F',
     orangeDoux: '#3B2410',

@@ -65,7 +65,29 @@ Tailles d'usage : 20 px dans les pastilles de carte (dans un rond blanc), 36 px 
 
 ## Animations
 
-Règle : chaque animation explique quelque chose, répond en moins de 100 ms, dure 100 à 400 ms et peut être interrompue par le doigt.
+Règle : chaque animation explique quelque chose, répond en moins de 100 ms, dure 100 à 400 ms et peut être interrompue par le doigt. **Exception : les grands moments** (le Catch, une session publiée, une présence confirmée) peuvent durer jusqu'à environ 1 s (décidé avec Maxime le 22 novembre).
+
+### L'ambiance Catch (22 novembre)
+
+Maquettes jouables : [Catch · Ambiance et animations](https://claude.ai/artifact/7zWKz5CrjJkx2fm3hPX9Fs).
+
+1. La balle orange est la mascotte : elle attend avec toi, elle file quand tu catches.
+2. Chaque geste répond tout de suite au doigt (enfoncement + vibration), avant même le serveur.
+3. On fête les vrais moments (Catch, session publiée, présence), jamais le fait d'ouvrir l'app.
+4. Une attente montre ce qui arrive (lignes du terrain, pastilles qui s'allument), jamais un rond qui tourne ni un texte « Chargement… ».
+5. Tout reste court et se coupe si l'iPhone demande moins d'animations.
+
+| Moment | Ce qui se passe | Où |
+| --- | --- | --- |
+| Attente d'un écran | `BalleRebond` (parabole, écrasée au sol, ombre) + phrases qui défilent (« On gonfle les ballons… ») | `components/chargement.tsx` (`Chargement`) : carte, détail, Profil |
+| Attente d'une liste | `CartesFantomes` : la forme des cartes avec les lignes d'un terrain, qui respire | Mes sessions, Messages |
+| Arrivée des sessions | Chaque pastille sort de terre, de haut en bas, 70 ms d'écart (`lib/apparitions.ts`, `Apparition`), une seule fois par session | Carte (téléphone et web) |
+| Premier chargement réussi | Bandeau « 7 sessions près de toi » sous la barre, 2,8 s (`components/bandeau-carte.tsx`) | Carte |
+| Bouton rouge | Tranche foncée dessous (`rougeTranche`), le bouton s'y enfonce de 3 px | `Bouton` principal, `BoutonCatch` |
+| Envoi au serveur | Une balle blanche roule dans le bouton (`attente` de `Bouton`) | Publier |
+| Session publiée | Retour à la carte : la session tombe au centre, s'écrase un peu, deux ondes, puis « C'est en ligne ! » avec « Inviter » (`components/session-qui-tombe.tsx`) | Carte |
+| Catch | La balle arrive et le bouton l'attrape (existant), puis sur « Tu l'as catchée ! » ton rond « Toi » rejoint l'équipe avec une onde et des éclats (`components/rond-toi.tsx`) | Détail, fiche, « Tu l'as catchée ! » |
+| Tuile choisie | Le picto se tasse et reprend sa taille (`PictoQuiSaute`) | Créer, Mes sports |
 
 | Jeton | Réglage (Reanimated) | Usage |
 | --- | --- | --- |
@@ -74,14 +96,16 @@ Règle : chaque animation explique quelque chose, répond en moins de 100 ms, du
 | `spring.gesture` | `{ duration: 300, dampingRatio: 0.8 }` + vitesse du geste | Feuilles et cartes glissées au doigt |
 | `spring.bounce` | `{ duration: 450, dampingRatio: 0.55 }` | Réservé à la balle et aux célébrations |
 | `duration.instant / fast / standard / emphasized` | 100 / 150 / 250 / 350 ms | Couleurs, toggles, fondus, entrées de feuilles |
-| Bouton pressé | scale 0,96 (0,98 pour les cartes) | Tous les boutons |
+| Bouton rouge pressé | descend de 3 px dans sa tranche | `Bouton` principal, `BoutonCatch` |
+| Autre bouton pressé | scale 0,96 (0,98 pour les cartes) | Boutons secondaires |
 
 - Onglets : fondu 250 ms. Carte ↔ Liste : fondu croisé.
-- Skeletons après 300 ms d'attente, balle qui rebondit après 400 ms.
-- La balle est le seul élément qui rebondit.
+- Balle d'attente après 400 ms (la carte), cartes fantômes tout de suite.
+- La balle est le seul élément qui rebondit vraiment. Les pastilles, pictos et le rond « Toi » ont seulement un léger dépassement en arrivant ; la session publiée s'écrase un peu en touchant la carte.
 - Catch et envoi de message en interface optimiste, avec retour en arrière propre en cas d'échec.
 - « Réduire les animations » respecté : déplacements remplacés par des fondus, boucles arrêtées.
 - Animer uniquement `transform` et `opacity`.
+- Carte sur téléphone : un marqueur n'est redessiné que pendant son animation (`tracksViewChanges`), puis il est figé en image.
 
 ## Vibrations
 

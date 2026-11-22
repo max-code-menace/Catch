@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Balle } from '@/components/balle';
-import { Bouton } from '@/components/bouton';
+import { Bouton, TRANCHE } from '@/components/bouton';
 import { Durees, Polices, Rayons, Ressorts, Tailles } from '@/constants/theme';
 import { vibrer } from '@/lib/haptics';
 import { useStyles, type Palette } from '@/lib/theme';
@@ -52,6 +52,8 @@ export function BoutonCatch({ titre = 'Catch', complet = false, onDemande, onEnv
   const minuteurs = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const echelle = useSharedValue(1);
+  /** Le bouton enfoncé dans sa tranche (0 : relevé, 1 : enfoncé) */
+  const enfonce = useSharedValue(0);
   const vol = useSharedValue(0);
   const attrape = useSharedValue(0);
 
@@ -60,7 +62,9 @@ export function BoutonCatch({ titre = 'Catch', complet = false, onDemande, onEnv
     return () => liste.forEach(clearTimeout);
   }, []);
 
-  const styleBouton = useAnimatedStyle(() => ({ transform: [{ scale: echelle.get() }] }));
+  const styleBouton = useAnimatedStyle(() => ({
+    transform: [{ translateY: enfonce.get() * (TRANCHE - 1) }, { scale: echelle.get() }],
+  }));
   const styleFondAttrape = useAnimatedStyle(() => ({ opacity: attrape.get() }));
   const styleBalle = useAnimatedStyle(() => {
     const t = vol.get();
@@ -115,7 +119,7 @@ export function BoutonCatch({ titre = 'Catch', complet = false, onDemande, onEnv
   }
 
   return (
-    <View>
+    <View style={[styles.tranche, etat === 'attrapee' && styles.sansTranche]}>
       <PressableAnime
         accessibilityRole="button"
         accessibilityLabel={etat === 'attrapee' ? 'Catchée !' : titre}
@@ -123,10 +127,10 @@ export function BoutonCatch({ titre = 'Catch', complet = false, onDemande, onEnv
         onPressIn={() => {
           if (etat !== 'pret') return;
           vibrer.appuiCatch();
-          echelle.set(withSpring(0.96, Ressorts.snappy));
+          enfonce.set(withSpring(1, Ressorts.snappy));
         }}
         onPressOut={() => {
-          if (etat === 'pret') echelle.set(withSpring(1, Ressorts.snappy));
+          enfonce.set(withSpring(0, Ressorts.snappy));
         }}
         onPress={lancer}
         style={[styles.bouton, styleBouton]}>
@@ -145,8 +149,11 @@ export function BoutonCatch({ titre = 'Catch', complet = false, onDemande, onEnv
 
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
+    // Comme le bouton rouge : une tranche foncée dessous, où il s'enfonce sous le doigt
+    tranche: { paddingBottom: TRANCHE, borderRadius: Rayons.bouton, backgroundColor: c.rougeTranche },
+    sansTranche: { backgroundColor: 'transparent' },
     bouton: {
-      minHeight: 52,
+      minHeight: 52 - TRANCHE,
       borderRadius: Rayons.bouton,
       alignItems: 'center',
       justifyContent: 'center',

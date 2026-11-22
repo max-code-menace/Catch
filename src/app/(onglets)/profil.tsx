@@ -7,6 +7,7 @@ import { Aide, Ecran } from '@/components/ecran';
 import { IconeCreer, IconeMenu, IconeProfil, IconeVerifie } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
 import { TerrainSport } from '@/components/terrain-sport';
+import { Chargement } from '@/components/chargement';
 import { SITE } from '@/constants/liens';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Sport } from '@/donnees/pictos';
@@ -317,7 +318,9 @@ export default function Profil() {
 
       <Onglets actif={onglet} onChoisir={setOnglet} nombres={{ aVenir: aVenir.length, jouees: jouees.length }} />
 
-      {liste.length > 0 ? (
+      {liste.length === 0 && etat === 'chargement' ? (
+        <Chargement phrases={['On retrouve tes sessions…', 'On compte tes matchs…']} />
+      ) : liste.length > 0 ? (
         <View style={styles.grille}>
           {liste.map((t) => (
             <Tuile key={t.id} trace={t} taille={taille} passee={onglet === 'jouees'} />
@@ -326,9 +329,7 @@ export default function Profil() {
       ) : (
         <View style={styles.vide}>
           <Aide>
-            {etat === 'chargement'
-              ? 'Recherche de tes sessions…'
-              : etat === 'erreur'
+            {etat === 'erreur'
                 ? 'Pas de réseau : tes sessions s’afficheront dès que ça revient.'
                 : onglet === 'aVenir'
                   ? 'Rien de prévu pour l’instant.'

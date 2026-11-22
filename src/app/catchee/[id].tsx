@@ -13,6 +13,7 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatars } from '@/components/avatars';
+import { RondToiQuiArrive } from '@/components/rond-toi';
 import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
 import { IconeCalendrier, IconeInfo, IconeInviter, IconeItineraire } from '@/components/icones';
@@ -108,7 +109,11 @@ export default function Catchee() {
           </Text>
 
           <View style={styles.attente}>
-            <Avatars initiales={session.inscrits.filter((nom) => nom !== 'Toi')} max={4} />
+            <View style={styles.equipe}>
+              <Avatars initiales={session.inscrits.filter((nom) => nom !== 'Toi')} max={4} />
+              {/* Ton rond rejoint les autres juste après la balle */}
+              <RondToiQuiArrive delai={650} />
+            </View>
             <Text style={styles.attenteTexte}>{texteAttente(session)}</Text>
           </View>
 
@@ -222,6 +227,7 @@ const creerStyles = (c: Palette) =>
       borderWidth: 1,
       borderColor: c.trait,
     },
+    equipe: { flexDirection: 'row', alignItems: 'center' },
     attenteTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.petit, color: c.encre },
     actions: { gap: 10, paddingBottom: 16 },
     rappel: {

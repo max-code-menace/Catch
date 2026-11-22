@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Bouton } from '@/components/bouton';
 import { Aide, Ecran } from '@/components/ecran';
 import { PictoSport } from '@/components/picto-sport';
+import { CartesFantomes } from '@/components/chargement';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { useCompte } from '@/lib/compte';
 import { initiale, teinte } from '@/lib/fil-messages';
@@ -174,7 +175,7 @@ export default function Messages() {
   if (etat === 'chargement' && conversations.length === 0) {
     return (
       <Ecran titre="Messages">
-        <Aide>Chargement de tes conversations…</Aide>
+        <CartesFantomes accessibilityLabel="Chargement de tes conversations" />
       </Ecran>
     );
   }

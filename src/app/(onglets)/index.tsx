@@ -1,10 +1,13 @@
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { Balle } from '@/components/balle';
-import { BarreHaut, HAUTEUR_BARRE_HAUT, type Vue } from '@/components/barre-haut';
+import { SessionQuiTombe } from '@/components/session-qui-tombe';
+import { BandeauCarte } from '@/components/bandeau-carte';
+import { Chargement } from '@/components/chargement';
+import { BarreHaut, type Vue } from '@/components/barre-haut';
 import { Bouton } from '@/components/bouton';
 import { CarteSessions } from '@/components/carte-sessions';
 import { FicheEvenement } from '@/components/fiche-evenement';
@@ -22,6 +25,7 @@ import { PanneauCarte } from '@/components/panneau-carte';
 import { CENTRE_ZONE, NOM_ZONE, type Coordonnees, type Session } from '@/donnees/sessions';
 import { ficheSport } from '@/donnees/sports';
 import { useCatch } from '@/lib/catch';
+import { inviter } from '@/lib/invitation';
 import { sessionsDeLEvenement, useEvenements } from '@/lib/evenements';
 import { filtreActif, listeSports, texteFiltre } from '@/lib/filtre-sports';
 import { distance, quand, texteDistance, textePlaces } from '@/lib/formats';
@@ -30,7 +34,7 @@ import { maPosition } from '@/lib/lieux';
 import { sessionsDuLieu, useLieuxSport } from '@/lib/lieux-sport';
 import { useBulleMesSports, useFiltreMesSports, useMesSports } from '@/lib/mes-sports';
 import { useSessions } from '@/lib/sessions';
-import { Polices, Rayons, Tailles } from '@/constants/theme';
+import { Durees } from '@/constants/theme';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 /** Rayon affiché par défaut, et distance au-delà de laquelle on ne propose plus d'aller voir */
@@ -56,7 +60,6 @@ export default function Carte() {
   const c = useCouleurs();
   const [cible, setCible] = useState<(Coordonnees & { cle: number; rayonKm?: number }) | null>(null);
   const [rayon, setRayon] = useState(RAYON_KM);
-  const { top } = useSafeAreaInsets();
 
   // « Recherche des sessions » n'apparaît que si ça dure, pour ne pas clignoter
   const [attenteLongue, setAttenteLongue] = useState(false);
@@ -66,6 +69,14 @@ export default function Carte() {
     return () => clearTimeout(minuteur);
   }, [etat]);
   const [vue, setVue] = useState<Vue>('carte');
+
+  // Premier chargement réussi : un petit bandeau dit combien de sessions attendent (la récompense de l'attente)
+  const [etatVu, setEtatVu] = useState(etat);
+  const [bandeauNombre, setBandeauNombre] = useState<number | null>(null);
+  if (etat !== etatVu) {
+    setEtatVu(etat);
+    if (etatVu === 'chargement' && etat === 'pretes') setBandeauNombre(1);
+  }
 
   // Filtre de la carte : « Mes sports » (étoile de la barre du haut), puis sessions, événements, salles et terrains
   const mesSports = useMesSports();
@@ -86,6 +97,22 @@ export default function Carte() {
   });
   const lieuxCarte = types.lieux ? lieux : [];
   const evenementsCarte = types.evenements ? evenements : [];
+
+  // Retour de Créer : la session qu'on vient de publier tombe sur la carte, puis « C'est en ligne ! »
+  const { publiee } = useLocalSearchParams<{ publiee?: string }>();
+  const [publieeVue, setPublieeVue] = useState<string | undefined>(undefined);
+  const [idQuiTombe, setIdQuiTombe] = useState<string | null>(null);
+  const [enLigne, setEnLigne] = useState<{ cle: number; id: string } | null>(null);
+  const sessionPubliee =
+    publiee && publiee !== publieeVue ? toutesLesSessions.find((s) => s.id === publiee) : undefined;
+  if (sessionPubliee) {
+    setPublieeVue(sessionPubliee.id);
+    setIdQuiTombe(sessionPubliee.id);
+    setVue('carte');
+    setCible({ ...sessionPubliee.position, cle: (cible?.cle ?? 0) + 1 });
+  }
+  const sessionQuiTombe = idQuiTombe ? toutesLesSessions.find((s) => s.id === idQuiTombe) : undefined;
+  const sessionEnLigne = enLigne ? toutesLesSessions.find((s) => s.id === enLigne.id) : undefined;
 
   const [idChoisie, setIdChoisie] = useState<string | null>(null);
   const choisie = voirSessions ? sessions.find((s) => s.id === idChoisie) : undefined;
@@ -282,7 +309,8 @@ export default function Carte() {
   return (
     <View style={styles.ecran}>
       <CarteSessions
-        sessions={voirSessions ? sessions : []}
+        // Celle qui tombe n'a pas encore de marqueur : il prend le relais quand elle a touché la carte
+        sessions={voirSessions ? sessions.filter((s) => s.id !== idQuiTombe) : []}
         eclats={voirSessions ? eclats : []}
         idChoisie={idChoisie}
         onChoisir={choisir}
@@ -345,10 +373,10 @@ export default function Carte() {
         </PanneauCarte>
       )}
       {etat === 'chargement' && attenteLongue && (
-        <View
-          pointerEvents="none"
-          style={[styles.attente, { top: top + HAUTEUR_BARRE_HAUT + 8 }]}>
-          <Text style={styles.attenteTexte}>Recherche des sessions…</Text>
+        <View pointerEvents="none" style={styles.attente}>
+          <Animated.View entering={FadeIn.duration(Durees.standard)} exiting={FadeOut.duration(Durees.standard)}>
+            <Chargement carte />
+          </Animated.View>
         </View>
       )}
       <BarreHaut
@@ -374,6 +402,33 @@ export default function Carte() {
           setPanneauFerme(false);
         }}
       />
+      {vue === 'carte' && bandeauNombre && dansLeRayon.length > 0 && !annonce && !enLigne && !idQuiTombe && !bulle.afficher && aucuneFiche && (
+        <BandeauCarte
+          cle={bandeauNombre}
+          titre={`${dansLeRayon.length} ${dansLeRayon.length === 1 ? 'session' : 'sessions'} ${position ? 'près de toi' : `à ${NOM_ZONE}`}`}
+          duree={2800}
+          onFini={() => setBandeauNombre(null)}
+        />
+      )}
+      {sessionQuiTombe && (
+        <SessionQuiTombe
+          session={sessionQuiTombe}
+          onFini={() => {
+            setIdQuiTombe(null);
+            setEnLigne((avant) => ({ cle: (avant?.cle ?? 0) + 1, id: sessionQuiTombe.id }));
+          }}
+        />
+      )}
+      {sessionEnLigne && enLigne && (
+        <BandeauCarte
+          cle={enLigne.cle}
+          titre="C’est en ligne !"
+          texte="Les joueurs du coin la voient déjà."
+          action={{ titre: 'Inviter', onPress: () => inviter(sessionEnLigne) }}
+          duree={7000}
+          onFini={() => setEnLigne(null)}
+        />
+      )}
       {annonce && !feuilleOuverte && (
         <ToastMesSports
           cle={annonce.cle}
@@ -459,15 +514,5 @@ export default function Carte() {
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
     ecran: { flex: 1, backgroundColor: c.fond },
-    attente: {
-      position: 'absolute',
-      alignSelf: 'center',
-      paddingVertical: 8,
-      paddingHorizontal: 14,
-      backgroundColor: c.carte,
-      borderRadius: Rayons.pilule,
-      borderWidth: 1,
-      borderColor: c.trait,
-    },
-    attenteTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.aide, color: c.texteSecondaire },
+    attente: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
   });
