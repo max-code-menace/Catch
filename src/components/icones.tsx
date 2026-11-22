@@ -203,3 +203,22 @@ export function IconeEtoile({ pleine, ...props }: Props & { pleine?: boolean }) 
     </Svg>
   );
 }
+
+/** Menu du profil (réglages, aide), comme les trois traits d'Instagram */
+export function IconeMenu(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M4 7h16M4 12h16M4 17h16" />
+    </Base>
+  );
+}
+
+/** Badge « vérifié » : bouclier avec une coche */
+export function IconeVerifie(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M12 3 5 6v5c0 4.4 3 8.2 7 9.5 4-1.3 7-5.1 7-9.5V6z" />
+      <Path d="m9 12 2.2 2.2L15.5 10" />
+    </Base>
+  );
+}

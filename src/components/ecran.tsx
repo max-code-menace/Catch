@@ -9,14 +9,24 @@ type Props = {
   children?: React.ReactNode;
   /** Le contenu défile (à utiliser quand l'écran peut dépasser la hauteur du téléphone) */
   defile?: boolean;
+  /** Bouton à droite du titre (menu du profil) */
+  action?: React.ReactNode;
 };
 
 /**
  * Cadre commun des écrans : fond chaud, marges, titre, place réservée pour la barre du bas.
  * Calé sur toute la surface de l'onglet (absoluteFill) : sur le web, l'onglet grandit sinon avec son contenu.
  */
-export function Ecran({ titre, children, defile = false }: Props) {
+export function Ecran({ titre, children, defile = false, action }: Props) {
   const styles = useStyles(creerStyles);
+  const entete = (
+    <View style={styles.entete}>
+      <Text accessibilityRole="header" style={styles.titre} numberOfLines={1}>
+        {titre}
+      </Text>
+      {action}
+    </View>
+  );
   if (defile) {
     return (
       <SafeAreaView style={[styles.fond, StyleSheet.absoluteFill]} edges={['top', 'left', 'right']}>
@@ -24,9 +34,7 @@ export function Ecran({ titre, children, defile = false }: Props) {
           contentContainerStyle={styles.contenuDefilant}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled">
-          <Text accessibilityRole="header" style={styles.titre}>
-            {titre}
-          </Text>
+          {entete}
           {children}
         </ScrollView>
       </SafeAreaView>
@@ -35,9 +43,7 @@ export function Ecran({ titre, children, defile = false }: Props) {
   return (
     <SafeAreaView style={[styles.fond, StyleSheet.absoluteFill]} edges={['top', 'left', 'right']}>
       <View style={styles.contenu}>
-        <Text accessibilityRole="header" style={styles.titre}>
-          {titre}
-        </Text>
+        {entete}
         {children}
       </View>
     </SafeAreaView>
@@ -66,7 +72,8 @@ const creerStyles = (c: Palette) =>
       paddingBottom: RESERVE_BAS + BarreNavigation.margeBas + 24,
       gap: 12,
     },
-    titre: { fontFamily: Polices.titre, fontSize: Tailles.titreEcran, color: c.encre },
+    entete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+    titre: { flexShrink: 1, fontFamily: Polices.titre, fontSize: Tailles.titreEcran, color: c.encre },
     aide: {
       fontFamily: Polices.texte,
       fontSize: Tailles.texte,

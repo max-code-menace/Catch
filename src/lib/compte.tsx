@@ -7,7 +7,14 @@ import { createContext, use, useEffect, useState } from 'react';
 import { oublierAppareil } from '@/lib/notifications';
 import { supabase } from '@/lib/supabase';
 
-export type Compte = { id: string; prenom: string | null };
+export type Compte = {
+  id: string;
+  prenom: string | null;
+  /** Date de création du compte (« Membre depuis ») */
+  inscritLe: Date | null;
+  /** Comment le compte a été vérifié : adresse e-mail confirmée par le code, ou compte Apple */
+  verifiePar: 'email' | 'apple' | null;
+};
 
 /** Chaque action renvoie `null` si tout va bien, sinon le message à afficher. */
 type Resultat = Promise<string | null>;
@@ -65,8 +72,19 @@ export function FournisseurCompte({ children }: { children: React.ReactNode }) {
   }, []);
 
   const prenom = session?.user.user_metadata?.prenom;
-  const compte: Compte | null = session
-    ? { id: session.user.id, prenom: typeof prenom === 'string' && prenom ? prenom : null }
+  const utilisateur = session?.user;
+  const compte: Compte | null = utilisateur
+    ? {
+        id: utilisateur.id,
+        prenom: typeof prenom === 'string' && prenom ? prenom : null,
+        inscritLe: utilisateur.created_at ? new Date(utilisateur.created_at) : null,
+        verifiePar:
+          utilisateur.app_metadata?.provider === 'apple'
+            ? 'apple'
+            : utilisateur.email_confirmed_at
+              ? 'email'
+              : null,
+      }
     : null;
 
   async function envoyerCode(email: string) {
