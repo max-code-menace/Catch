@@ -4,7 +4,7 @@ import Animated, { SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconeCoche, IconeFermer } from '@/components/icones';
-import { PictoSport } from '@/components/picto-sport';
+import { PictoQuiSaute } from '@/components/picto-sport';
 import { Durees, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { vibrer } from '@/lib/haptics';
 import { SPORTS_A_CHOISIR, useMesSports } from '@/lib/mes-sports';
@@ -166,7 +166,7 @@ export function GrilleMesSports() {
                 <IconeCoche couleur={c.surRouge} taille={12} />
               </View>
             )}
-            <PictoSport sport={fiche.cle} taille={34} />
+            <PictoQuiSaute sport={fiche.cle} taille={34} actif={choisi} />
             <Text maxFontSizeMultiplier={1.2} style={styles.tuileTexte} numberOfLines={1}>
               {fiche.nomTuile ?? fiche.nom}
             </Text>

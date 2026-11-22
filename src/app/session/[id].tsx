@@ -24,6 +24,7 @@ import {
 } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
 import { TerrainSport } from '@/components/terrain-sport';
+import { Chargement } from '@/components/chargement';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import {
   annulationLibre,
@@ -113,7 +114,7 @@ export default function DetailSession() {
             <Bouton titre="Voir les sessions" onPress={() => router.replace('/')} />
           </>
         ) : (
-          <Text style={styles.aide}>Recherche de la session…</Text>
+          <Chargement phrases={['On cherche la session…', 'On gonfle les ballons…']} />
         )}
       </View>
     );

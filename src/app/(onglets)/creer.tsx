@@ -19,7 +19,7 @@ import { ChoixDateHeure } from '@/components/choix-date-heure';
 import { ChoixJoueurs } from '@/components/choix-joueurs';
 import { ChoixLieu } from '@/components/choix-lieu';
 import { IconeDrapeau, IconeRelancer } from '@/components/icones';
-import { PictoSport } from '@/components/picto-sport';
+import { PictoQuiSaute } from '@/components/picto-sport';
 import { BarreNavigation, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { Pictos, type Sport } from '@/donnees/pictos';
 import { CENTRE_ZONE } from '@/donnees/sessions';
@@ -34,6 +34,7 @@ import { lieuA, lieuxDuSport, texteType, useLieuxSport, type LieuSport } from '@
 import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 import { etapePublication } from '@/lib/regles-sessions';
+import { marquerVue } from '@/lib/apparitions';
 
 const MINUTE = 60_000;
 /** Place prise par le pied (récapitulatif + bouton Publier) au-dessus de la barre */
@@ -273,7 +274,9 @@ export default function Creer() {
     setEvenementId(null);
     setLieu((avant) => ({ ...avant, choisi: false }));
     setLieuDemande(false);
-    router.push({ pathname: '/session/[id]', params: { id } });
+    // Retour sur la carte : la session y tombe à sa place (sa pastille ne sort pas de terre comme les autres)
+    marquerVue(id);
+    router.navigate({ pathname: '/', params: { publiee: id } });
   }
 
   function publier() {
@@ -380,7 +383,7 @@ export default function Creer() {
                   accessibilityState={{ selected: actif }}
                   onPress={() => choisirSport(cle)}
                   style={[styles.tuile, { width: largeurTuile }, actif && styles.tuileActive]}>
-                  <PictoSport sport={cle} taille={32} />
+                  <PictoQuiSaute sport={cle} taille={32} actif={actif} />
                   <Text maxFontSizeMultiplier={1.3}
                     numberOfLines={1}
                     adjustsFontSizeToFit
@@ -548,7 +551,7 @@ export default function Creer() {
         <Text maxFontSizeMultiplier={1.3} style={styles.recap} numberOfLines={1}>
           {recap}
         </Text>
-        <Bouton titre={envoi ? 'Publication…' : 'Publier la session'} disabled={envoi} onPress={publier} />
+        <Bouton titre={envoi ? 'On la pose sur la carte…' : 'Publier la session'} disabled={envoi} attente={envoi} onPress={publier} />
       </View>
       {carteOuverte && (
         <ChoixLieu

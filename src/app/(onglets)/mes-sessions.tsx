@@ -5,6 +5,7 @@ import { Bouton } from '@/components/bouton';
 import { Aide, Ecran } from '@/components/ecran';
 import { IconeChevron } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
+import { CartesFantomes } from '@/components/chargement';
 import { Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
 import { useCompte } from '@/lib/compte';
@@ -72,12 +73,12 @@ export default function MesSessions() {
 
   return (
     <Ecran titre="Mes sessions" defile>
-      {miennes.length === 0 ? (
+      {miennes.length === 0 && etat === 'chargement' ? (
+        <CartesFantomes accessibilityLabel="Recherche de tes sessions" />
+      ) : miennes.length === 0 ? (
         <View style={styles.vide}>
           <Aide>
-            {etat === 'chargement'
-              ? 'Recherche de tes sessions…'
-              : etat === 'erreur'
+            {etat === 'erreur'
                 ? 'Impossible de charger tes sessions. Vérifie ta connexion.'
                 : 'Aucune session prévue. Catches-en une sur la carte, ou crée la tienne.'}
           </Aide>
