@@ -2,7 +2,8 @@ import { TabList, TabSlot, TabTrigger, Tabs } from 'expo-router/ui';
 import { StyleSheet } from 'react-native';
 
 import { BoutonCreer, Onglet, useStyleBarre } from '@/components/barre-navigation';
-import { IconeCalendrier, IconeCarte, IconeMessages, IconeProfil } from '@/components/icones';
+import { IconeCalendrier, IconeCarte, IconeMessages } from '@/components/icones';
+import { IconeProfilPhoto } from '@/components/rond-photo';
 import { useMessages } from '@/lib/messages';
 import { useStyles, type Palette } from '@/lib/theme';
 
@@ -30,7 +31,7 @@ export default function Onglets() {
           <Onglet titre="Messages" Icone={IconeMessages} pastille={nonLus} />
         </TabTrigger>
         <TabTrigger name="profil" href="/profil" asChild>
-          <Onglet titre="Profil" Icone={IconeProfil} />
+          <Onglet titre="Profil" Icone={IconeProfilPhoto} />
         </TabTrigger>
         {/* L'écran Créer reste un onglet, sans place dans la barre */}
         <TabTrigger name="creer" href="/creer" style={styles.cache} />

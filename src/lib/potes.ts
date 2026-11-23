@@ -8,7 +8,7 @@ import type { Sport } from '@/donnees/pictos';
 import { useCompte } from '@/lib/compte';
 import { supabase } from '@/lib/supabase';
 
-export type Pote = { id: string; prenom: string; dispo: boolean };
+export type Pote = { id: string; prenom: string; dispo: boolean; photo: string | null };
 
 /** Une session d'un pote dans les 7 prochains jours */
 export type SessionPote = {
@@ -105,15 +105,22 @@ export async function reglerDispo(dispo: boolean): Promise<boolean | null> {
 
 async function lirePotes() {
   if (!supabase) return { potes: [], semaine: [], dispo: false, question: null };
-  const [potes, semaine, dispo, question] = await Promise.all([
+  const [potes, semaine, dispo, question, photos] = await Promise.all([
     supabase.rpc('mes_potes'),
     supabase.rpc('semaine_des_potes'),
     supabase.rpc('ma_dispo'),
     lireQuestion(),
+    supabase.rpc('photos_des_potes'),
   ]);
+  const photoDe = new Map(((photos.data ?? []) as { id: string; photo: string }[]).map((p) => [p.id, p.photo]));
   if (potes.error || semaine.error) return null;
   return {
-    potes: ((potes.data ?? []) as LignePote[]).map((p) => ({ id: p.id, prenom: p.prenom || 'Pote', dispo: p.dispo })),
+    potes: ((potes.data ?? []) as LignePote[]).map((p) => ({
+      id: p.id,
+      prenom: p.prenom || 'Pote',
+      dispo: p.dispo,
+      photo: photoDe.get(p.id) ?? null,
+    })),
     semaine: ((semaine.data ?? []) as LigneSemaine[]).map(
       (s): SessionPote => ({
         poteId: s.pote_id,

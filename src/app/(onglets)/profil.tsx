@@ -5,6 +5,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import {
+  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -20,20 +21,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Bouton } from '@/components/bouton';
 import { Chargement } from '@/components/chargement';
 import { Aide, Ecran } from '@/components/ecran';
-import { IconeChevron, IconeCreer, IconeDrapeau, IconeMenu, IconeProfil, IconeVerifie } from '@/components/icones';
+import { IconeChevron, IconeCreer, IconeDrapeau, IconeMenu, IconePhoto, IconeProfil, IconeVerifie } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
 import { SITE } from '@/constants/liens';
 import { BarreNavigation, Espaces, Polices, RESERVE_BAS, Rayons, Tailles } from '@/constants/theme';
 import type { Sport } from '@/donnees/pictos';
 import { NOM_ZONE } from '@/donnees/sessions';
 import { ficheSport } from '@/donnees/sports';
-import { prevenir } from '@/lib/alerte';
+import { choisir, prevenir } from '@/lib/alerte';
 import { useCompte, type Compte } from '@/lib/compte';
 import { ecrireA } from '@/lib/ecrire-prive';
 import { distance, heure, quand, texteDistance } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { useHistorique } from '@/lib/historique';
 import { useMesSports } from '@/lib/mes-sports';
+import { usePhoto } from '@/lib/photo';
 import { usePotes, type Pote, type SessionPote } from '@/lib/potes';
 import {
   accorder,
@@ -85,31 +87,105 @@ function BoutonMenu() {
   );
 }
 
-/** Son rond : l'initiale sur un carré arrondi légèrement penché */
+/** Son rond : sa photo, sinon l'initiale sur un carré arrondi légèrement penché */
 function MonRond({ prenom, petit = false }: { prenom: string | null; petit?: boolean }) {
   const styles = useStyles(creerStyles);
+  const { photo } = usePhoto();
   return (
     <View
-      style={[styles.monRond, petit && styles.monRondPetit]}
+      style={[styles.monRond, petit && styles.monRondPetit, photo && styles.monRondPhoto]}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants">
-      <Text style={[styles.monRondLettre, petit && styles.monRondLettrePetite]} maxFontSizeMultiplier={1}>
-        {initiale(prenom) || '?'}
-      </Text>
+      {photo ? (
+        <Image source={{ uri: photo }} style={styles.photo} accessibilityIgnoresInvertColors />
+      ) : (
+        <Text style={[styles.monRondLettre, petit && styles.monRondLettrePetite]} maxFontSizeMultiplier={1}>
+          {initiale(prenom) || '?'}
+        </Text>
+      )}
     </View>
   );
 }
 
+/** Le grand rond de l'en-tête : le toucher pour mettre, changer ou retirer sa photo */
+function RondAvecPhoto({ prenom }: { prenom: string | null }) {
+  const styles = useStyles(creerStyles);
+  const c = useCouleurs();
+  const { photo, envoi, choisir: choisirPhoto, retirer } = usePhoto();
+
+  async function prendre(source: 'appareil' | 'galerie') {
+    const resultat = await choisirPhoto(source);
+    if (resultat === 'ok') vibrer.succes();
+    if (resultat === 'erreur') {
+      vibrer.erreur();
+      prevenir('Photo pas envoyée', 'Vérifie ta connexion et réessaie.');
+    }
+  }
+
+  function ouvrir() {
+    vibrer.selection();
+    choisir({
+      titre: 'Une photo de ton visage aide les autres à te reconnaître au terrain.',
+      couleur: c.rouge,
+      options: [
+        { texte: 'Prendre une photo', onPress: () => prendre('appareil') },
+        { texte: 'Choisir dans mes photos', onPress: () => prendre('galerie') },
+        ...(photo
+          ? [
+              {
+                texte: 'Retirer ma photo',
+                destructif: true,
+                onPress: async () => {
+                  if (!(await retirer())) prevenir('Pas de réseau', 'Ta photo n’a pas été retirée. Réessaie.');
+                },
+              },
+            ]
+          : []),
+      ],
+    });
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={photo ? 'Changer ma photo' : 'Ajouter une photo'}
+      onPress={ouvrir}
+      disabled={envoi}
+      style={({ pressed }) => [styles.rondAvecPhoto, (pressed || envoi) && styles.presse]}>
+      <MonRond prenom={prenom} />
+      {!photo && (
+        <View style={styles.badgePhoto}>
+          <IconePhoto couleur={c.surEncre} taille={13} />
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
 /** Rond d'un pote : ses deux premières lettres, sur une des 4 couleurs d'avatar */
-function RondPote({ prenom, index, dispo = false }: { prenom: string; index: number; dispo?: boolean }) {
+function RondPote({
+  prenom,
+  index,
+  dispo = false,
+  photo,
+}: {
+  prenom: string;
+  index: number;
+  dispo?: boolean;
+  photo?: string | null;
+}) {
   const styles = useStyles(creerStyles);
   const c = useCouleurs();
   const fond = [c.avatar1, c.avatar2, c.avatar3, c.avatar4][index % 4];
   return (
     <View style={[styles.rondPote, { backgroundColor: fond }, dispo && styles.rondDispo]}>
-      <Text style={styles.rondPoteTexte} maxFontSizeMultiplier={1}>
-        {deuxLettres(prenom)}
-      </Text>
+      {photo ? (
+        <Image source={{ uri: photo }} style={styles.photo} accessibilityIgnoresInvertColors />
+      ) : (
+        <Text style={styles.rondPoteTexte} maxFontSizeMultiplier={1}>
+          {deuxLettres(prenom)}
+        </Text>
+      )}
     </View>
   );
 }
@@ -192,9 +268,9 @@ function EnteteFlottant({
   const styles = useStyles(creerStyles);
   const c = useCouleurs();
   const { top } = useSafeAreaInsets();
-  const noms: Record<Onglet, string> = { semaine: 'Semaine', catchs: 'Catchs', potes: 'Potes', sports: 'Sports' };
+  const noms: Record<Onglet, string> = { semaine: 'À venir', catchs: 'Catchs', potes: 'Potes', sports: 'Sports' };
   const lus: Record<Onglet, string> = {
-    semaine: accorder(nombres.semaine, 'session cette semaine', 'sessions cette semaine'),
+    semaine: accorder(nombres.semaine, 'session à venir cette semaine', 'sessions à venir cette semaine'),
     catchs: accorder(nombres.catchs, 'Catch', 'Catchs'),
     potes: accorder(nombres.potes, 'pote', 'potes'),
     sports: accorder(nombres.sports, 'sport', 'sports'),
@@ -205,7 +281,7 @@ function EnteteFlottant({
       onLayout={(e) => !compact && onMesure(e.nativeEvent.layout.height)}>
       {!compact && (
         <View style={styles.identite}>
-          <MonRond prenom={compte.prenom} />
+          <RondAvecPhoto prenom={compte.prenom} />
           <View style={styles.identiteTextes}>
             <Text accessibilityRole="header" style={styles.prenom} numberOfLines={1}>
               {compte.prenom ?? 'Profil'}
@@ -501,7 +577,7 @@ function SectionPotes({ donnees }: { donnees: ReturnType<typeof usePotes> }) {
             )}
             {dispos.map((p) => (
               <View key={p.id} style={styles.rondAvecNom}>
-                <RondPote prenom={p.prenom} index={index.get(p.id) ?? 0} dispo />
+                <RondPote prenom={p.prenom} index={index.get(p.id) ?? 0} dispo photo={p.photo} />
                 <Text style={styles.nomRond} numberOfLines={1}>
                   {p.prenom}
                 </Text>
@@ -509,7 +585,7 @@ function SectionPotes({ donnees }: { donnees: ReturnType<typeof usePotes> }) {
             ))}
           </ScrollView>
         ) : (
-          <Text style={styles.aide}>Personne pour l’instant. Mets-toi dispo depuis « Semaine ».</Text>
+          <Text style={styles.aide}>Personne pour l’instant. Mets-toi dispo depuis « À venir ».</Text>
         )}
       </View>
 
@@ -584,7 +660,7 @@ function SectionPotes({ donnees }: { donnees: ReturnType<typeof usePotes> }) {
               accessibilityLabel={`Écrire à ${p.prenom}`}
               onPress={() => ecrireA({ autreId: p.id, prenom: p.prenom, connecte: true })}
               style={styles.rondAvecNom}>
-              <RondPote prenom={p.prenom} index={i} />
+              <RondPote prenom={p.prenom} index={i} photo={p.photo} />
               <Text style={styles.nomRond} numberOfLines={1}>
                 {p.prenom}
               </Text>
@@ -778,6 +854,22 @@ const creerStyles = (c: Palette) =>
       transform: [{ rotate: '-6deg' }],
     },
     monRondPetit: { width: 38, height: 38, borderRadius: 12, transform: [] },
+    monRondPhoto: { overflow: 'hidden', backgroundColor: c.beige },
+    photo: { width: '100%', height: '100%' },
+    rondAvecPhoto: { position: 'relative' },
+    badgePhoto: {
+      position: 'absolute',
+      right: -4,
+      bottom: -4,
+      width: 26,
+      height: 26,
+      borderRadius: Rayons.pilule,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.encre,
+      borderWidth: 2,
+      borderColor: c.carte,
+    },
     monRondLettre: { fontFamily: Polices.titre, fontSize: Tailles.titreEcran, color: c.surCreer, transform: [{ rotate: '6deg' }] },
     monRondLettrePetite: { fontSize: Tailles.accent, transform: [] },
     navigation: { flexDirection: 'row', alignItems: 'center', gap: 6 },
@@ -892,6 +984,7 @@ const creerStyles = (c: Palette) =>
       width: 56,
       height: 56,
       borderRadius: 18,
+      overflow: 'hidden',
       alignItems: 'center',
       justifyContent: 'center',
     },

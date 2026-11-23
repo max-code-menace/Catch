@@ -50,6 +50,11 @@ export default function Confidentialite() {
           alors les sessions de l’autre pour les 7 prochains jours, et s’il s’est mis « dispo ce soir » (jusqu’à
           minuit). Bloquer quelqu’un coupe tout ça dans les deux sens.
         </Paragraphe>
+        <Paragraphe>
+          Ta photo de profil, si tu en mets une (c’est facultatif). Elle est visible par toi et par tes potes ; son
+          adresse n’est donnée à personne d’autre dans l’app. Tu peux la retirer quand tu veux depuis ton Profil, et
+          elle est effacée avec ton compte.
+        </Paragraphe>
         <Paragraphe>Tes signalements et la liste des personnes que tu as bloquées.</Paragraphe>
       </Partie>
 

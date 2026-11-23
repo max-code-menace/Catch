@@ -164,6 +164,10 @@ export function FournisseurCompte({ children }: { children: React.ReactNode }) {
     try {
       // Avant de partir : ce téléphone ne doit plus recevoir les notifications de ce compte
       await oublierAppareil();
+      // Sa photo de profil part avec le compte (rien si elle n'existe pas)
+      if (session?.user.id) {
+        await supabase.storage.from('photos').remove([`${session.user.id}/photo.jpg`]).catch(() => {});
+      }
       const { error } = await supabase.rpc('supprimer_mon_compte');
       if (error) return message(error);
       // Le compte n'existe plus côté serveur : on ferme aussi la connexion gardée sur le téléphone

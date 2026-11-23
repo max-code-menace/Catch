@@ -232,3 +232,13 @@ export function IconeReglages(props: Props) {
     </Base>
   );
 }
+
+/** Appareil photo : ajouter sa photo de profil */
+export function IconePhoto(props: Props) {
+  return (
+    <Base {...props}>
+      <Path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+      <Circle cx={12} cy={13} r={3.5} />
+    </Base>
+  );
+}

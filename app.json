@@ -61,7 +61,15 @@
         }
       ],
       "expo-notifications",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Catch utilise tes photos seulement si tu choisis une photo de profil.",
+          "cameraPermission": "Catch utilise l’appareil photo seulement si tu prends une photo de profil.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
