@@ -122,6 +122,8 @@ export const Tailles = {
   grandNombre: 30,
   titreDetail: 32,
   celebration: 36,
+  /** Tampon « TEST » sur l'en-tête d'une session de test */
+  tampon: 64,
 } as const;
 
 export const Espaces = {
