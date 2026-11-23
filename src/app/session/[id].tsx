@@ -125,6 +125,7 @@ export default function DetailSession() {
 
   const catchee = estCatchee(session.id);
   const organisee = session.organisateurId === compte?.id;
+  const estSessionTest = session.aSavoir?.titre === 'Session de test' || session.lieu.endsWith('(test)');
   const libres = placesLibres(session);
   const nombre = session.inscrits.length;
 
@@ -184,6 +185,14 @@ export default function DetailSession() {
           <Text style={styles.rebours} maxFontSizeMultiplier={1.3}>
             {compteARebours(session)}
           </Text>
+          {/* Session de test (créée pour essayer l'app) : gros tampon par-dessus le terrain */}
+          {estSessionTest && (
+            <View pointerEvents="none" style={styles.tampon}>
+              <Text maxFontSizeMultiplier={1} style={styles.tamponTexte}>
+                TEST
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={[styles.fiche, catchee && { paddingBottom: Math.max(bottom, 16) + 16 }]}>
@@ -438,6 +447,15 @@ const creerStyles = (c: Palette) =>
       backgroundColor: c.rondPicto,
       boxShadow: c.ombre,
     },
+    tampon: {
+      position: 'absolute',
+      paddingHorizontal: 18,
+      borderWidth: 5,
+      borderRadius: 14,
+      borderColor: c.surRouge,
+      transform: [{ rotate: '-12deg' }],
+    },
+    tamponTexte: { fontFamily: Polices.titre, fontSize: Tailles.tampon, letterSpacing: 6, color: c.surRouge },
     rebours: { fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, color: c.surRouge, marginBottom: 12 },
     fiche: {
       flexGrow: 1,
