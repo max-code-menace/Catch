@@ -44,6 +44,12 @@ export default function Confidentialite() {
           Si tu actives les notifications : un identifiant de ton téléphone qui permet de te les envoyer, tes réglages,
           et le centre approximatif de ta zone pour ne te prévenir que des sessions proches.
         </Paragraphe>
+        <Paragraphe>
+          Tes potes. Après une session, tu peux choisir avec qui tu rejouerais : on garde ces choix, mais personne ne
+          voit qui l’a choisi ni qui ne l’a pas choisi. Si le choix est réciproque, vous devenez potes : chacun voit
+          alors les sessions de l’autre pour les 7 prochains jours, et s’il s’est mis « dispo ce soir » (jusqu’à
+          minuit). Bloquer quelqu’un coupe tout ça dans les deux sens.
+        </Paragraphe>
         <Paragraphe>Tes signalements et la liste des personnes que tu as bloquées.</Paragraphe>
       </Partie>
 
@@ -70,7 +76,7 @@ export default function Confidentialite() {
       <Partie titre="Combien de temps">
         <Paragraphe>
           Tant que ton compte existe. Tu peux le supprimer à tout moment dans Profil, ou sur la page « Supprimer mon
-          compte » du site : ton prénom, tes participations, tes messages, tes réglages et les sessions que tu
+          compte » du site : ton prénom, tes participations, tes messages, tes potes, tes réglages et les sessions que tu
           organises sont effacés. Un signalement que tu as envoyé est conservé sans ton nom, le temps de le traiter.
         </Paragraphe>
         <Paragraphe>
