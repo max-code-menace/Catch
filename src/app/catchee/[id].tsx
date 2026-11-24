@@ -16,6 +16,7 @@ import { Avatars } from '@/components/avatars';
 import { RondToiQuiArrive } from '@/components/rond-toi';
 import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
+import { Marqueur } from '@/components/marqueur';
 import { IconeCalendrier, IconeInfo, IconeInviter, IconeItineraire } from '@/components/icones';
 import { Durees, Espaces, Polices, Rayons, Ressorts, Tailles } from '@/constants/theme';
 import { annulationLibre, quandPhrase, texteAttente } from '@/lib/formats';
@@ -96,26 +97,34 @@ export default function Catchee() {
     <SafeAreaView style={styles.ecran}>
       <View style={styles.haut}>
         <BalleQuiRebondit />
-        <Animated.Text accessibilityRole="header" style={[styles.titre, styleTitre]}>
-          {surLeWeb ? 'Tu as rejoint la session' : 'Tu l’as catchée !'}
-        </Animated.Text>
+        {/* Un des rares titres au marqueur : le trait se tire juste après l'arrivée du titre */}
+        <Animated.View style={styleTitre}>
+          <Marqueur
+            titre
+            penche
+            centre
+            anime
+            delai={350}
+            texte={surLeWeb ? 'Tu as rejoint la session' : 'Tu l’as catchée\u00a0!'}
+            style={styles.titre}
+          />
+        </Animated.View>
 
         <Animated.View entering={FadeIn.delay(250).duration(Durees.standard)} style={styles.resume}>
+          {/* Finition M1 (24 novembre) : la balle, puis le trait sous le titre, puis ton rond qui rejoint l'équipe */}
+          <View style={styles.attente}>
+            <View style={styles.equipe}>
+              <Avatars initiales={session.inscrits.filter((nom) => nom !== 'Toi')} max={4} />
+              <RondToiQuiArrive delai={950} />
+            </View>
+            <Text style={styles.attenteTexte}>{texteAttente(session)}</Text>
+          </View>
           <Text style={styles.texte}>
             {session.titre} · {quandPhrase(session)}
           </Text>
           <Text style={styles.texte}>
             {session.lieu}, {session.commune}
           </Text>
-
-          <View style={styles.attente}>
-            <View style={styles.equipe}>
-              <Avatars initiales={session.inscrits.filter((nom) => nom !== 'Toi')} max={4} />
-              {/* Ton rond rejoint les autres juste après la balle */}
-              <RondToiQuiArrive delai={650} />
-            </View>
-            <Text style={styles.attenteTexte}>{texteAttente(session)}</Text>
-          </View>
 
           {premiersConseils && (
             <Bouton
@@ -214,21 +223,10 @@ const creerStyles = (c: Palette) =>
       color: c.texteSecondaire,
       textAlign: 'center',
     },
-    attente: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-      marginTop: 16,
-      paddingVertical: 6,
-      paddingLeft: 8,
-      paddingRight: 16,
-      backgroundColor: c.carte,
-      borderRadius: Rayons.pilule,
-      borderWidth: 1,
-      borderColor: c.trait,
-    },
+    // L'équipe en grand sous le titre, puis qui t'attend
+    attente: { alignItems: 'center', gap: 8, marginTop: 4, marginBottom: 10 },
     equipe: { flexDirection: 'row', alignItems: 'center' },
-    attenteTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.petit, color: c.encre },
+    attenteTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
     actions: { gap: 10, paddingBottom: 16 },
     rappel: {
       alignSelf: 'stretch',

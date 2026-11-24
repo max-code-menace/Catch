@@ -33,3 +33,29 @@ test('jour de la tuile « Quand »', async () => {
   assert.equal(jourDetail(session(new Date(2026, 10, 17, 18, 0)), maintenant), 'Demain');
   assert.equal(jourDetail(session(new Date(2026, 10, 24, 18, 0)), maintenant), 'Mar. 24 novembre');
 });
+
+test('phrase de l’en-tête : le temps, puis les places', async () => {
+  const { phraseEntete } = await import('../src/lib/formats.ts');
+  const avec = (debut, joueurs, inscrits) => ({ ...session(debut), joueurs, inscrits });
+  const dans3h = new Date(2026, 10, 16, 15, 0);
+  assert.deepEqual(phraseEntete(avec(dans3h, 10, ['Ma', 'Lu']), maintenant), {
+    temps: 'Dans 3 h',
+    places: { avant: 'encore', nombre: 8, apres: 'places' },
+  });
+  assert.deepEqual(phraseEntete(avec(dans3h, 2, ['Ma']), maintenant).places, { avant: 'encore', nombre: 1, apres: 'place' });
+  assert.deepEqual(phraseEntete(avec(dans3h, 2, ['Ma', 'Toi']), maintenant).places, { avant: '', nombre: null, apres: 'complet' });
+  assert.equal(phraseEntete(avec(new Date(2026, 10, 16, 11, 30), 4, ['Ma']), maintenant).temps, 'En direct');
+  assert.equal(phraseEntete(avec(new Date(2026, 10, 16, 9, 0), 4, ['Ma']), maintenant).places, null);
+});
+
+test('ligne de points : joueurs, toi, places libres, coupée au-delà du maximum', async () => {
+  const { pointsDesPlaces } = await import('../src/lib/formats.ts');
+  assert.deepEqual(pointsDesPlaces({ joueurs: 4, inscrits: ['Ma', 'Toi'] }), {
+    points: ['joueur', 'toi', 'libre', 'libre'],
+    reste: 0,
+  });
+  const course = pointsDesPlaces({ joueurs: 20, inscrits: ['Ma', 'Lu', 'So'] });
+  assert.equal(course.points.length, 12);
+  assert.equal(course.reste, 8);
+  assert.deepEqual(pointsDesPlaces({ joueurs: 2, inscrits: ['Ma', 'Lu', 'So'] }).points, ['joueur', 'joueur', 'joueur']);
+});

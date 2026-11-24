@@ -63,6 +63,15 @@ Une seule couleur d'action par écran : le rouge. Un statut n'est jamais porté 
 
 Tailles d'usage : 20 px dans les pastilles de carte (dans un rond blanc), 36 px dans un carré arrondi beige `#F3EDE8` de 48 px en liste et messages, 34 px dans les tuiles de choix du sport.
 
+## Marqueur, titres penchés, ligne de points (24 novembre, idées de Mathias)
+
+Maquettes : [Les 4 idées de Mathias](https://claude.ai/artifact/EkHvny6qZnQV3vKcGdxRnW), version A de l'idée 3 choisie par Maxime.
+
+- **Marqueur** (`components/marqueur.tsx`, couleurs `marqueur` et `marqueurSurRouge`) : un trait de surligneur sous la moitié basse du texte. **Seulement 3 endroits** : la phrase de Créer, les places dans l'en-tête rouge du détail, « Tu l'as catchée ! ». Ailleurs il perdrait son effet.
+- **Penché** (`INCLINAISON`, -8°) : l'en-tête du détail et « Tu l'as catchée ! ». Jamais pour du texte courant.
+- **En-tête du détail** (finition C1) : le nombre de places en énorme à gauche, « places à prendre » penché et surligné, le temps dans une pilule blanche (`phraseEntete` dans `lib/formats.ts`).
+- **Barre segmentée** (finitions S2 + S3, `components/barre-places.tsx`) : une case foncée par joueur, rouge pour soi, claire par place libre, 12 au plus, « 7/10 » à droite ; à 1 ou 2 places, cases libres en orange et badge « Presque plein » / « Il manque 1 joueur ». Liste et fiche de la carte. VoiceOver lit « 7 sur 10, 3 places ».
+
 ## Animations
 
 Règle : chaque animation explique quelque chose, répond en moins de 100 ms, dure 100 à 400 ms et peut être interrompue par le doigt. **Exception : les grands moments** (le Catch, une session publiée, une présence confirmée) peuvent durer jusqu'à environ 1 s (décidé avec Maxime le 22 novembre).
@@ -88,6 +97,8 @@ Maquettes jouables : [Catch · Ambiance et animations](https://claude.ai/artifac
 | Session publiée | Retour à la carte : la session tombe au centre, s'écrase un peu, deux ondes, puis « C'est en ligne ! » avec « Inviter » (`components/session-qui-tombe.tsx`) | Carte |
 | Catch | La balle arrive et le bouton l'attrape (existant), puis sur « Tu l'as catchée ! » ton rond « Toi » rejoint l'équipe avec une onde et des éclats (`components/rond-toi.tsx`) | Détail, fiche, « Tu l'as catchée ! » |
 | Tuile choisie | Le picto se tasse et reprend sa taille (`PictoQuiSaute`) | Créer, Mes sports |
+| Phrase de Créer | Chaque choix devient un mot surligné ; le trait se tire de gauche à droite (350 ms, 70 ms d'écart par mot) quand il change. Ce qui manque est un trou en pointillés orange avec trois points qui respirent (`components/phrase-creation.tsx`) | Créer |
+| Places qui changent | Le nombre de places défile comme un compteur (550 ms) quand quelqu'un catche ou se désiste pendant qu'on regarde ; jamais en boucle (`components/chiffre-qui-defile.tsx`) | En-tête du détail |
 
 | Jeton | Réglage (Reanimated) | Usage |
 | --- | --- | --- |

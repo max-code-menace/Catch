@@ -5,7 +5,11 @@ import Animated, {
   interpolate,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -26,13 +30,15 @@ import {
 import { PictoSport } from '@/components/picto-sport';
 import { TerrainSport } from '@/components/terrain-sport';
 import { Chargement } from '@/components/chargement';
+import { ChiffreQuiDefile } from '@/components/chiffre-qui-defile';
+import { INCLINAISON, TraitMarqueur } from '@/components/marqueur';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import {
   annulationLibre,
-  compteARebours,
   distance,
   heure,
   jourDetail,
+  phraseEntete,
   placesLibres,
   texteDistance,
   texteDuree,
@@ -50,6 +56,22 @@ import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 /** Hauteur de l'en-tête rouge, sous la barre d'état */
 const HAUTEUR_ENTETE = 230;
+
+/** Le point de la pilule du temps : il bat quand la session est en direct */
+function PointQuiBat({ bat }: { bat: boolean }) {
+  const styles = useStyles(creerStyles);
+  const reduit = useReducedMotion();
+  const echelle = useSharedValue(1);
+  useEffect(() => {
+    if (!bat || reduit) {
+      echelle.set(1);
+      return;
+    }
+    echelle.set(withRepeat(withSequence(withTiming(1.4, { duration: 500 }), withTiming(0.8, { duration: 500 })), -1));
+  }, [bat, reduit, echelle]);
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: echelle.get() }] }));
+  return <Animated.View style={[styles.point, style]} />;
+}
 
 export default function DetailSession() {
   const c = useCouleurs();
@@ -127,6 +149,7 @@ export default function DetailSession() {
   const organisee = session.organisateurId === compte?.id;
   const estSessionTest = session.aSavoir?.titre === 'Session de test' || session.lieu.endsWith('(test)');
   const libres = placesLibres(session);
+  const entete = phraseEntete(session);
   const nombre = session.inscrits.length;
 
   function retour() {
@@ -179,12 +202,54 @@ export default function DetailSession() {
               catch
             </Text>
           )}
-          <View style={styles.rondPicto}>
-            <PictoSport sport={session.sport} taille={56} />
+          {/* Les places en énorme, le temps dans une pilule (version C1 choisie par Maxime le 24 novembre) */}
+          <View
+            accessible
+            accessibilityLabel={
+              entete.places
+                ? `${entete.places.nombre ? `${entete.places.nombre} ${entete.places.apres} à prendre` : 'Complet'}, ${entete.temps}`
+                : entete.temps
+            }
+            style={styles.places}>
+            {entete.places?.nombre ? (
+              <ChiffreQuiDefile
+                valeur={entete.places.nombre}
+                max={session.joueurs}
+                taille={Tailles.chiffreGeant}
+                style={styles.chiffre}
+              />
+            ) : (
+              <Text maxFontSizeMultiplier={1.2} style={[styles.motGeant, styles.penche]}>
+                {entete.places ? 'Complet' : entete.temps}
+              </Text>
+            )}
+            <View style={styles.placesDroite}>
+              {!!entete.places?.nombre && (
+                <View style={styles.penche}>
+                  <Text maxFontSizeMultiplier={1.2} style={styles.placesTexte}>
+                    {entete.places.apres}
+                  </Text>
+                  <View>
+                    <TraitMarqueur couleur={c.marqueurSurRouge} anime cle={libres} delai={250} />
+                    <Text maxFontSizeMultiplier={1.2} style={styles.placesTexte}>
+                      à prendre
+                    </Text>
+                  </View>
+                </View>
+              )}
+              {!!entete.places && (
+                <View style={styles.pilule}>
+                  <PointQuiBat bat={entete.temps === 'En direct'} />
+                  <Text maxFontSizeMultiplier={1.2} numberOfLines={1} style={styles.piluleTexte}>
+                    {entete.temps} · {heure(session.debut)}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.rondPicto}>
+              <PictoSport sport={session.sport} taille={30} />
+            </View>
           </View>
-          <Text style={styles.rebours} maxFontSizeMultiplier={1.3}>
-            {compteARebours(session)}
-          </Text>
           {/* Session de test (créée pour essayer l'app) : gros tampon par-dessus le terrain */}
           {estSessionTest && (
             <View pointerEvents="none" style={styles.tampon}>
@@ -438,10 +503,13 @@ const creerStyles = (c: Palette) =>
       overflow: 'hidden',
       backgroundColor: c.rouge,
     },
+    // Le picto passe dans le coin, en petit : le chiffre prend la place
     rondPicto: {
-      width: 84,
-      height: 84,
-      borderRadius: 42,
+      width: 46,
+      height: 46,
+      marginLeft: 'auto',
+      marginBottom: 6,
+      borderRadius: 23,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: c.rondPicto,
@@ -456,7 +524,33 @@ const creerStyles = (c: Palette) =>
       transform: [{ rotate: '-12deg' }],
     },
     tamponTexte: { fontFamily: Polices.titre, fontSize: Tailles.tampon, letterSpacing: 6, color: c.surRouge },
-    rebours: { fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, color: c.surRouge, marginBottom: 12 },
+    // Le chiffre en énorme à gauche, « places à prendre » et le temps à côté ; la fiche remonte de 24 px dessus
+    places: {
+      position: 'absolute',
+      left: Espaces.marge,
+      right: Espaces.marge,
+      bottom: 24 + 14,
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: 12,
+    },
+    placesDroite: { flexShrink: 1, gap: 8, paddingBottom: 10 },
+    penche: { transform: [{ skewX: INCLINAISON }] },
+    placesTexte: { fontFamily: Polices.titre, fontSize: Tailles.titreSession, lineHeight: 26, color: c.surRouge },
+    motGeant: { fontFamily: Polices.titre, fontSize: Tailles.celebration, color: c.surRouge, paddingBottom: 6 },
+    pilule: {
+      alignSelf: 'flex-start',
+      height: 30,
+      paddingHorizontal: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      borderRadius: Rayons.pilule,
+      backgroundColor: c.rondPicto,
+    },
+    piluleTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTranche },
+    point: { width: 7, height: 7, borderRadius: 4, backgroundColor: c.rouge },
+    chiffre: { fontFamily: Polices.titre, color: c.surRouge, letterSpacing: -4 },
     fiche: {
       flexGrow: 1,
       marginTop: -24,

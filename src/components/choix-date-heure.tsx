@@ -15,6 +15,8 @@ type Props = {
   max: Date;
   /** Pas de la roue des minutes : au quart d'heure par défaut, à la minute pour « Créer » */
   pasMinutes?: 1 | 15;
+  /** iPhone : « roue » montre directement la roue jour + heure (étape « Quand ? » de Créer) au lieu des deux pastilles */
+  affichage?: 'compact' | 'roue';
 };
 
 function arrondir(date: Date, pas: number) {
@@ -29,17 +31,17 @@ function borner(date: Date, min: Date, max: Date) {
   return new Date(Math.min(Math.max(date.getTime(), min.getTime()), max.getTime()));
 }
 
-export function ChoixDateHeure({ valeur, onChange, min, max, pasMinutes = 15 }: Props) {
+export function ChoixDateHeure({ valeur, onChange, min, max, pasMinutes = 15, affichage = 'compact' }: Props) {
   const c = useCouleurs();
   const { theme } = useTheme();
 
   if (Platform.OS === 'ios') {
     return (
-      <View style={styles.ligne}>
+      <View style={[styles.ligne, affichage === 'roue' && styles.roue]}>
         <DateTimePicker
           value={valeur}
           mode="datetime"
-          display="compact"
+          display={affichage === 'roue' ? 'spinner' : 'compact'}
           locale="fr-FR"
           minuteInterval={pasMinutes}
           minimumDate={min}
@@ -84,6 +86,7 @@ export function ChoixDateHeure({ valeur, onChange, min, max, pasMinutes = 15 }: 
 
 const styles = StyleSheet.create({
   ligne: { flexDirection: 'row', alignItems: 'center' },
+  roue: { justifyContent: 'center' },
   boutons: { gap: 8 },
   bouton: { flex: 1 },
 });

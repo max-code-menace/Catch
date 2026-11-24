@@ -9,6 +9,7 @@ import { Bouton } from '@/components/bouton';
 import { BoutonCatch } from '@/components/bouton-catch';
 import { IconeInviter } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
+import { BarrePlaces } from '@/components/barre-places';
 import { BarreNavigation, RESERVE_BAS, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
 import { estEnDirect, heure, placesLibres, quand, texteDistance, textePlaces } from '@/lib/formats';
@@ -38,7 +39,7 @@ export function FicheSession({ session, distance, catchee, organisee, onOuvrir, 
   const { bottom } = useSafeAreaInsets();
   const enDirect = estEnDirect(session);
   const complet = placesLibres(session) === 0;
-  const avecBadge = enDirect || placesLibres(session) === 1;
+  const avecBadge = enDirect || (placesLibres(session) > 0 && placesLibres(session) <= 2);
   const bas = Math.max(bottom, BarreNavigation.margeBas) + RESERVE_BAS + 12;
 
   return (
@@ -78,6 +79,7 @@ export function FicheSession({ session, distance, catchee, organisee, onOuvrir, 
         <Text style={styles.aide}>
           {session.lieu}, {session.commune} · {textePlaces(session)}
         </Text>
+        <BarrePlaces session={session} />
       </Pressable>
 
       {catchee && (
