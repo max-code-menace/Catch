@@ -108,7 +108,7 @@ Pas encore fait : clé Google Maps pour Android (nécessaire pour un build hors 
 
 Noté le 15 novembre à sa demande, pour ne pas oublier. Claude ne peut pas le faire à sa place (suppressions bloquées dans les sessions cloud).
 
-- [x] Supprimer les vieilles branches sur GitHub : fait le 24 novembre (il ne reste que `main` et `claude/loving-maxwell-mn6c6u`). La publication automatique de cette dernière est rangée dans `docs/en-reserve/publier.yml` (pas active) : la branche peut être supprimée aussi.
+- [x] Supprimer les vieilles branches sur GitHub : fait le 24 novembre, `claude/loving-maxwell-mn6c6u` comprise (sa publication automatique est rangée dans `docs/en-reserve/publier.yml`, pas active). Chaque conversation Claude crée sa branche : faire le ménage de temps en temps, après avoir vérifié avec Claude que leur contenu est dans `main`.
 - [ ] **Avant les stores** : donner une adresse postale d'éditeur (obligatoire pour Conditions et Confidentialité) et créer une adresse de contact dédiée.
 - [ ] **Avant les stores** : relire une fois le texte Confidentialité en entier (potes, photo, messages privés y ont été ajoutés).
 - [x] Raccourcir la liste des hôtes de l'environnement cloud « catch » : fait le 20 novembre (il ne reste que `eas.expo.app` et `catch-sport.expo.app`).
