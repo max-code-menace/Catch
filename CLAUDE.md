@@ -121,6 +121,16 @@ Noté le 15 novembre à sa demande, pour ne pas oublier. Claude ne peut pas le f
 
 **C'est tout.** Le reste a été tranché le 24 novembre avec Maxime (taux de présence abandonné, sports gardés, plus de lieux à cocher, `sessions_ancienne` laissée, etc. : voir « Tranché le 24 novembre » dans `docs/produit.md`). Ne pas lui reposer ces questions ni lui en ajouter de superflues : quand un choix a une réponse raisonnable par défaut, la prendre et le dire en une ligne.
 
+## Prochaines tâches pour Claude (notées le 24 novembre, à reprendre dans une nouvelle conversation)
+
+Proposées à Maxime le 24 novembre, à faire dans cet ordre sauf s'il dit autre chose (une à la fois, tester, pousser, publier) :
+1. **Retirer un pote** : aujourd'hui seul « Bloquer » le permet. Probablement une option dans l'appui long sur un pote (Profil > Potes), à côté de « Signaler ».
+2. **« Terminées » dans Messages** : les conversations des sessions passées rangées en bas, repliées.
+3. **Remettre les docs à jour** : `docs/produit.md` décrit encore l'ancienne barre (« Créer · Carte · Messages · Profil »), les événements « 7 jours avant » (c'est 2 semaines), des « amis » à accepter (ce sont des potes réciproques), les espaces « Sessions / Amis » (c'est « Groupes / Privés ») ; `docs/repartition.md` liste le nettoyage des jetons push comme à faire (déjà fait).
+4. Plus tard, avec Maxime et son téléphone : premier build TestFlight (connexion Apple), clé Google Maps Android (voir sa liste ci-dessus).
+
+Autres manques relevés le 24 novembre (pas encore proposés comme prochaine étape) : « Ouvrir dans l'app » et liens qui ouvrent l'app (attend un vrai build), photo dans l'équipe d'une session et dans les messages, présence confirmée (version B choisie, pas construite), « Ils cherchent aussi » (Vision étape 2), recherche dans les messages.
+
 ## Structure de `src/`
 
 - `app/_layout.tsx` : polices, thème, pile de navigation. `app/(onglets)/` : `creer`, `index` (Carte + Liste), `messages`, `profil`. Par-dessus : `session/[id]` (détail), `connexion`, `catchee/[id]`, `messages/[id]` (groupe d'une session), `prive/[id]` (message privé), `notifications` (réglages)
