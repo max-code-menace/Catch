@@ -105,7 +105,7 @@ export default function Catchee() {
             centre
             anime
             delai={350}
-            texte={surLeWeb ? 'Tu as rejoint la session' : 'Tu l’as catchée !'}
+            texte={surLeWeb ? 'Tu as rejoint la session' : 'Tu l’as catchée\u00a0!'}
             style={styles.titre}
           />
         </Animated.View>
