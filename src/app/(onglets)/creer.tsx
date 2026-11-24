@@ -36,7 +36,6 @@ import { LIEU_PAR_DEFAUT, nommer, type Lieu } from '@/lib/lieux';
 import { lieuA, lieuxDuSport, useLieuxSport, type LieuSport } from '@/lib/lieux-sport';
 import {
   ORDRE,
-  creneauxProposes,
   etapePrecedente,
   etapeSuivante,
   phraseCreation,
@@ -87,8 +86,6 @@ const QUESTIONS: Record<Champ, string> = {
   niveau: 'Qui peut venir ?',
   ou: 'Où ?',
 };
-/** Nombres de joueurs proposés en tuiles ; « Autre » ouvre la roue */
-const NOMBRES = [2, 4, 6, 8, 10, 12, 14, 22];
 
 /** Une tuile de choix, comme dans la maquette : un titre, une petite ligne dessous */
 function Tuile({
@@ -159,8 +156,6 @@ export default function Creer() {
   const [faits, setFaits] = useState<Champ[]>([]);
   /** Mode phrase : le choix rouvert en touchant un mot */
   const [edition, setEdition] = useState<Champ | null>(null);
-  /** « Autre » touché dans Quand ou Joueurs : on montre le sélecteur du système */
-  const [autre, setAutre] = useState<Champ | null>(null);
 
   const [modeles, setModeles] = useState<Modele[]>([]);
   const [sport, setSport] = useState<Sport | null>(null);
@@ -199,7 +194,6 @@ export default function Creer() {
     setEtape(etapes[0]);
     setFaits([]);
     setEdition(null);
-    setAutre(null);
     setMode('etapes');
   }
 
@@ -237,7 +231,6 @@ export default function Creer() {
 
   /** L'étape (ou le choix rouvert) est faite : on passe à la suivante, ou à la phrase complète */
   function valider(champ: Champ) {
-    setAutre(null);
     if (mode === 'phrase') {
       setEdition(null);
       return;
@@ -346,7 +339,6 @@ export default function Creer() {
 
   function toucherPhrase(champ: Champ) {
     vibrer.selection();
-    setAutre(null);
     if (mode === 'phrase') {
       setEdition((avant) => (avant === champ ? null : champ));
       return;
@@ -487,55 +479,18 @@ export default function Creer() {
       );
     }
     if (champ === 'quand') {
-      const creneaux = creneauxProposes(ouverture);
+      // La roue du système (jour + heure), calée sur l'heure du téléphone : pour « maintenant », il suffit de valider
       return (
         <View style={[styles.dansMarges, styles.panneau]}>
-          <View style={styles.tuiles}>
-            {creneaux.map((cr) => {
-              const actif =
-                montre('quand') &&
-                autre !== 'quand' &&
-                (cr.date ? debutChoisi?.getTime() === cr.date.getTime() : maintenant);
-              return (
-                <Tuile
-                  key={cr.titre + cr.sous}
-                  titre={cr.titre}
-                  sous={cr.sous}
-                  actif={actif}
-                  largeur={largeur3}
-                  onPress={() => {
-                    vibrer.selection();
-                    setDebutChoisi(cr.date);
-                    setTimeout(() => valider('quand'), PAUSE_CHOIX);
-                  }}
-                />
-              );
-            })}
-            <Tuile
-              titre="Autre"
-              sous="jour et heure"
-              actif={autre === 'quand'}
-              largeur={largeur3}
-              onPress={() => {
-                vibrer.selection();
-                setAutre('quand');
-              }}
-            />
-          </View>
-          {autre === 'quand' && (
-            <>
-              {/* Le sélecteur du système, à la minute près ; pour « maintenant », il suffit de valider */}
-              <ChoixDateHeure
-                valeur={debutAffiche}
-                onChange={setDebutChoisi}
-                min={dateMin}
-                max={dateMax}
-                pasMinutes={1}
-                affichage="roue"
-              />
-              <Bouton titre="C’est bon" onPress={() => valider('quand')} />
-            </>
-          )}
+          <ChoixDateHeure
+            valeur={debutAffiche}
+            onChange={setDebutChoisi}
+            min={dateMin}
+            max={dateMax}
+            pasMinutes={1}
+            affichage="roue"
+          />
+          <Bouton titre={maintenant ? 'Maintenant, c’est bon' : 'C’est bon'} onPress={() => valider('quand')} />
         </View>
       );
     }
@@ -561,42 +516,11 @@ export default function Creer() {
       );
     }
     if (champ === 'joueurs') {
-      // Le nombre habituel du sport est toujours proposé, signalé « conseillé »
-      const nombres = [...new Set([...NOMBRES, fiche.joueurs])].sort((x, y) => x - y).slice(0, 8);
+      // La roue du système (iPhone) ou la liste (Android), réglée sur le nombre habituel du sport
       return (
         <View style={[styles.dansMarges, styles.panneau]}>
-          <View style={styles.tuiles}>
-            {nombres.map((n) => (
-              <Tuile
-                key={n}
-                titre={String(n)}
-                sous={n === fiche.joueurs ? 'conseillé' : undefined}
-                actif={montre('joueurs') && autre !== 'joueurs' && n === joueurs}
-                largeur={largeur3}
-                onPress={() => {
-                  vibrer.selection();
-                  setJoueurs(n);
-                  setTimeout(() => valider('joueurs'), PAUSE_CHOIX);
-                }}
-              />
-            ))}
-            <Tuile
-              titre="Autre"
-              sous="de 2 à 30"
-              actif={autre === 'joueurs'}
-              largeur={largeur3}
-              onPress={() => {
-                vibrer.selection();
-                setAutre('joueurs');
-              }}
-            />
-          </View>
-          {autre === 'joueurs' && (
-            <>
-              <ChoixJoueurs valeur={joueurs} onChange={setJoueurs} />
-              <Bouton titre={`${joueurs} joueurs, c’est bon`} onPress={() => valider('joueurs')} />
-            </>
-          )}
+          <ChoixJoueurs valeur={joueurs} onChange={setJoueurs} />
+          <Bouton titre={`${joueurs} joueurs, c’est bon`} onPress={() => valider('joueurs')} />
         </View>
       );
     }
