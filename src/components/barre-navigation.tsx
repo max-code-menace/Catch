@@ -1,3 +1,4 @@
+import { usePathname } from "expo-router";
 import type { TabTriggerSlotProps } from "expo-router/ui";
 import { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -102,7 +103,7 @@ type BoutonCreerProps = Omit<TabTriggerSlotProps, "ref"> & {
 
 /**
  * Bouton « + Créer » rouge orangé, compact et centré au-dessus de la barre flottante.
- * Caché sur l'écran Créer lui-même (son bouton « Publier » prend la place).
+ * Caché sur l'écran Créer lui-même (son bouton « Publier » prend la place) et sur Messages.
  */
 export function BoutonCreer({
   isFocused,
@@ -119,7 +120,10 @@ export function BoutonCreer({
     transform: [{ scale: echelle.get() }],
   }));
 
-  if (isFocused) return null;
+  // Visible seulement sur Carte, Mes sessions et Profil (pas sur Messages ni sur Créer)
+  const chemin = usePathname();
+  const surUnOngletAutorise = ["/", "/index", "/mes-sessions", "/profil"].includes(chemin);
+  if (isFocused || !surUnOngletAutorise) return null;
 
   return (
     // Bande pleine largeur qui laisse passer les touchers : seul le bouton au milieu les prend
