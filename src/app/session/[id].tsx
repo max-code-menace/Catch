@@ -26,13 +26,15 @@ import {
 import { PictoSport } from '@/components/picto-sport';
 import { TerrainSport } from '@/components/terrain-sport';
 import { Chargement } from '@/components/chargement';
+import { ChiffreQuiDefile } from '@/components/chiffre-qui-defile';
+import { INCLINAISON, TraitMarqueur } from '@/components/marqueur';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import {
   annulationLibre,
-  compteARebours,
   distance,
   heure,
   jourDetail,
+  phraseEntete,
   placesLibres,
   texteDistance,
   texteDuree,
@@ -127,6 +129,7 @@ export default function DetailSession() {
   const organisee = session.organisateurId === compte?.id;
   const estSessionTest = session.aSavoir?.titre === 'Session de test' || session.lieu.endsWith('(test)');
   const libres = placesLibres(session);
+  const entete = phraseEntete(session);
   const nombre = session.inscrits.length;
 
   function retour() {
@@ -182,9 +185,42 @@ export default function DetailSession() {
           <View style={styles.rondPicto}>
             <PictoSport sport={session.sport} taille={56} />
           </View>
-          <Text style={styles.rebours} maxFontSizeMultiplier={1.3}>
-            {compteARebours(session)}
-          </Text>
+          {/* Le temps qui reste et les places qui restent, lus d'un trait : « Dans 3 h · encore 2 places » */}
+          <View
+            accessible
+            accessibilityLabel={
+              entete.places
+                ? `${entete.temps}, ${entete.places.nombre ? `encore ${entete.places.nombre} ${entete.places.apres}` : 'complet'}`
+                : entete.temps
+            }
+            style={styles.phrase}>
+            <Text style={styles.rebours} maxFontSizeMultiplier={1.3}>
+              {entete.temps}
+              {entete.places ? ' · ' : ''}
+            </Text>
+            {entete.places && (
+              <View style={styles.places}>
+                <TraitMarqueur couleur={c.marqueurSurRouge} anime cle={libres} delai={200} />
+                {!!entete.places.avant && (
+                  <Text style={styles.rebours} maxFontSizeMultiplier={1.3}>
+                    {entete.places.avant}{' '}
+                  </Text>
+                )}
+                {entete.places.nombre !== null && (
+                  <ChiffreQuiDefile
+                    valeur={entete.places.nombre}
+                    max={session.joueurs}
+                    taille={Tailles.chiffreEntete}
+                    style={styles.chiffre}
+                  />
+                )}
+                <Text style={styles.rebours} maxFontSizeMultiplier={1.3}>
+                  {entete.places.nombre !== null ? ' ' : ''}
+                  {entete.places.apres}
+                </Text>
+              </View>
+            )}
+          </View>
           {/* Session de test (créée pour essayer l'app) : gros tampon par-dessus le terrain */}
           {estSessionTest && (
             <View pointerEvents="none" style={styles.tampon}>
@@ -456,7 +492,20 @@ const creerStyles = (c: Palette) =>
       transform: [{ rotate: '-12deg' }],
     },
     tamponTexte: { fontFamily: Polices.titre, fontSize: Tailles.tampon, letterSpacing: 6, color: c.surRouge },
-    rebours: { fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, color: c.surRouge, marginBottom: 12 },
+    // Penchée vers l'avant, comme lancée : « Dans 3 h · encore 2 places »
+    phrase: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+      paddingHorizontal: Espaces.marge,
+      // La fiche blanche remonte de 24 px sur l'en-tête : la phrase reste au-dessus
+      marginBottom: 30,
+      transform: [{ skewX: INCLINAISON }],
+    },
+    places: { flexDirection: 'row', alignItems: 'flex-end' },
+    rebours: { fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, lineHeight: 30, color: c.surRouge },
+    chiffre: { fontFamily: Polices.titre, color: c.surRouge },
     fiche: {
       flexGrow: 1,
       marginTop: -24,

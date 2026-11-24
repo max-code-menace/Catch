@@ -208,3 +208,40 @@ export function compteARebours(session: Session, maintenant = new Date()) {
   if (ecart === 1) return 'Demain';
   return `Dans ${ecart} jours`;
 }
+
+/**
+ * La phrase de l'en-tête du détail : le temps qui reste, puis les places, lues d'un trait
+ * (« Dans 3 h · encore 2 places », « Ce soir · complet »). Idée de Mathias, version A choisie par Maxime le 24 novembre.
+ * `places` est `null` une fois la session terminée.
+ */
+export function phraseEntete(session: Session, maintenant = new Date()) {
+  const temps = compteARebours(session, maintenant);
+  if (temps === 'Terminée') return { temps, places: null };
+  const libres = placesLibres(session);
+  if (libres === 0) return { temps, places: { avant: '', nombre: null, apres: 'complet' } };
+  return { temps, places: { avant: 'encore', nombre: libres, apres: libres === 1 ? 'place' : 'places' } };
+}
+
+export type Point = 'joueur' | 'toi' | 'libre';
+
+/**
+ * La ligne de points d'une session : un point plein par joueur, rouge pour soi, un point vide par place libre.
+ * Au-delà de `max` points, on coupe et `reste` dit combien on n'en montre pas (« +8 »).
+ */
+export function pointsDesPlaces(session: Session, max = 12) {
+  const points: Point[] = [
+    ...session.inscrits.map((nom): Point => (nom === 'Toi' ? 'toi' : 'joueur')),
+    ...Array.from({ length: placesLibres(session) }, (): Point => 'libre'),
+  ];
+  return { points: points.slice(0, max), reste: Math.max(0, points.length - max) };
+}
+
+/** « Quand » dans la phrase de Créer : « ce soir à 19h », « demain à 18h », « jeudi à 19h », « samedi 6 décembre à 10h » */
+export function quandCreation(date: Date, maintenant = new Date()) {
+  const ecart = joursEntre(maintenant, date);
+  const a = `à ${heure(date)}`;
+  if (ecart === 0) return `${date.getHours() >= 18 ? 'ce soir' : 'aujourd’hui'} ${a}`;
+  if (ecart === 1) return `demain ${a}`;
+  if (ecart < 7) return `${JOURS_LONGS[date.getDay()]} ${a}`;
+  return `${JOURS_LONGS[date.getDay()]} ${date.getDate()} ${MOIS[date.getMonth()]} ${a}`;
+}

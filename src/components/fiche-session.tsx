@@ -9,6 +9,7 @@ import { Bouton } from '@/components/bouton';
 import { BoutonCatch } from '@/components/bouton-catch';
 import { IconeInviter } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
+import { PointsPlaces } from '@/components/points-places';
 import { BarreNavigation, RESERVE_BAS, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
 import { estEnDirect, heure, placesLibres, quand, texteDistance, textePlaces } from '@/lib/formats';
@@ -78,6 +79,7 @@ export function FicheSession({ session, distance, catchee, organisee, onOuvrir, 
         <Text style={styles.aide}>
           {session.lieu}, {session.commune} · {textePlaces(session)}
         </Text>
+        <PointsPlaces session={session} taille={10} />
       </Pressable>
 
       {catchee && (

@@ -39,6 +39,12 @@ export const Palettes = {
     avatar4: '#E9D5C6',
     /** Reflet clair sur la balle orange */
     refletBalle: 'rgba(255, 255, 255, 0.4)',
+    /** Trait de surligneur sous quelques mots forts (idée de Mathias) : bas du texte seulement */
+    marqueur: '#FFC58F',
+    /** Le même trait, posé sur l'en-tête rouge */
+    marqueurSurRouge: 'rgba(255, 255, 255, 0.32)',
+    /** Place libre dans une ligne de points (joueur déjà là : encre, toi : rouge) */
+    pointVide: '#B9A89B',
     /** Fond de secours quand il n'y a pas de vraie carte (navigateur) */
     fondCarte: '#EFE9E2',
     /** Fond assombri derrière une feuille ouverte par-dessus la carte */
@@ -79,6 +85,10 @@ export const Palettes = {
     avatar3: '#D9B48F',
     avatar4: '#CFBCAD',
     refletBalle: 'rgba(255, 255, 255, 0.4)',
+    // Surligneur foncé : le texte clair reste lisible dessus
+    marqueur: '#8A3A14',
+    marqueurSurRouge: 'rgba(255, 255, 255, 0.32)',
+    pointVide: '#5E504A',
     fondCarte: '#1B1614',
     voile: 'rgba(0, 0, 0, 0.55)',
     // Sur fond sombre, une ombre doit être noire et plus marquée pour se voir
@@ -122,6 +132,8 @@ export const Tailles = {
   grandNombre: 30,
   titreDetail: 32,
   celebration: 36,
+  /** Nombre de places dans l'en-tête rouge du détail (« encore 3 places ») */
+  chiffreEntete: 48,
   /** Tampon « TEST » sur l'en-tête d'une session de test */
   tampon: 64,
 } as const;

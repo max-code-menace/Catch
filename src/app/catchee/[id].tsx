@@ -16,6 +16,7 @@ import { Avatars } from '@/components/avatars';
 import { RondToiQuiArrive } from '@/components/rond-toi';
 import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
+import { Marqueur } from '@/components/marqueur';
 import { IconeCalendrier, IconeInfo, IconeInviter, IconeItineraire } from '@/components/icones';
 import { Durees, Espaces, Polices, Rayons, Ressorts, Tailles } from '@/constants/theme';
 import { annulationLibre, quandPhrase, texteAttente } from '@/lib/formats';
@@ -96,9 +97,18 @@ export default function Catchee() {
     <SafeAreaView style={styles.ecran}>
       <View style={styles.haut}>
         <BalleQuiRebondit />
-        <Animated.Text accessibilityRole="header" style={[styles.titre, styleTitre]}>
-          {surLeWeb ? 'Tu as rejoint la session' : 'Tu l’as catchée !'}
-        </Animated.Text>
+        {/* Un des rares titres au marqueur : le trait se tire juste après l'arrivée du titre */}
+        <Animated.View style={styleTitre}>
+          <Marqueur
+            titre
+            penche
+            centre
+            anime
+            delai={350}
+            texte={surLeWeb ? 'Tu as rejoint la session' : 'Tu l’as catchée !'}
+            style={styles.titre}
+          />
+        </Animated.View>
 
         <Animated.View entering={FadeIn.delay(250).duration(Durees.standard)} style={styles.resume}>
           <Text style={styles.texte}>

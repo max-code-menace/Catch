@@ -13,6 +13,7 @@ import { BadgeSession } from '@/components/badge-session';
 import { Bouton } from '@/components/bouton';
 import { HAUTEUR_BARRE_HAUT } from '@/components/barre-haut';
 import { PictoSport } from '@/components/picto-sport';
+import { PointsPlaces } from '@/components/points-places';
 import {
   BarreNavigation,
   Durees,
@@ -99,6 +100,9 @@ function CarteSession({
           <Text style={styles.resume} numberOfLines={1}>
             {resume(session)}
           </Text>
+          <View style={styles.points}>
+            <PointsPlaces session={session} />
+          </View>
         </View>
       </View>
     </PressableAnime>
@@ -242,6 +246,7 @@ const creerStyles = (c: Palette) =>
     titre: { fontFamily: Polices.titreDemi, fontSize: Tailles.titreCarte, color: c.encre },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     resume: { fontFamily: Polices.texteMoyen, fontSize: Tailles.aide, color: c.encre },
+    points: { paddingTop: 4 },
     videZone: { gap: 16 },
     vide: {
       paddingTop: 48,

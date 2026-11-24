@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -10,6 +10,7 @@ import {
   TextInput,
   View,
   useWindowDimensions,
+  type ScrollViewInstance,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -19,6 +20,7 @@ import { ChoixDateHeure } from '@/components/choix-date-heure';
 import { ChoixJoueurs } from '@/components/choix-joueurs';
 import { ChoixLieu } from '@/components/choix-lieu';
 import { IconeDrapeau, IconeRelancer } from '@/components/icones';
+import { PhraseCreation } from '@/components/phrase-creation';
 import { PictoQuiSaute } from '@/components/picto-sport';
 import { BarreNavigation, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { Pictos, type Sport } from '@/donnees/pictos';
@@ -27,7 +29,8 @@ import { SPORTS, ficheSport } from '@/donnees/sports';
 import { prevenir } from '@/lib/alerte';
 import { useCompte } from '@/lib/compte';
 import { useEvenements } from '@/lib/evenements';
-import { quand, texteDistance } from '@/lib/formats';
+import { quand, quandCreation, texteDistance } from '@/lib/formats';
+import { phraseCreation, type Champ } from '@/lib/phrase-creation';
 import { vibrer } from '@/lib/haptics';
 import { LIEU_PAR_DEFAUT, nommer, type Lieu } from '@/lib/lieux';
 import { lieuA, lieuxDuSport, texteType, useLieuxSport, type LieuSport } from '@/lib/lieux-sport';
@@ -96,6 +99,9 @@ export default function Creer() {
   const [enAttente, setEnAttente] = useState(false);
   const [envoi, setEnvoi] = useState(false);
   const [carteOuverte, setCarteOuverte] = useState(false);
+  // Toucher un mot de la phrase descend jusqu'au choix correspondant
+  const defilement = useRef<ScrollViewInstance>(null);
+  const positions = useRef<Partial<Record<Champ, number>>>({});
   const lieux = useLieuxSport();
   // « Lancer une session ici » depuis la fiche d'un lieu : Créer s'ouvre avec ce sport et ce lieu
   const params = useLocalSearchParams<{ lieu?: string; sport?: string; evenement?: string }>();
@@ -222,6 +228,23 @@ export default function Creer() {
     return debutChoisi && debutChoisi > maintenant ? debutChoisi : maintenant;
   }
   const texteDuree = DUREES.find((d) => d.minutes === duree)?.titre ?? '1h30';
+  // La phrase du haut : chaque choix y est surligné, ce qui manque est un trou à remplir
+  const morceaux = phraseCreation({
+    sport: sport ? { cle: sport, nom: fiche.nom } : null,
+    quand: maintenant ? 'maintenant' : quandCreation(debutAffiche, ouverture),
+    joueurs: sport ? joueurs : null,
+    lieu: lieu.choisi ? nomLieu : null,
+  });
+  function allerA(champ: Champ) {
+    vibrer.selection();
+    // Le lieu pas encore choisi : la carte s'ouvre directement
+    if (champ === 'ou' && !lieu.choisi && !suggestions.length) {
+      setCarteOuverte(true);
+      return;
+    }
+    const y = positions.current[champ];
+    if (y !== undefined) defilement.current?.scrollTo({ y: Math.max(0, y - 16), animated: true });
+  }
   // Ce qu'il reste à choisir avant de pouvoir publier
   const manque = [!sport && 'un sport', !lieu.choisi && 'un lieu'].filter(Boolean) as string[];
   const recap =
@@ -315,6 +338,7 @@ export default function Creer() {
   return (
     <View style={styles.fond}>
       <ScrollView
+        ref={defilement}
         style={StyleSheet.absoluteFill}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
@@ -326,8 +350,8 @@ export default function Creer() {
           <Text maxFontSizeMultiplier={1.3} accessibilityRole="header" style={styles.titre}>
             Créer une session
           </Text>
-          {/* La phrase se réécrit toute seule pendant qu'on fait glisser les choix */}
-          <Text maxFontSizeMultiplier={1.3} style={styles.phrase}>{premiereFois ? 'Quatre choix et c’est publié.' : recap}</Text>
+          {/* La phrase se réécrit toute seule pendant qu'on fait ses choix (idée de Mathias) */}
+          <PhraseCreation morceaux={morceaux} onToucher={allerA} />
         </View>
 
         {evenement && (
@@ -371,7 +395,9 @@ export default function Creer() {
           </Pressable>
         )}
 
-        <View style={styles.section}>
+        <View style={styles.section} onLayout={(e) => {
+          positions.current.sport = e.nativeEvent.layout.y;
+        }}>
           <Text maxFontSizeMultiplier={1.3} style={[styles.etiquette, styles.dansMarges]}>Sport</Text>
           <View style={[styles.tuiles, styles.dansMarges]}>
             {SPORTS.map(({ cle, nom, nomTuile }) => {
@@ -397,7 +423,9 @@ export default function Creer() {
           </View>
         </View>
 
-        <View style={styles.section}>
+        <View style={styles.section} onLayout={(e) => {
+          positions.current.quand = e.nativeEvent.layout.y;
+        }}>
           <Text maxFontSizeMultiplier={1.3} style={[styles.etiquette, styles.dansMarges]}>Quand</Text>
           {/* L'heure exacte du téléphone par défaut : pour « maintenant », il suffit de valider */}
           <View style={styles.dansMarges}>
@@ -411,7 +439,9 @@ export default function Creer() {
           </View>
         </View>
 
-        <View style={styles.section}>
+        <View style={styles.section} onLayout={(e) => {
+          positions.current.joueurs = e.nativeEvent.layout.y;
+        }}>
           <View style={[styles.ligne, styles.dansMarges]}>
             <Text maxFontSizeMultiplier={1.3} style={styles.etiquette}>Joueurs</Text>
             <Text maxFontSizeMultiplier={1.3} style={styles.aide}>toi compris</Text>
@@ -421,7 +451,9 @@ export default function Creer() {
           </View>
         </View>
 
-        <View style={[styles.section, styles.dansMarges]}>
+        <View style={[styles.section, styles.dansMarges]} onLayout={(e) => {
+          positions.current.ou = e.nativeEvent.layout.y;
+        }}>
           <Text maxFontSizeMultiplier={1.3} style={styles.etiquette}>Où</Text>
           {suggestions.length > 0 && (
             <ScrollView
@@ -592,10 +624,9 @@ const creerStyles = (c: Palette) =>
       color: c.texteSecondaire,
       textAlign: 'center',
     },
-    marges: { paddingHorizontal: Espaces.marge, gap: 4 },
+    marges: { paddingHorizontal: Espaces.marge, gap: 10 },
     dansMarges: { marginHorizontal: Espaces.marge },
     titre: { fontFamily: Polices.titre, fontSize: Tailles.titreEcran, color: c.encre },
-    phrase: { fontFamily: Polices.texteMoyen, fontSize: Tailles.courant, color: c.texteSecondaire },
     section: { gap: 10 },
     etiquette: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
     textes: { flex: 1, gap: 2 },
