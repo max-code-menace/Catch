@@ -4,63 +4,59 @@ import Animated, {
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
-  withDelay,
   withRepeat,
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
 
 import { Mot, motsDe } from '@/components/marqueur';
-import { Polices, Rayons, Tailles } from '@/constants/theme';
+import { Polices, Tailles } from '@/constants/theme';
 import type { Champ, Morceau } from '@/lib/phrase-creation';
 import { useStyles, type Palette } from '@/lib/theme';
 
-/** Un des trois points qui respirent dans un trou : il reste quelque chose à choisir ici */
-function Point({ delai }: { delai: number }) {
+/** Le curseur qui clignote au bout de la phrase : c'est ici que s'écrit le prochain choix */
+function Curseur() {
   const styles = useStyles(creerStyles);
   const reduit = useReducedMotion();
-  const echelle = useSharedValue(1);
+  const opacite = useSharedValue(1);
   useEffect(() => {
     if (reduit) return;
-    echelle.set(
-      withDelay(delai, withRepeat(withSequence(withTiming(0.6, { duration: 450 }), withTiming(1.1, { duration: 450 })), -1, true)),
-    );
-  }, [reduit, delai, echelle]);
-  const style = useAnimatedStyle(() => ({ transform: [{ scale: echelle.get() }] }));
-  return <Animated.View style={[styles.point, style]} />;
+    opacite.set(withRepeat(withSequence(withTiming(1, { duration: 500 }), withTiming(0, { duration: 1 }), withTiming(0, { duration: 500 }), withTiming(1, { duration: 1 })), -1));
+  }, [reduit, opacite]);
+  const style = useAnimatedStyle(() => ({ opacity: opacite.get() }));
+  return <Animated.View style={[styles.curseur, style]} />;
 }
 
 type Props = {
   morceaux: Morceau[];
-  /** Toucher un mot choisi ou un trou : on descend jusqu'au choix correspondant */
+  /** Toucher un mot choisi : on revient sur ce choix */
   onToucher: (champ: Champ) => void;
 };
 
 /**
- * La phrase de Créer : « Je lance du foot ce soir à 19h, à 10 joueurs. Rendez-vous Parc Josaphat. »
- * Chaque choix est surligné au marqueur (le trait se redessine quand il change) ; ce qui manque est un trou en pointillés.
+ * La phrase de Créer, qui s'écrit au fur et à mesure (version D choisie par Maxime le 24 novembre) :
+ * chaque choix est surligné au marqueur ; la phrase s'arrête à la question en cours, en gris pâle,
+ * suivie d'un curseur qui clignote. Rien n'est montré de la suite.
  */
+/** La phrase s'arrête après le premier trou : la suite n'est pas encore écrite */
+function finPhrase(morceaux: Morceau[]) {
+  const trou = morceaux.findIndex((m) => m.type === 'trou');
+  return trou === -1 ? morceaux.length : trou + 1;
+}
+
 export function PhraseCreation({ morceaux, onToucher }: Props) {
   const styles = useStyles(creerStyles);
   return (
     <View style={styles.phrase}>
-      {morceaux.map((morceau, i) => {
+      {morceaux.slice(0, finPhrase(morceaux)).map((morceau, i) => {
         if (morceau.type === 'trou') {
           return (
-            <Pressable
-              key={`trou-${morceau.champ}`}
-              accessibilityRole="button"
-              accessibilityLabel={`À choisir : ${morceau.texte}`}
-              onPress={() => onToucher(morceau.champ)}
-              hitSlop={4}
-              style={({ pressed }) => [styles.trou, pressed && styles.presse]}>
-              <Point delai={0} />
-              <Point delai={150} />
-              <Point delai={300} />
-              <Text maxFontSizeMultiplier={1.3} style={styles.trouTexte}>
-                {morceau.texte}
+            <View key={`trou-${morceau.champ}`} accessible accessibilityLabel={`À choisir : ${morceau.texte}`} style={styles.mot}>
+              <Text maxFontSizeMultiplier={1.3} style={styles.question}>
+                {morceau.texte.replace(' ?', '\u00a0?')}
               </Text>
-            </Pressable>
+              <Curseur />
+            </View>
           );
         }
         const mots = motsDe(morceau.texte);
@@ -100,23 +96,11 @@ export function PhraseCreation({ morceaux, onToucher }: Props) {
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
     phrase: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', rowGap: 4 },
-    texte: { fontFamily: Polices.titreDemi, fontSize: Tailles.titreSession, lineHeight: 36, color: c.encre },
-    choix: { fontFamily: Polices.titre, fontSize: Tailles.titreSession, lineHeight: 36, color: c.encre },
+    // Plus grand que la maquette, à la demande de Maxime : c'est le cœur de l'écran
+    texte: { fontFamily: Polices.titreDemi, fontSize: Tailles.grandNombre, lineHeight: 44, color: c.encre },
+    choix: { fontFamily: Polices.titre, fontSize: Tailles.grandNombre, lineHeight: 44, color: c.encre },
+    question: { fontFamily: Polices.titreDemi, fontSize: Tailles.grandNombre, lineHeight: 44, color: c.pointVide },
     mot: { flexDirection: 'row', alignItems: 'center' },
     presse: { opacity: 0.6 },
-    trou: {
-      height: 36,
-      marginRight: 6,
-      paddingHorizontal: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-      borderRadius: Rayons.pilule,
-      borderWidth: 2,
-      borderStyle: 'dashed',
-      borderColor: c.orange,
-      backgroundColor: c.orangeDoux,
-    },
-    point: { width: 6, height: 6, borderRadius: 3, backgroundColor: c.orange },
-    trouTexte: { marginLeft: 4, fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.orangeTexte },
+    curseur: { width: 3, height: 32, marginLeft: 4, borderRadius: 2, backgroundColor: c.rouge },
   });

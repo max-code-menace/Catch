@@ -737,7 +737,7 @@ export default function Creer() {
                   Nouvelle session
                 </Text>
                 <Text maxFontSizeMultiplier={1.3} style={styles.nouvelleTexte}>
-                  Sport, quand, combien, où
+                  6 choix, un à la fois
                 </Text>
               </View>
               <IconeChevron couleur={c.surRouge} taille={20} />
@@ -809,10 +809,8 @@ export default function Creer() {
 
         {mode === 'etapes' && (
           // Une question à la fois : elle arrive doucement par en dessous
+          // La question est déjà au bout de la phrase, en gris : pas besoin de la répéter
           <Animated.View key={etape} entering={FadeInDown.duration(Durees.standard)} style={styles.section}>
-            <Text maxFontSizeMultiplier={1.3} style={[styles.question, styles.dansMarges]}>
-              {QUESTIONS[etape]}
-            </Text>
             {panneau(etape)}
           </Animated.View>
         )}
