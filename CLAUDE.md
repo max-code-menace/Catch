@@ -102,7 +102,7 @@ Le 15 novembre, une session avait reconstruit l'app de zéro dans `mobile/` sans
 
 **Conseils de sécurité (19 novembre)** : écran `securite` (« Jouer en sécurité » : lieu public, prévenir un proche, garder son numéro, écouter son instinct, jouer à son niveau, signaler / bloquer / 112), ouvert depuis Profil > Aide et sécurité et proposé une seule fois, au premier Catch fait depuis ce téléphone, par le lien « Conseils pour ta première session » de « Tu l'as catchée ! » (`lib/conseils.ts`, clé `catch.conseils-securite`). Texte écrit par Claude, gardé tel quel (24 novembre). Pas vu sur un vrai iPhone.
 
-Pas encore fait : clé Google Maps pour Android (nécessaire pour un build hors Expo Go).
+**Clé Google Maps pour Android (préparée le 24 novembre)** : `app.config.js` (complète `app.json`, qui reste la référence) ajoute le module `react-native-maps` avec la clé lue dans la variable `GOOGLE_MAPS_ANDROID_KEY`, rangée dans les variables d'environnement du projet sur expo.dev (jamais dans le dépôt). Sans variable, rien ne change (Expo Go, iPhone). Vérifié par un `expo prebuild` d'essai : la clé arrive dans `AndroidManifest.xml`. Identifiant Android ajouté dans `app.json` : `com.maxcodemenace.catch` (le même que sur iPhone). Après le premier build Android, ajouter la restriction « Applications Android » (paquet + empreinte SHA-1 lue dans expo.dev > Credentials) à la clé dans Google Cloud.
 
 ## À faire par Maxime (à lui rappeler de temps en temps)
 
@@ -113,6 +113,7 @@ Noté le 15 novembre à sa demande, pour ne pas oublier. Claude ne peut pas le f
 - [ ] **Avant les stores** : relire une fois le texte Confidentialité en entier (potes, photo, messages privés, connexion Google y ont été ajoutés).
 - [x] Connexion Google configurée dans Google Cloud et Supabase (24 novembre).
 - [ ] **À tester sur iPhone dès que possible (noté le 24 novembre, téléphone déchargé)** : connexion Google. Rouvrir Expo Go (2 fois si besoin) pour avoir la mise à jour, se déconnecter (Profil > ≡ > Se déconnecter), toucher Catch ou « + Créer », puis « Continuer avec Google » : on doit revenir connecté avec son prénom rempli. Si « Accès bloqué » : s'ajouter dans Google Auth Platform > Audience > Utilisateurs test. Donner à Claude le texte exact de toute erreur.
+- [ ] **Clé Google Maps Android** : la créer dans Google Cloud (projet « Catch », activer « Maps SDK for Android », facturation obligatoire mais la carte sur téléphone est gratuite) et la coller sur expo.dev dans la variable `GOOGLE_MAPS_ANDROID_KEY`. Claude guide pas à pas.
 - [ ] **Avant les stores** : passer l'écran de consentement Google en production (il faut un domaine à nous, par exemple pour le site et l'adresse de contact). D'ici là, ajouter chaque testeur dans Google Auth Platform > Audience > Utilisateurs test.
 - [x] Raccourcir la liste des hôtes de l'environnement cloud « catch » : fait le 20 novembre (il ne reste que `eas.expo.app` et `catch-sport.expo.app`).
 
