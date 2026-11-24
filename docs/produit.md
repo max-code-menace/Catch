@@ -51,7 +51,7 @@ But : une carte jamais vide, sans fausses sessions. Règle de tri : chaque élé
 - **Sessions « En direct »** : une session commencée qu'on peut encore rejoindre, avec badge rouge.
 - **Messagerie interne avant le lancement public** : une conversation par session. Pas de pont WhatsApp durable (il montre le numéro de chacun à des inconnus). Pendant le test entre potes seulement, l'organisateur peut coller un lien WhatsApp facultatif.
 - **Lien d'invitation** : ouvre une page web lisible sans l'app, avec « Rejoindre la session ».
-- **Confiance** : taux de présence visible sur les profils, rappel 3h avant.
+- **Confiance** : rappel 3h avant. (Le taux de présence visible sur les profils a été abandonné le 24 novembre : voir plus bas.)
 - **Annulation** : libre jusqu'à 3h avant, avec « Annuler » pendant 5 s (les autres ne sont prévenus qu'après ces 5 s). À moins de 3h : une confirmation factuelle, sans culpabiliser. Le seuil de 3h est une hypothèse à ajuster avec les tests.
 - **Notifications** : 4 types, réglables un par un, demandés après le premier Catch : rappel 3h avant (« Je viens » / « Je ne peux plus »), changement sur ma session, nouveau message, nouvelle session de mon sport (sur accord explicite, 1 par jour maximum). Pas de résumé quotidien.
 - **Catch** : la célébration « Tu l'as catchée ! » part après la réponse du serveur, pour ne jamais fêter une place déjà prise.
@@ -102,7 +102,7 @@ Le labo n'a pas été mis à jour après les décisions : **en cas de désaccord
 - **Pour la v1** (fait le 19 novembre) : explication avant la demande de localisation, et lien vers les Réglages si elle a été refusée · « Ajouter à mon calendrier » (écran « Tu l'as catchée ! » et fiche de la session) · barre flottante vérifiée écran par écran. Déjà couverts : la carte charge toutes les sessions des 7 prochains jours (jusqu'à 500), donc déplacer la carte les montre et l'état vide propose d'aller voir plus loin ; « Chercher dans cette zone » ne servira qu'au-delà de 500 sessions.
 - **Plus tard, après les premiers utilisateurs** : réponses rapides dans le chat (« J'arrive », « En retard ») · « Préviens-moi » / liste d'attente sur une session complète · habitués · statistiques et historique · photo de profil (avec modération des images) · recherche texte · feuille de filtres complète · conversations « À venir / Terminées » · préférences proposées au bon moment · prix indicatif · heures calmes · langues (Bruxelles : néerlandais, anglais).
 - **Abandonné** : suggestions personnalisées · phrase à trous · feuille à crans sur la carte · demandes à valider par l'organisateur · grille de disponibilités · badges · groupes et communautés · partage de position · simulateur de notifications · heure de départ conseillée · synchronisation permanente du calendrier · recherche en langage naturel · paiement, remboursement et historique de paiement dans l'app · actions mises en attente hors connexion (un Catch rejoué plus tard peut tomber sur une session complète) · tirer-pour-rafraîchir maison · balayage et glisser-déposer · transitions partagées.
-- **À rediscuter avec Maxime** : le taux de présence visible sur les profils (décidé plus haut). Sans moyen de vérifier qui est vraiment venu, il risque d'être injuste et de faire honte.
+- **Taux de présence sur les profils : abandonné** (24 novembre, avec l'accord de Maxime). Sans moyen de vérifier qui est vraiment venu, il serait injuste et ferait honte (même règle que « pas de compteur qui juge » du Profil).
 - **Oublié par le labo** (fait le 19 novembre) : la sécurité quand on retrouve des inconnus, écran « Jouer en sécurité » proposé au premier Catch et dans Profil.
 
 Principe : le fun, c'est le terrain, pas l'écran. On récompense le fait de jouer, jamais le fait d'ouvrir l'app.
@@ -116,6 +116,21 @@ Principe : le fun, c'est le terrain, pas l'écran. On récompense le fait de jou
 - **Partenariats avec les salles** (idée de Maxime, 19 novembre) : quand il y aura assez d'utilisateurs, mettre en avant des salles partenaires, toujours marquées « partenaire ». Rien à construire avant.
 
 Écarté : classements entre joueurs, points, niveaux, séries de jours ou de semaines d'affilée, notifications de relance, notifications en plus des 4 types décidés.
+
+## Tranché le 24 novembre 2026 (pour ne plus reposer la question)
+
+Maxime ne veut pas de décisions superflues. Ces points sont clos, avec son accord : ne pas les lui redemander.
+
+- **Taux de présence** : abandonné (voir plus haut).
+- **Sports** : la liste actuelle de l'app reste (rugby compris). On change seulement si un utilisateur le demande.
+- **Lieux** : plus de liste à cocher. Les 38 lieux restent dans l'app ; on corrige ou on retire un lieu quand on le sait faux (signalement, retour d'un utilisateur).
+- **Événements sans heure confirmée** : rien à décider, la tâche programmée du mois les ajoute dès que l'heure est publiée.
+- **Publication automatique** : reste en réserve (`docs/en-reserve/publier.yml`), Claude publie depuis le cloud.
+- **Texte « Jouer en sécurité »** : gardé tel quel.
+- **Réglages de connexion Supabase** (durée du code, nombre d'essais) : valeurs par défaut, on n'y touche pas.
+- **Table vide `sessions_ancienne`** : on la laisse, elle ne gêne rien.
+
+**Il ne reste à Maxime que deux choses, et seulement avant les stores** : donner une adresse postale d'éditeur et une adresse de contact dédiée ; relire une fois le texte Confidentialité en entier. Plus, quand il a le temps, tester sur son iPhone.
 
 ## Choix techniques
 

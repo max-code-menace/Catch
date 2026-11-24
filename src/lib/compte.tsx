@@ -1,10 +1,13 @@
-// Le compte de l'utilisateur : connexion par e-mail (code à 6 chiffres) ou avec Apple, via Supabase.
+// Le compte de l'utilisateur : connexion par e-mail (code à 6 chiffres), avec Apple ou avec Google, via Supabase.
 // On ne demande la connexion qu'au moment d'agir (Catch, créer, écrire), jamais pour regarder.
 import type { Session as SessionSupabase } from '@supabase/supabase-js';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import { createContext, use, useEffect, useState } from 'react';
 
 import { oublierAppareil } from '@/lib/notifications';
+import { lireRetourConnexion, prenomDepuisNom } from '@/lib/retour-connexion';
 import { supabase } from '@/lib/supabase';
 
 export type Compte = {
@@ -12,8 +15,8 @@ export type Compte = {
   prenom: string | null;
   /** Date de création du compte (« Membre depuis ») */
   inscritLe: Date | null;
-  /** Comment le compte a été vérifié : adresse e-mail confirmée par le code, ou compte Apple */
-  verifiePar: 'email' | 'apple' | null;
+  /** Comment le compte a été vérifié : adresse e-mail confirmée par le code, compte Apple ou compte Google */
+  verifiePar: 'email' | 'apple' | 'google' | null;
 };
 
 /** Chaque action renvoie `null` si tout va bien, sinon le message à afficher. */
@@ -26,6 +29,7 @@ type Valeur = {
   envoyerCode: (email: string) => Resultat;
   verifierCode: (email: string, code: string) => Resultat;
   connecterApple: () => Resultat;
+  connecterGoogle: () => Resultat;
   enregistrerPrenom: (prenom: string) => Resultat;
   deconnecter: () => Resultat;
   /** Efface le compte et tout ce qui va avec. Définitif. */
@@ -81,7 +85,9 @@ export function FournisseurCompte({ children }: { children: React.ReactNode }) {
         verifiePar:
           utilisateur.app_metadata?.provider === 'apple'
             ? 'apple'
-            : utilisateur.email_confirmed_at
+            : utilisateur.app_metadata?.provider === 'google'
+              ? 'google'
+              : utilisateur.email_confirmed_at
               ? 'email'
               : null,
       }
@@ -147,6 +153,41 @@ export function FournisseurCompte({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function connecterGoogle() {
+    if (!supabase) return PAS_BRANCHEE;
+    try {
+      // Adresse de retour vers l'app : catch://connexion-google dans la vraie app, exp://…/--/connexion-google
+      // dans Expo Go. Elle doit être dans les « Redirect URLs » de Supabase (Authentication > URL Configuration).
+      const retour = Linking.createURL('connexion-google');
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: retour, skipBrowserRedirect: true, queryParams: { prompt: 'select_account' } },
+      });
+      if (error) return message(error);
+      if (!data?.url) return ECHEC;
+      // Fenêtre de Google par-dessus l'app ; elle se ferme toute seule en revenant sur l'adresse de retour
+      const resultat = await WebBrowser.openAuthSessionAsync(data.url, retour);
+      if (resultat.type !== 'success') return ANNULE;
+      const lu = lireRetourConnexion(resultat.url);
+      if (lu.type === 'erreur') return lu.code === 'access_denied' ? ANNULE : PANNE;
+      if (lu.type === 'vide') return PANNE;
+      const { data: connecte, error: erreurSession } = await supabase.auth.setSession({
+        access_token: lu.accessToken,
+        refresh_token: lu.refreshToken,
+      });
+      if (erreurSession) return message(erreurSession);
+      // Google donne le nom à chaque fois : on n'en tire le prénom que s'il n'y en a pas encore
+      const meta = connecte.user?.user_metadata;
+      if (meta && !(typeof meta.prenom === 'string' && meta.prenom)) {
+        const donne = prenomDepuisNom(meta.given_name) ?? prenomDepuisNom(meta.full_name ?? meta.name);
+        if (donne) await enregistrerPrenom(donne);
+      }
+      return null;
+    } catch {
+      return ECHEC;
+    }
+  }
+
   async function deconnecter() {
     if (!supabase) return PAS_BRANCHEE;
     try {
@@ -186,6 +227,7 @@ export function FournisseurCompte({ children }: { children: React.ReactNode }) {
         envoyerCode,
         verifierCode,
         connecterApple,
+        connecterGoogle,
         enregistrerPrenom,
         deconnecter,
         supprimerCompte,

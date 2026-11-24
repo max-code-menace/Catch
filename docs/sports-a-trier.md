@@ -1,6 +1,6 @@
 # Sports à trier
 
-Liste proposée par Claude le 19 novembre 2026, pour que Maxime choisisse. **Rien n'est décidé.**
+Liste proposée par Claude le 19 novembre 2026. **Tranché le 24 novembre** (accord de Maxime) : les sports déjà dans l'app restent, rugby compris ; on n'en ajoute que si un utilisateur le demande.
 
 Aujourd'hui l'app en a 10 : Foot, Basket, Volley, Badminton, Spikeball, Tennis, Padel, Escalade, Rugby, Autre (`src/donnees/sports.ts`).
 
