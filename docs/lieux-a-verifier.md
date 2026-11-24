@@ -1,6 +1,6 @@
 # Lieux à vérifier (Bruxelles)
 
-Recherche faite par Claude le 19 novembre 2026 sur le web. **Rien n'est vérifié** : les adresses, prix et nombres de terrains viennent d'annuaires parfois vieux de plusieurs années. Maxime coche ce qui est bon, barre ce qui est faux ou fermé. Seuls les lieux cochés iront dans l'app (étape 12, voir « Lieux et événements » dans `produit.md`).
+Recherche faite par Claude le 19 novembre 2026 sur le web. **Rien n'est vérifié** : les adresses, prix et nombres de terrains viennent d'annuaires parfois vieux de plusieurs années. **Plus de liste à cocher (24 novembre, avec l'accord de Maxime)** : les 38 lieux sont dans l'app, on corrige ou retire un lieu quand on le sait faux. Voir « Tranché le 24 novembre » dans `produit.md`.
 
 Légende : ⚠️ = info contradictoire ou douteuse entre les sources.
 
