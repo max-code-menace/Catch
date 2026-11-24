@@ -5,7 +5,11 @@ import Animated, {
   interpolate,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -52,6 +56,22 @@ import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 /** Hauteur de l'en-tête rouge, sous la barre d'état */
 const HAUTEUR_ENTETE = 230;
+
+/** Le point de la pilule du temps : il bat quand la session est en direct */
+function PointQuiBat({ bat }: { bat: boolean }) {
+  const styles = useStyles(creerStyles);
+  const reduit = useReducedMotion();
+  const echelle = useSharedValue(1);
+  useEffect(() => {
+    if (!bat || reduit) {
+      echelle.set(1);
+      return;
+    }
+    echelle.set(withRepeat(withSequence(withTiming(1.4, { duration: 500 }), withTiming(0.8, { duration: 500 })), -1));
+  }, [bat, reduit, echelle]);
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: echelle.get() }] }));
+  return <Animated.View style={[styles.point, style]} />;
+}
 
 export default function DetailSession() {
   const c = useCouleurs();
@@ -182,44 +202,53 @@ export default function DetailSession() {
               catch
             </Text>
           )}
-          <View style={styles.rondPicto}>
-            <PictoSport sport={session.sport} taille={56} />
-          </View>
-          {/* Le temps qui reste et les places qui restent, lus d'un trait : « Dans 3 h · encore 2 places » */}
+          {/* Les places en énorme, le temps dans une pilule (version C1 choisie par Maxime le 24 novembre) */}
           <View
             accessible
             accessibilityLabel={
               entete.places
-                ? `${entete.temps}, ${entete.places.nombre ? `encore ${entete.places.nombre} ${entete.places.apres}` : 'complet'}`
+                ? `${entete.places.nombre ? `${entete.places.nombre} ${entete.places.apres} à prendre` : 'Complet'}, ${entete.temps}`
                 : entete.temps
             }
-            style={styles.phrase}>
-            <Text style={styles.rebours} maxFontSizeMultiplier={1.3}>
-              {entete.temps}
-              {entete.places ? ' · ' : ''}
-            </Text>
-            {entete.places && (
-              <View style={styles.places}>
-                <TraitMarqueur couleur={c.marqueurSurRouge} anime cle={libres} delai={200} />
-                {!!entete.places.avant && (
-                  <Text style={styles.rebours} maxFontSizeMultiplier={1.3}>
-                    {entete.places.avant}{' '}
-                  </Text>
-                )}
-                {entete.places.nombre !== null && (
-                  <ChiffreQuiDefile
-                    valeur={entete.places.nombre}
-                    max={session.joueurs}
-                    taille={Tailles.chiffreEntete}
-                    style={styles.chiffre}
-                  />
-                )}
-                <Text style={styles.rebours} maxFontSizeMultiplier={1.3}>
-                  {entete.places.nombre !== null ? ' ' : ''}
-                  {entete.places.apres}
-                </Text>
-              </View>
+            style={styles.places}>
+            {entete.places?.nombre ? (
+              <ChiffreQuiDefile
+                valeur={entete.places.nombre}
+                max={session.joueurs}
+                taille={Tailles.chiffreGeant}
+                style={styles.chiffre}
+              />
+            ) : (
+              <Text maxFontSizeMultiplier={1.2} style={[styles.motGeant, styles.penche]}>
+                {entete.places ? 'Complet' : entete.temps}
+              </Text>
             )}
+            <View style={styles.placesDroite}>
+              {!!entete.places?.nombre && (
+                <View style={styles.penche}>
+                  <Text maxFontSizeMultiplier={1.2} style={styles.placesTexte}>
+                    {entete.places.apres}
+                  </Text>
+                  <View>
+                    <TraitMarqueur couleur={c.marqueurSurRouge} anime cle={libres} delai={250} />
+                    <Text maxFontSizeMultiplier={1.2} style={styles.placesTexte}>
+                      à prendre
+                    </Text>
+                  </View>
+                </View>
+              )}
+              {!!entete.places && (
+                <View style={styles.pilule}>
+                  <PointQuiBat bat={entete.temps === 'En direct'} />
+                  <Text maxFontSizeMultiplier={1.2} numberOfLines={1} style={styles.piluleTexte}>
+                    {entete.temps} · {heure(session.debut)}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.rondPicto}>
+              <PictoSport sport={session.sport} taille={30} />
+            </View>
           </View>
           {/* Session de test (créée pour essayer l'app) : gros tampon par-dessus le terrain */}
           {estSessionTest && (
@@ -474,10 +503,13 @@ const creerStyles = (c: Palette) =>
       overflow: 'hidden',
       backgroundColor: c.rouge,
     },
+    // Le picto passe dans le coin, en petit : le chiffre prend la place
     rondPicto: {
-      width: 84,
-      height: 84,
-      borderRadius: 42,
+      width: 46,
+      height: 46,
+      marginLeft: 'auto',
+      marginBottom: 6,
+      borderRadius: 23,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: c.rondPicto,
@@ -492,20 +524,33 @@ const creerStyles = (c: Palette) =>
       transform: [{ rotate: '-12deg' }],
     },
     tamponTexte: { fontFamily: Polices.titre, fontSize: Tailles.tampon, letterSpacing: 6, color: c.surRouge },
-    // Penchée vers l'avant, comme lancée : « Dans 3 h · encore 2 places »
-    phrase: {
+    // Le chiffre en énorme à gauche, « places à prendre » et le temps à côté ; la fiche remonte de 24 px dessus
+    places: {
+      position: 'absolute',
+      left: Espaces.marge,
+      right: Espaces.marge,
+      bottom: 24 + 14,
       flexDirection: 'row',
-      flexWrap: 'wrap',
       alignItems: 'flex-end',
-      justifyContent: 'center',
-      paddingHorizontal: Espaces.marge,
-      // La fiche blanche remonte de 24 px sur l'en-tête : la phrase reste au-dessus
-      marginBottom: 30,
-      transform: [{ skewX: INCLINAISON }],
+      gap: 12,
     },
-    places: { flexDirection: 'row', alignItems: 'flex-end' },
-    rebours: { fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, lineHeight: 30, color: c.surRouge },
-    chiffre: { fontFamily: Polices.titre, color: c.surRouge },
+    placesDroite: { flexShrink: 1, gap: 8, paddingBottom: 10 },
+    penche: { transform: [{ skewX: INCLINAISON }] },
+    placesTexte: { fontFamily: Polices.titre, fontSize: Tailles.titreSession, lineHeight: 26, color: c.surRouge },
+    motGeant: { fontFamily: Polices.titre, fontSize: Tailles.celebration, color: c.surRouge, paddingBottom: 6 },
+    pilule: {
+      alignSelf: 'flex-start',
+      height: 30,
+      paddingHorizontal: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      borderRadius: Rayons.pilule,
+      backgroundColor: c.rondPicto,
+    },
+    piluleTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTranche },
+    point: { width: 7, height: 7, borderRadius: 4, backgroundColor: c.rouge },
+    chiffre: { fontFamily: Polices.titre, color: c.surRouge, letterSpacing: -4 },
     fiche: {
       flexGrow: 1,
       marginTop: -24,

@@ -6,7 +6,7 @@ import type { Session } from '@/donnees/sessions';
 import { estEnDirect, placesLibres } from '@/lib/formats';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
-/** Badge « En direct » ou « Il manque 1 joueur ». Ne rend rien pour une session ordinaire. */
+/** Badge « En direct », « Il manque 1 joueur » ou « Presque plein » (2 places). Ne rend rien pour une session ordinaire. */
 export function BadgeSession({ session }: { session: Session }) {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
@@ -18,10 +18,13 @@ export function BadgeSession({ session }: { session: Session }) {
       </View>
     );
   }
-  if (placesLibres(session) === 1) {
+  const libres = placesLibres(session);
+  if (libres === 1 || libres === 2) {
     return (
       <View style={[styles.badge, { backgroundColor: c.orangeDoux }]}>
-        <Text maxFontSizeMultiplier={1.3} style={[styles.texte, { color: c.orangeTexte }]}>Il manque 1 joueur</Text>
+        <Text maxFontSizeMultiplier={1.3} style={[styles.texte, { color: c.orangeTexte }]}>
+          {libres === 1 ? 'Il manque 1 joueur' : 'Presque plein'}
+        </Text>
       </View>
     );
   }

@@ -132,8 +132,8 @@ export const Tailles = {
   grandNombre: 30,
   titreDetail: 32,
   celebration: 36,
-  /** Nombre de places dans l'en-tête rouge du détail (« encore 3 places ») */
-  chiffreEntete: 48,
+  /** Nombre de places, en énorme, dans l'en-tête rouge du détail */
+  chiffreGeant: 120,
   /** Tampon « TEST » sur l'en-tête d'une session de test */
   tampon: 64,
 } as const;

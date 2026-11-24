@@ -69,8 +69,8 @@ Maquettes : [Les 4 idées de Mathias](https://claude.ai/artifact/EkHvny6qZnQV3vK
 
 - **Marqueur** (`components/marqueur.tsx`, couleurs `marqueur` et `marqueurSurRouge`) : un trait de surligneur sous la moitié basse du texte. **Seulement 3 endroits** : la phrase de Créer, les places dans l'en-tête rouge du détail, « Tu l'as catchée ! ». Ailleurs il perdrait son effet.
 - **Penché** (`INCLINAISON`, -8°) : l'en-tête du détail et « Tu l'as catchée ! ». Jamais pour du texte courant.
-- **En-tête du détail** : le temps et les places lus d'un trait, « Dans 3 h · encore 2 places », « Ce soir · complet » (`phraseEntete` dans `lib/formats.ts`).
-- **Ligne de points** (`components/points-places.tsx`, couleur `pointVide`) : un point plein par joueur, rouge pour soi, un point vide par place libre, 12 au plus puis « +N ». Liste et fiche de la carte. VoiceOver lit le texte à côté, pas les points.
+- **En-tête du détail** (finition C1) : le nombre de places en énorme à gauche, « places à prendre » penché et surligné, le temps dans une pilule blanche (`phraseEntete` dans `lib/formats.ts`).
+- **Barre segmentée** (finitions S2 + S3, `components/barre-places.tsx`) : une case foncée par joueur, rouge pour soi, claire par place libre, 12 au plus, « 7/10 » à droite ; à 1 ou 2 places, cases libres en orange et badge « Presque plein » / « Il manque 1 joueur ». Liste et fiche de la carte. VoiceOver lit « 7 sur 10, 3 places ».
 
 ## Animations
 

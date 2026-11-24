@@ -13,7 +13,7 @@ import { BadgeSession } from '@/components/badge-session';
 import { Bouton } from '@/components/bouton';
 import { HAUTEUR_BARRE_HAUT } from '@/components/barre-haut';
 import { PictoSport } from '@/components/picto-sport';
-import { PointsPlaces } from '@/components/points-places';
+import { BarrePlaces } from '@/components/barre-places';
 import {
   BarreNavigation,
   Durees,
@@ -81,6 +81,7 @@ function CarteSession({
       onPressIn={() => echelle.set(withSpring(0.98, Ressorts.snappy))}
       onPressOut={() => echelle.set(withSpring(1, Ressorts.snappy))}
       onPress={onPress}
+      accessibilityLabel={`${session.titre}, ${moment}, ${session.lieu}, ${resume(session)}`}
       style={[styles.carte, styleAnime]}>
       <View style={styles.entete}>
         <BadgeSession session={session} />
@@ -97,14 +98,10 @@ function CarteSession({
           <Text style={styles.aide} numberOfLines={1}>
             {session.lieu}, {session.commune} · {texteDistance(distance(origine, session.position))}
           </Text>
-          <Text style={styles.resume} numberOfLines={1}>
-            {resume(session)}
-          </Text>
-          <View style={styles.points}>
-            <PointsPlaces session={session} />
-          </View>
         </View>
       </View>
+      {/* Les places en barre segmentée, le « 7/10 » à droite (finitions S2 + S3) */}
+      <BarrePlaces session={session} />
     </PressableAnime>
   );
 }
@@ -245,8 +242,6 @@ const creerStyles = (c: Palette) =>
     textes: { flex: 1, gap: 2 },
     titre: { fontFamily: Polices.titreDemi, fontSize: Tailles.titreCarte, color: c.encre },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
-    resume: { fontFamily: Polices.texteMoyen, fontSize: Tailles.aide, color: c.encre },
-    points: { paddingTop: 4 },
     videZone: { gap: 16 },
     vide: {
       paddingTop: 48,
