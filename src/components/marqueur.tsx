@@ -1,14 +1,5 @@
-import { useEffect } from 'react';
 import { StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withDelay,
-  withTiming,
-} from 'react-native-reanimated';
 
-import { Durees } from '@/constants/theme';
 import { useCouleurs } from '@/lib/theme';
 
 /** Inclinaison des titres « penchés » : assez pour donner de l'élan, pas assez pour gêner la lecture */
@@ -36,33 +27,15 @@ type PropsMot = {
  */
 export function TraitMarqueur({
   couleur,
-  anime,
-  delai = 0,
-  cle,
 }: {
   couleur?: string;
+  /** Gardés pour plus tard : le trait est fixe depuis le 25 novembre (animé, il restait invisible sur l'iPhone de Maxime) */
   anime?: boolean;
   delai?: number;
-  /** Quand elle change, le trait se redessine (nouveau mot, nouveau nombre) */
   cle?: string | number;
 }) {
   const c = useCouleurs();
-  const reduit = useReducedMotion();
-  const trace = useSharedValue(anime && !reduit ? 0 : 1);
-
-  useEffect(() => {
-    if (!anime || reduit) return;
-    trace.set(0);
-    trace.set(withDelay(delai, withTiming(1, { duration: Durees.emphasized })));
-  }, [anime, reduit, cle, delai, trace]);
-
-  // Le trait s'allonge de gauche à droite en largeur (pas en échelle : une échelle à 0 pouvait le laisser invisible sur iPhone)
-  const styleTrait = useAnimatedStyle(() => ({ width: `${trace.get() * 100}%` }));
-  return (
-    <View pointerEvents="none" style={styles.trait}>
-      <Animated.View style={[styles.encre, { backgroundColor: couleur ?? c.marqueur }, styleTrait]} />
-    </View>
-  );
+  return <View pointerEvents="none" style={[styles.trait, { backgroundColor: couleur ?? c.marqueur }]} />;
 }
 
 /** Un mot, avec ou sans trait de surligneur (idée de Mathias). */
@@ -127,6 +100,6 @@ const styles = StyleSheet.create({
     right: -DEBORD,
     top: '52%',
     bottom: '10%',
+    borderRadius: 3,
   },
-  encre: { height: '100%', borderRadius: 3 },
 });
