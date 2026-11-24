@@ -39,6 +39,11 @@ export const Palettes = {
     avatar4: '#E9D5C6',
     /** Reflet clair sur la balle orange */
     refletBalle: 'rgba(255, 255, 255, 0.4)',
+    /** Les 4 couleurs du « G » de Google, imposées par Google pour son bouton : identiques dans les deux thèmes */
+    googleBleu: '#4285F4',
+    googleRouge: '#EA4335',
+    googleJaune: '#FBBC05',
+    googleVert: '#34A853',
     /** Fond de secours quand il n'y a pas de vraie carte (navigateur) */
     fondCarte: '#EFE9E2',
     /** Fond assombri derrière une feuille ouverte par-dessus la carte */
@@ -79,6 +84,10 @@ export const Palettes = {
     avatar3: '#D9B48F',
     avatar4: '#CFBCAD',
     refletBalle: 'rgba(255, 255, 255, 0.4)',
+    googleBleu: '#4285F4',
+    googleRouge: '#EA4335',
+    googleJaune: '#FBBC05',
+    googleVert: '#34A853',
     fondCarte: '#1B1614',
     voile: 'rgba(0, 0, 0, 0.55)',
     // Sur fond sombre, une ombre doit être noire et plus marquée pour se voir

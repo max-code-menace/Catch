@@ -54,7 +54,7 @@ Les idées « fun » de `docs/produit.md` (après-session, badges, défis, sessi
 | Tâche | Piste | État |
 | --- | --- | --- |
 | Étape 10 : signalement, blocage, suppression de compte | A | fait (16 novembre) |
-| Connexion Google | A | à faire |
+| Connexion Google | A | codée (24 novembre), à activer dans Supabase |
 | Modifier / annuler une session + notification « changement » | A | fait (16 novembre), à tester sur téléphone |
 | Audit du 16 novembre : zone Bruxelles, mes sessions, création, confidentialité, garde-fous | A + B | fait (16 novembre), à tester sur téléphone |
 | Nettoyage des jetons push morts | A | à faire |

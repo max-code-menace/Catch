@@ -24,8 +24,9 @@ export default function Confidentialite() {
 
       <Partie titre="Ce qu’on garde">
         <Paragraphe>
-          Ton adresse e-mail, pour te connecter avec un code (ou ton identifiant Apple si tu te connectes avec Apple).
-          Elle n’est jamais montrée aux autres.
+          Ton adresse e-mail, pour te connecter avec un code (ou ton identifiant Apple si tu te connectes avec Apple). Elle n’est jamais montrée aux autres.
+          Si tu te connectes avec Google, Google nous transmet aussi ton nom et le lien de ta photo Google : ils restent
+          avec ton compte, on s’en sert seulement pour proposer ton prénom et on ne les montre à personne.
         </Paragraphe>
         <Paragraphe>
           Ton prénom. Quand tu organises une session, il est visible de tous sur la carte. Quand tu t’inscris à une

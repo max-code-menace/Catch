@@ -46,6 +46,7 @@ function Navigation() {
             <Stack.Screen name="session/[id]" />
             <Stack.Screen name="modifier/[id]" />
             <Stack.Screen name="connexion" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="connexion-google" options={{ animation: 'none' }} />
             <Stack.Screen name="notifications" />
             <Stack.Screen name="messages/[id]" />
             <Stack.Screen name="prive/[id]" />

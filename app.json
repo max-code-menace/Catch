@@ -69,7 +69,8 @@
           "cameraPermission": "Catch utilise l’appareil photo seulement si tu prends une photo de profil.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

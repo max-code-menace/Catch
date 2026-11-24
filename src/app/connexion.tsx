@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Bouton } from '@/components/bouton';
-import { IconeRetour } from '@/components/icones';
+import { IconeGoogle, IconeRetour } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { ANNULE, useCompte } from '@/lib/compte';
@@ -37,7 +37,7 @@ export default function Connexion() {
   const { id, pour } = useLocalSearchParams<{ id?: string; pour?: 'publier' }>();
   const { bottom } = useSafeAreaInsets();
   const { sessions, catcher } = useSessions();
-  const { compte, envoyerCode, verifierCode, connecterApple, enregistrerPrenom } = useCompte();
+  const { compte, envoyerCode, verifierCode, connecterApple, connecterGoogle, enregistrerPrenom } = useCompte();
   const session = sessions.find((s) => s.id === id);
 
   const [etapeChoisie, setEtape] = useState<Etape>('choix');
@@ -50,6 +50,8 @@ export default function Connexion() {
   const [occupe, setOccupe] = useState(false);
   const catchEnCours = useRef(false);
   const [appleDisponible, setAppleDisponible] = useState(false);
+  // Sur le site, la page d'invitation garde l'e-mail : Google y demanderait une autre adresse de retour
+  const googleDisponible = Platform.OS !== 'web';
 
   useEffect(() => {
     // Dans Expo Go, Apple connecterait à « Expo Go » et pas à Catch : le bouton n'apparaît que dans la vraie app
@@ -159,6 +161,15 @@ export default function Connexion() {
                   cornerRadius={Rayons.bouton}
                   style={styles.apple}
                   onPress={() => essayer(connecterApple)}
+                />
+              )}
+              {googleDisponible && (
+                <Bouton
+                  titre="Continuer avec Google"
+                  variante="secondaire"
+                  Icone={IconeGoogle}
+                  disabled={occupe}
+                  onPress={() => essayer(connecterGoogle)}
                 />
               )}
               <Bouton
