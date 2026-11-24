@@ -112,6 +112,7 @@ Noté le 15 novembre à sa demande, pour ne pas oublier. Claude ne peut pas le f
 - [ ] **Avant les stores** : donner une adresse postale d'éditeur (obligatoire pour Conditions et Confidentialité) et créer une adresse de contact dédiée.
 - [ ] **Avant les stores** : relire une fois le texte Confidentialité en entier (potes, photo, messages privés, connexion Google y ont été ajoutés).
 - [x] Connexion Google configurée dans Google Cloud et Supabase (24 novembre).
+- [ ] **À tester sur iPhone dès que possible (noté le 24 novembre, téléphone déchargé)** : connexion Google. Rouvrir Expo Go (2 fois si besoin) pour avoir la mise à jour, se déconnecter (Profil > ≡ > Se déconnecter), toucher Catch ou « + Créer », puis « Continuer avec Google » : on doit revenir connecté avec son prénom rempli. Si « Accès bloqué » : s'ajouter dans Google Auth Platform > Audience > Utilisateurs test. Donner à Claude le texte exact de toute erreur.
 - [ ] **Avant les stores** : passer l'écran de consentement Google en production (il faut un domaine à nous, par exemple pour le site et l'adresse de contact). D'ici là, ajouter chaque testeur dans Google Auth Platform > Audience > Utilisateurs test.
 - [x] Raccourcir la liste des hôtes de l'environnement cloud « catch » : fait le 20 novembre (il ne reste que `eas.expo.app` et `catch-sport.expo.app`).
 
