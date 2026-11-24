@@ -5,7 +5,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   View,
@@ -31,12 +30,13 @@ import { prevenir } from '@/lib/alerte';
 import { marquerVue } from '@/lib/apparitions';
 import { useCompte } from '@/lib/compte';
 import { useEvenements } from '@/lib/evenements';
-import { quand, quandCreation, texteDistance } from '@/lib/formats';
+import { heure, quand, quandCreation, texteDistance } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { LIEU_PAR_DEFAUT, nommer, type Lieu } from '@/lib/lieux';
-import { lieuA, lieuxDuSport, texteType, useLieuxSport, type LieuSport } from '@/lib/lieux-sport';
+import { lieuA, lieuxDuSport, useLieuxSport, type LieuSport } from '@/lib/lieux-sport';
 import {
   ORDRE,
+  creneauxProposes,
   etapePrecedente,
   etapeSuivante,
   phraseCreation,
@@ -82,9 +82,47 @@ const CLE_MODELE = 'catch.derniere-creation';
 const QUESTIONS: Record<Champ, string> = {
   sport: 'Quel sport ?',
   quand: 'Quand ?',
+  duree: 'Combien de temps ?',
   joueurs: 'Combien de joueurs, toi compris ?',
+  niveau: 'Qui peut venir ?',
   ou: 'Où ?',
 };
+/** Nombres de joueurs proposés en tuiles ; « Autre » ouvre la roue */
+const NOMBRES = [2, 4, 6, 8, 10, 12, 14, 22];
+
+/** Une tuile de choix, comme dans la maquette : un titre, une petite ligne dessous */
+function Tuile({
+  titre,
+  sous,
+  actif,
+  onPress,
+  largeur,
+}: {
+  titre: string;
+  sous?: string;
+  actif: boolean;
+  onPress: () => void;
+  largeur: number;
+}) {
+  const styles = useStyles(creerStyles);
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: actif }}
+      accessibilityLabel={sous ? `${titre}, ${sous}` : titre}
+      onPress={onPress}
+      style={({ pressed }) => [styles.tuileChoix, { width: largeur }, actif && styles.tuileActive, pressed && styles.presse]}>
+      <Text maxFontSizeMultiplier={1.3} numberOfLines={2} style={[styles.tuileTitre, actif && styles.tuileTexteActif]}>
+        {titre}
+      </Text>
+      {!!sous && (
+        <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={styles.tuileSous}>
+          {sous}
+        </Text>
+      )}
+    </Pressable>
+  );
+}
 
 /**
  * Créer, en trois temps :
@@ -102,6 +140,9 @@ export default function Creer() {
   // Tous les sports d'un coup d'œil : 5 tuiles par ligne (4 sur les petits téléphones, pour que « Badminton » ne soit pas coupé)
   const parLigne = width < 360 ? 4 : 5;
   const largeurTuile = Math.floor((width - 2 * Espaces.marge - (parLigne - 1) * 8) / parLigne);
+  // Les autres choix en 3 colonnes (2 pour le niveau), comme la maquette
+  const largeur3 = Math.floor((width - 2 * Espaces.marge - 2 * 8) / 3);
+  const largeur2 = Math.floor((width - 2 * Espaces.marge - 8) / 2);
   const { compte } = useCompte();
   const { creer, position } = useSessions();
 
@@ -118,7 +159,8 @@ export default function Creer() {
   const [faits, setFaits] = useState<Champ[]>([]);
   /** Mode phrase : le choix rouvert en touchant un mot */
   const [edition, setEdition] = useState<Champ | null>(null);
-  const [plusDOptions, setPlusDOptions] = useState(false);
+  /** « Autre » touché dans Quand ou Joueurs : on montre le sélecteur du système */
+  const [autre, setAutre] = useState<Champ | null>(null);
 
   const [modeles, setModeles] = useState<Modele[]>([]);
   const [sport, setSport] = useState<Sport | null>(null);
@@ -157,6 +199,7 @@ export default function Creer() {
     setEtape(etapes[0]);
     setFaits([]);
     setEdition(null);
+    setAutre(null);
     setMode('etapes');
   }
 
@@ -194,6 +237,7 @@ export default function Creer() {
 
   /** L'étape (ou le choix rouvert) est faite : on passe à la suivante, ou à la phrase complète */
   function valider(champ: Champ) {
+    setAutre(null);
     if (mode === 'phrase') {
       setEdition(null);
       return;
@@ -238,7 +282,7 @@ export default function Creer() {
     setEvenementId(null);
     setLieu({ position: lieuVenu.position, nom: lieuVenu.nom, commune: lieuVenu.commune, choisi: true });
     // Le sport et le lieu sont donnés : il reste quand et combien
-    nouvelle(['quand', 'joueurs']);
+    nouvelle(['quand', 'duree', 'joueurs', 'niveau']);
   }
   useEffect(() => {
     if (demandeTraitee) router.setParams({ lieu: undefined, sport: undefined });
@@ -262,7 +306,7 @@ export default function Creer() {
       commune: evenementVenu.commune,
       choisi: true,
     });
-    nouvelle(['joueurs']);
+    nouvelle(['joueurs', 'niveau']);
   }
   useEffect(() => {
     if (evenementTraite) router.setParams({ evenement: undefined });
@@ -294,12 +338,15 @@ export default function Creer() {
   const morceaux = phraseCreation({
     sport: sport && montre('sport') ? { cle: sport, nom: fiche.nom } : null,
     quand: montre('quand') ? (maintenant ? 'maintenant' : quandCreation(debutAffiche, ouverture)) : null,
+    duree: montre('duree') ? texteDuree : null,
     joueurs: sport && montre('joueurs') ? joueurs : null,
+    debutants: montre('niveau') ? debutants : null,
     lieu: lieu.choisi && montre('ou') ? nomLieu : null,
   });
 
   function toucherPhrase(champ: Champ) {
     vibrer.selection();
+    setAutre(null);
     if (mode === 'phrase') {
       setEdition((avant) => (avant === champ ? null : champ));
       return;
@@ -371,7 +418,6 @@ export default function Creer() {
     setEvenementId(null);
     setSport(null);
     setLieu((avant) => ({ ...avant, choisi: false }));
-    setPlusDOptions(false);
     setMode(evenement && !modeles.length ? 'etapes' : 'depart');
     // Retour sur la carte : la session y tombe à sa place
     marquerVue(id);
@@ -441,94 +487,200 @@ export default function Creer() {
       );
     }
     if (champ === 'quand') {
+      const creneaux = creneauxProposes(ouverture);
       return (
         <View style={[styles.dansMarges, styles.panneau]}>
-          {/* L'heure exacte du téléphone par défaut : pour « maintenant », il suffit de valider */}
-          <ChoixDateHeure
-            valeur={debutAffiche}
-            onChange={setDebutChoisi}
-            min={dateMin}
-            max={dateMax}
-            pasMinutes={1}
-            affichage={mode === 'etapes' ? 'roue' : 'compact'}
-          />
-          <Bouton titre={maintenant ? 'Maintenant, c’est bon' : 'C’est bon'} onPress={() => valider('quand')} />
+          <View style={styles.tuiles}>
+            {creneaux.map((cr) => {
+              const actif =
+                montre('quand') &&
+                autre !== 'quand' &&
+                (cr.date ? debutChoisi?.getTime() === cr.date.getTime() : maintenant);
+              return (
+                <Tuile
+                  key={cr.titre + cr.sous}
+                  titre={cr.titre}
+                  sous={cr.sous}
+                  actif={actif}
+                  largeur={largeur3}
+                  onPress={() => {
+                    vibrer.selection();
+                    setDebutChoisi(cr.date);
+                    setTimeout(() => valider('quand'), PAUSE_CHOIX);
+                  }}
+                />
+              );
+            })}
+            <Tuile
+              titre="Autre"
+              sous="jour et heure"
+              actif={autre === 'quand'}
+              largeur={largeur3}
+              onPress={() => {
+                vibrer.selection();
+                setAutre('quand');
+              }}
+            />
+          </View>
+          {autre === 'quand' && (
+            <>
+              {/* Le sélecteur du système, à la minute près ; pour « maintenant », il suffit de valider */}
+              <ChoixDateHeure
+                valeur={debutAffiche}
+                onChange={setDebutChoisi}
+                min={dateMin}
+                max={dateMax}
+                pasMinutes={1}
+                affichage="roue"
+              />
+              <Bouton titre="C’est bon" onPress={() => valider('quand')} />
+            </>
+          )}
+        </View>
+      );
+    }
+    if (champ === 'duree') {
+      const debut = debutAffiche;
+      return (
+        <View style={[styles.tuiles, styles.dansMarges]}>
+          {DUREES.map(({ minutes, titre }) => (
+            <Tuile
+              key={minutes}
+              titre={titre}
+              sous={`jusqu’à ${heure(new Date(debut.getTime() + minutes * MINUTE))}`}
+              actif={montre('duree') && minutes === duree}
+              largeur={largeur3}
+              onPress={() => {
+                vibrer.selection();
+                setDuree(minutes);
+                setTimeout(() => valider('duree'), PAUSE_CHOIX);
+              }}
+            />
+          ))}
         </View>
       );
     }
     if (champ === 'joueurs') {
+      // Le nombre habituel du sport est toujours proposé, signalé « conseillé »
+      const nombres = [...new Set([...NOMBRES, fiche.joueurs])].sort((x, y) => x - y).slice(0, 8);
       return (
         <View style={[styles.dansMarges, styles.panneau]}>
-          <ChoixJoueurs valeur={joueurs} onChange={setJoueurs} />
-          <Bouton titre={`${joueurs} joueurs, c’est bon`} onPress={() => valider('joueurs')} />
+          <View style={styles.tuiles}>
+            {nombres.map((n) => (
+              <Tuile
+                key={n}
+                titre={String(n)}
+                sous={n === fiche.joueurs ? 'conseillé' : undefined}
+                actif={montre('joueurs') && autre !== 'joueurs' && n === joueurs}
+                largeur={largeur3}
+                onPress={() => {
+                  vibrer.selection();
+                  setJoueurs(n);
+                  setTimeout(() => valider('joueurs'), PAUSE_CHOIX);
+                }}
+              />
+            ))}
+            <Tuile
+              titre="Autre"
+              sous="de 2 à 30"
+              actif={autre === 'joueurs'}
+              largeur={largeur3}
+              onPress={() => {
+                vibrer.selection();
+                setAutre('joueurs');
+              }}
+            />
+          </View>
+          {autre === 'joueurs' && (
+            <>
+              <ChoixJoueurs valeur={joueurs} onChange={setJoueurs} />
+              <Bouton titre={`${joueurs} joueurs, c’est bon`} onPress={() => valider('joueurs')} />
+            </>
+          )}
+        </View>
+      );
+    }
+    if (champ === 'niveau') {
+      return (
+        <View style={[styles.tuiles, styles.dansMarges]}>
+          {[
+            { valeur: true, titre: 'Débutants bienvenus', sous: 'tout le monde peut venir' },
+            { valeur: false, titre: 'Niveau confirmé', sous: 'pour ceux qui jouent déjà' },
+          ].map((n) => (
+            <Tuile
+              key={n.titre}
+              titre={n.titre}
+              sous={n.sous}
+              actif={montre('niveau') && debutants === n.valeur}
+              largeur={largeur2}
+              onPress={() => {
+                vibrer.selection();
+                setDebutants(n.valeur);
+                setTimeout(() => valider('niveau'), PAUSE_CHOIX);
+              }}
+            />
+          ))}
         </View>
       );
     }
     return (
       <View style={[styles.dansMarges, styles.panneau]}>
-        {suggestions.length > 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.suggestionsZone}
-            contentContainerStyle={styles.suggestions}>
-            {suggestions.map(({ lieu: suggestion, distance }) => {
-              const actif = lieuConnu?.id === suggestion.id;
-              return (
-                <Pressable
-                  key={suggestion.id}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: actif }}
-                  accessibilityLabel={`${suggestion.nom}, ${texteType(suggestion)}, ${texteDistance(distance)}`}
-                  onPress={() => choisirLieuSport(suggestion)}
-                  style={[styles.suggestion, actif && styles.suggestionActive]}>
-                  <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.suggestionNom, actif && { color: c.rougeTexte }]}>
-                    {suggestion.nom}
-                  </Text>
-                  <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={styles.aide}>
-                    {texteType(suggestion)} · {texteDistance(distance)}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        )}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={lieu.choisi ? `Lieu : ${lieu.nom}. Changer` : 'Choisir le lieu sur la carte'}
-          onPress={() => setCarteOuverte(true)}
-          style={({ pressed }) => [styles.lieu, pressed && { opacity: 0.85 }]}>
-          <View style={styles.apercu}>
-            <ApercuCarte key={`${lieu.position.latitude},${lieu.position.longitude}`} position={lieu.position} />
+        {suggestions.length > 0 ? (
+          // Les lieux du sport les plus proches, en tuiles ; « Sur la carte » pour poser son point ailleurs
+          <View style={styles.tuiles}>
+            {suggestions.slice(0, 5).map(({ lieu: suggestion, distance }) => (
+              <Tuile
+                key={suggestion.id}
+                titre={suggestion.nom}
+                sous={texteDistance(distance)}
+                actif={montre('ou') && lieuConnu?.id === suggestion.id}
+                largeur={largeur3}
+                onPress={() => choisirLieuSport(suggestion)}
+              />
+            ))}
+            <Tuile
+              titre={lieu.choisi && !lieuConnu ? lieu.nom : 'Sur la carte'}
+              sous={lieu.choisi && !lieuConnu ? 'changer' : 'place l’épingle'}
+              actif={montre('ou') && lieu.choisi && !lieuConnu}
+              largeur={largeur3}
+              onPress={() => setCarteOuverte(true)}
+            />
           </View>
-          <View style={styles.lieuBas}>
-            <View style={styles.textes}>
-              <Text maxFontSizeMultiplier={1.3} style={styles.fort} numberOfLines={1}>
-                {lieu.choisi ? lieu.nom : 'Lieu à choisir'}
-              </Text>
-              <Text maxFontSizeMultiplier={1.3} style={styles.aide} numberOfLines={1}>
-                {lieu.choisi
-                  ? lieu.commune || 'Lieu choisi'
-                  : suggestions.length
-                    ? 'Touche un lieu au-dessus, ou place l’épingle'
-                    : 'Place l’épingle là où vous jouez'}
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={lieu.choisi ? `Lieu : ${lieu.nom}. Changer` : 'Choisir le lieu sur la carte'}
+            onPress={() => setCarteOuverte(true)}
+            style={({ pressed }) => [styles.lieu, pressed && { opacity: 0.85 }]}>
+            <View style={styles.apercu}>
+              <ApercuCarte key={`${lieu.position.latitude},${lieu.position.longitude}`} position={lieu.position} />
+            </View>
+            <View style={styles.lieuBas}>
+              <View style={styles.textes}>
+                <Text maxFontSizeMultiplier={1.3} style={styles.fort} numberOfLines={1}>
+                  {lieu.choisi ? lieu.nom : 'Lieu à choisir'}
+                </Text>
+                <Text maxFontSizeMultiplier={1.3} style={styles.aide} numberOfLines={1}>
+                  {lieu.choisi ? lieu.commune || 'Lieu choisi' : 'Place l’épingle là où vous jouez'}
+                </Text>
+              </View>
+              <Text maxFontSizeMultiplier={1.3} style={styles.changer}>
+                {lieu.choisi ? 'Changer' : 'Choisir sur la carte'}
               </Text>
             </View>
-            <Text maxFontSizeMultiplier={1.3} style={styles.changer}>
-              {lieu.choisi ? 'Changer' : 'Choisir sur la carte'}
-            </Text>
-          </View>
-        </Pressable>
-        <TextInput
-          value={precision}
-          onChangeText={setPrecision}
-          placeholder="Nom du lieu (facultatif) : terrain, salle, parc"
-          placeholderTextColor={c.texteSecondaire}
-          maxLength={40}
-          returnKeyType="done"
-          style={styles.champ}
-        />
-        {lieu.choisi && <Bouton titre="C’est bon" onPress={() => valider('ou')} />}
+          </Pressable>
+        )}
+        {lieu.choisi && montre('ou') && (
+          <TextInput
+            value={precision}
+            onChangeText={setPrecision}
+            placeholder="Nom du lieu (facultatif) : terrain, salle, parc"
+            placeholderTextColor={c.texteSecondaire}
+            maxLength={40}
+            returnKeyType="done"
+            style={styles.champ}
+          />
+        )}
       </View>
     );
   }
@@ -544,7 +696,7 @@ export default function Creer() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           paddingTop: top + 16,
-          paddingBottom: basPied + (enPhrase ? HAUTEUR_PIED : 0) + 24,
+          paddingBottom: basPied + (mode === 'etapes' || enPhrase ? HAUTEUR_PIED : 0) + 24,
           gap: 20,
         }}>
         <View style={[styles.haut, styles.dansMarges]}>
@@ -559,7 +711,7 @@ export default function Creer() {
             </Pressable>
           )}
           <Text maxFontSizeMultiplier={1.3} accessibilityRole="header" style={styles.titre}>
-            {mode === 'depart' ? 'Créer' : 'Créer une session'}
+            Créer
           </Text>
         </View>
 
@@ -682,74 +834,21 @@ export default function Creer() {
         )}
 
         {enPhrase && !edition && (
-          <View style={[styles.dansMarges, styles.section]}>
-            <Text maxFontSizeMultiplier={1.3} style={styles.aide}>
-              Touche un mot surligné pour le changer.
-            </Text>
-            {!plusDOptions ? (
-              <Bouton
-                titre="Plus d’options : durée, débutants"
-                variante="lien"
-                onPress={() => {
-                  vibrer.selection();
-                  setPlusDOptions(true);
-                }}
-              />
-            ) : (
-              <>
-                <Text maxFontSizeMultiplier={1.3} style={styles.etiquette}>
-                  Durée
-                </Text>
-                <View accessibilityRole="radiogroup" style={styles.puces}>
-                  {DUREES.map(({ minutes, titre }) => {
-                    const actif = minutes === duree;
-                    return (
-                      <Pressable
-                        key={minutes}
-                        accessibilityRole="radio"
-                        accessibilityState={{ checked: actif }}
-                        onPress={() => {
-                          if (!actif) vibrer.selection();
-                          setDuree(minutes);
-                        }}
-                        style={[styles.puce, actif && styles.puceActive]}>
-                        <Text maxFontSizeMultiplier={1.3} style={[styles.puceTexte, actif && { color: c.surEncre }]}>
-                          {titre}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-                <View style={styles.ligne}>
-                  <Text maxFontSizeMultiplier={1.3} style={[styles.etiquette, styles.textes]}>
-                    Débutants bienvenus
-                  </Text>
-                  <Switch
-                    value={debutants}
-                    onValueChange={(valeur) => {
-                      vibrer.selection();
-                      setDebutants(valeur);
-                    }}
-                    trackColor={{ true: c.rouge, false: c.trait }}
-                    thumbColor={c.rondPicto}
-                  />
-                </View>
-              </>
-            )}
-          </View>
+          <Text maxFontSizeMultiplier={1.3} style={[styles.aide, styles.dansMarges]}>
+            Touche un mot surligné pour le changer.
+          </Text>
         )}
       </ScrollView>
 
-      {/* La phrase complète : ce qui sera publié, et le bouton, toujours visibles au-dessus de la barre */}
-      {enPhrase && (
+      {/* Comme la maquette : où on en est, et « Publier », qui s'allume quand tout est choisi */}
+      {(mode === 'etapes' || enPhrase) && (
         <View style={[styles.pied, { paddingBottom: basPied + 10 }]}>
           <Text maxFontSizeMultiplier={1.3} style={styles.recap} numberOfLines={1}>
-            {texteDuree}
-            {debutants ? ' · débutants bienvenus' : ''}
+            {enPhrase ? 'Prêt à publier' : `${faits.length + ORDRE.length - aFaire.length} sur ${ORDRE.length}`}
           </Text>
           <Bouton
             titre={envoi ? 'On la pose sur la carte…' : 'Publier la session'}
-            disabled={envoi}
+            disabled={envoi || !enPhrase}
             attente={envoi}
             onPress={publier}
           />
@@ -879,6 +978,20 @@ const creerStyles = (c: Palette) =>
     tuileActive: { backgroundColor: c.rougeDoux, borderColor: c.rouge },
     tuileTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.pastille, color: c.encre },
     tuileTexteActif: { fontFamily: Polices.texteDemi, color: c.rougeTexte },
+    tuileChoix: {
+      minHeight: 64,
+      paddingHorizontal: 8,
+      paddingVertical: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 2,
+      backgroundColor: c.carte,
+      borderRadius: 16,
+      borderWidth: 1.5,
+      borderColor: c.trait,
+    },
+    tuileTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.encre, textAlign: 'center' },
+    tuileSous: { fontFamily: Polices.texte, fontSize: Tailles.pastille, color: c.texteSecondaire, textAlign: 'center' },
     puces: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     puce: {
       minHeight: Espaces.cibleTactile,

@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import {
   etapePrecedente,
   etapeSuivante,
+  creneauxProposes,
   phraseCreation,
   prochainCreneau,
   retenirCreation,
@@ -19,17 +20,33 @@ test('phrase complète', () => {
   const phrase = phraseCreation({
     sport: { cle: 'foot', nom: 'Foot' },
     quand: 'ce soir à 19h',
+    duree: '1h30',
     joueurs: 10,
+    debutants: true,
     lieu: 'Parc Josaphat',
   });
-  assert.equal(lire(phrase), 'Je lance du foot ce soir à 19h, à 10 joueurs. Rendez-vous Parc Josaphat.');
+  assert.equal(
+    lire(phrase),
+    'Je lance du foot ce soir à 19h pour 1h30, à 10 joueurs, débutants bienvenus. Rendez-vous Parc Josaphat.',
+  );
   assert.equal(phrase.filter((m) => m.type === 'trou').length, 0);
 });
 
-test('phrase vide : des trous pour le sport, les joueurs et le lieu', () => {
-  const phrase = phraseCreation({ sport: null, quand: 'maintenant', joueurs: null, lieu: null });
-  assert.equal(lire(phrase), 'Je lance [quel sport ?] maintenant, [combien ?] Rendez-vous [où ?]');
-  assert.deepEqual(phrase.filter((m) => m.type === 'trou').map((m) => m.champ), ['sport', 'joueurs', 'ou']);
+test('phrase vide : un trou par choix', () => {
+  const phrase = phraseCreation({ sport: null, quand: null, duree: null, joueurs: null, debutants: null, lieu: null });
+  assert.equal(
+    lire(phrase),
+    'Je lance [quel sport ?] [quand ?] [combien de temps ?] [combien ?] [quel niveau ?] Rendez-vous [où ?]',
+  );
+  assert.deepEqual(
+    phrase.filter((m) => m.type === 'trou').map((m) => m.champ),
+    ['sport', 'quand', 'duree', 'joueurs', 'niveau', 'ou'],
+  );
+});
+
+test('niveau confirmé', () => {
+  const phrase = phraseCreation({ sport: null, quand: null, duree: null, joueurs: null, debutants: false, lieu: null });
+  assert.ok(lire(phrase).includes('niveau confirmé.'));
 });
 
 test('articles des sports', () => {
@@ -49,20 +66,17 @@ test('quand dans la phrase', () => {
   assert.equal(quandCreation(new Date(2026, 10, 28, 10, 0), lundiMidi), 'samedi 28 novembre à 10h');
 });
 
-test('phrase des étapes : « quand » reste un trou tant qu’il n’est pas choisi', () => {
-  const phrase = phraseCreation({ sport: { cle: 'padel', nom: 'Padel' }, quand: null, joueurs: null, lieu: null });
-  assert.equal(lire(phrase), 'Je lance du padel [quand ?] [combien ?] Rendez-vous [où ?]');
-});
 
 test('étapes suivantes et précédentes', () => {
-  const toutes = ['sport', 'quand', 'joueurs', 'ou'];
+  const toutes = ['sport', 'quand', 'duree', 'joueurs', 'niveau', 'ou'];
   assert.equal(etapeSuivante('sport', toutes), 'quand');
+  assert.equal(etapeSuivante('quand', toutes), 'duree');
   assert.equal(etapeSuivante('ou', toutes), null);
-  // Depuis un lieu : seulement quand et joueurs
-  assert.equal(etapeSuivante('quand', ['quand', 'joueurs']), 'joueurs');
-  assert.equal(etapeSuivante('joueurs', ['quand', 'joueurs']), null);
-  assert.equal(etapePrecedente('quand', ['quand', 'joueurs']), null);
-  assert.equal(etapePrecedente('ou', toutes), 'joueurs');
+  // Depuis un événement : seulement joueurs et niveau
+  assert.equal(etapeSuivante('joueurs', ['joueurs', 'niveau']), 'niveau');
+  assert.equal(etapeSuivante('niveau', ['joueurs', 'niveau']), null);
+  assert.equal(etapePrecedente('joueurs', ['joueurs', 'niveau']), null);
+  assert.equal(etapePrecedente('ou', toutes), 'niveau');
 });
 
 test('Relancer : la même heure, au prochain créneau', () => {
@@ -83,4 +97,25 @@ test('Relancer : les 3 dernières créations différentes', () => {
   liste = retenirCreation(liste, m('tennis', 'Forest'));
   liste = retenirCreation(liste, m('basket', 'Cinquantenaire'));
   assert.deepEqual(liste.map((x) => x.sport), ['basket', 'tennis', 'foot']);
+});
+
+test('créneaux proposés dans « Quand ? »', () => {
+  const titres = (cs) => cs.map((c) => `${c.titre} ${c.sous}`);
+  // 15h10 : maintenant, 16h, 17h, 18h, puis demain 18h
+  assert.deepEqual(titres(creneauxProposes(new Date(2026, 10, 16, 15, 10))), [
+    'Maintenant 15h10',
+    '16h aujourd’hui',
+    '17h aujourd’hui',
+    '18h ce soir',
+    'Demain 18h',
+  ]);
+  // 21h45 : moins de 30 minutes avant 22h, on propose 23h, puis demain
+  assert.deepEqual(titres(creneauxProposes(new Date(2026, 10, 16, 21, 45))), [
+    'Maintenant 21h45',
+    '23h ce soir',
+    'Demain 18h',
+    'Demain 19h',
+    'Demain 20h',
+  ]);
+  assert.equal(creneauxProposes(new Date(2026, 10, 16, 23, 50)).length, 5);
 });
