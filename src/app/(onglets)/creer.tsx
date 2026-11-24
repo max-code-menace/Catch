@@ -49,6 +49,7 @@ import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 const MINUTE = 60_000;
+const QUART = 15 * MINUTE;
 /** Place prise par le pied (récapitulatif + bouton Publier) au-dessus de la barre */
 const HAUTEUR_PIED = 92;
 /** Durées proposées, en minutes */
@@ -316,14 +317,19 @@ export default function Creer() {
   ].slice(0, 8);
   const nomLieu = precision.trim() || lieu.nom;
   // Ce que montre le sélecteur : l'heure choisie, sinon la minute où l'onglet a été ouvert
-  const debutAffiche = debutChoisi && debutChoisi > dateMin ? debutChoisi : dateMin;
+  // L'heure se choisit au quart d'heure (demande de Maxime : pas de rendez-vous à 20h03) ;
+  // sans choix, la roue montre le prochain quart d'heure
+  const premierQuart = new Date(Math.ceil(dateMin.getTime() / QUART) * QUART);
+  const debutAffiche = debutChoisi && debutChoisi > dateMin ? debutChoisi : premierQuart;
   // À moins de 5 minutes d'ici, c'est « maintenant »
   const maintenant = debutAffiche.getTime() - dateMin.getTime() < 5 * MINUTE;
   const texteDuree = DUREES.find((d) => d.minutes === duree)?.titre ?? '1h30';
   /** Début de la session au moment de publier : jamais dans le passé */
   function debutAPublier() {
     const instant = new Date();
-    return debutChoisi && debutChoisi > instant ? debutChoisi : instant;
+    // Ce que montre la roue, même si on ne l'a pas touchée
+    const voulu = debutChoisi ?? premierQuart;
+    return voulu > instant ? voulu : instant;
   }
 
   // Pendant les étapes, un choix pas encore validé reste un trou, même s'il a une valeur par défaut
@@ -487,7 +493,7 @@ export default function Creer() {
             onChange={setDebutChoisi}
             min={dateMin}
             max={dateMax}
-            pasMinutes={1}
+            pasMinutes={15}
             affichage="roue"
           />
           <Bouton titre={maintenant ? 'Maintenant, c’est bon' : 'C’est bon'} onPress={() => valider('quand')} />

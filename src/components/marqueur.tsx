@@ -56,12 +56,12 @@ export function TraitMarqueur({
     trace.set(withDelay(delai, withTiming(1, { duration: Durees.emphasized })));
   }, [anime, reduit, cle, delai, trace]);
 
-  const styleTrait = useAnimatedStyle(() => ({ transform: [{ scaleX: trace.get() }] }));
+  // Le trait s'allonge de gauche à droite en largeur (pas en échelle : une échelle à 0 pouvait le laisser invisible sur iPhone)
+  const styleTrait = useAnimatedStyle(() => ({ width: `${trace.get() * 100}%` }));
   return (
-    <Animated.View
-      pointerEvents="none"
-      style={[styles.trait, { backgroundColor: couleur ?? c.marqueur }, styleTrait]}
-    />
+    <View pointerEvents="none" style={styles.trait}>
+      <Animated.View style={[styles.encre, { backgroundColor: couleur ?? c.marqueur }, styleTrait]} />
+    </View>
   );
 }
 
@@ -127,7 +127,6 @@ const styles = StyleSheet.create({
     right: -DEBORD,
     top: '52%',
     bottom: '10%',
-    borderRadius: 3,
-    transformOrigin: 'left',
   },
+  encre: { height: '100%', borderRadius: 3 },
 });
