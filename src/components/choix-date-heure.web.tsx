@@ -5,7 +5,14 @@ import { Polices, Tailles } from '@/constants/theme';
 import { heure } from '@/lib/formats';
 import { useStyles, type Palette } from '@/lib/theme';
 
-type Props = { valeur: Date; onChange: (date: Date) => void; min: Date; max: Date; pasMinutes?: 1 | 15 };
+type Props = {
+  valeur: Date;
+  onChange: (date: Date) => void;
+  min: Date;
+  max: Date;
+  pasMinutes?: 1 | 15;
+  affichage?: 'compact' | 'roue';
+};
 
 export function ChoixDateHeure({ valeur }: Props) {
   const styles = useStyles(creerStyles);

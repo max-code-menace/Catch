@@ -12,6 +12,7 @@ import {
   useWindowDimensions,
   type ScrollViewInstance,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ApercuCarte } from '@/components/apercu-carte';
@@ -19,25 +20,34 @@ import { Bouton } from '@/components/bouton';
 import { ChoixDateHeure } from '@/components/choix-date-heure';
 import { ChoixJoueurs } from '@/components/choix-joueurs';
 import { ChoixLieu } from '@/components/choix-lieu';
-import { IconeDrapeau, IconeRelancer } from '@/components/icones';
+import { IconeChevron, IconeCreer, IconeDrapeau, IconeRetour } from '@/components/icones';
 import { PhraseCreation } from '@/components/phrase-creation';
-import { PictoQuiSaute } from '@/components/picto-sport';
-import { BarreNavigation, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
+import { PictoQuiSaute, PictoSport } from '@/components/picto-sport';
+import { BarreNavigation, Durees, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { Pictos, type Sport } from '@/donnees/pictos';
 import { CENTRE_ZONE } from '@/donnees/sessions';
 import { SPORTS, ficheSport } from '@/donnees/sports';
 import { prevenir } from '@/lib/alerte';
+import { marquerVue } from '@/lib/apparitions';
 import { useCompte } from '@/lib/compte';
 import { useEvenements } from '@/lib/evenements';
 import { quand, quandCreation, texteDistance } from '@/lib/formats';
-import { phraseCreation, type Champ } from '@/lib/phrase-creation';
 import { vibrer } from '@/lib/haptics';
 import { LIEU_PAR_DEFAUT, nommer, type Lieu } from '@/lib/lieux';
 import { lieuA, lieuxDuSport, texteType, useLieuxSport, type LieuSport } from '@/lib/lieux-sport';
+import {
+  ORDRE,
+  etapePrecedente,
+  etapeSuivante,
+  phraseCreation,
+  prochainCreneau,
+  retenirCreation,
+  type Champ,
+  type Modele as ModeleGenerique,
+} from '@/lib/phrase-creation';
+import { etapePublication } from '@/lib/regles-sessions';
 import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
-import { etapePublication } from '@/lib/regles-sessions';
-import { marquerVue } from '@/lib/apparitions';
 
 const MINUTE = 60_000;
 /** Place prise par le pied (récapitulatif + bouton Publier) au-dessus de la barre */
@@ -49,6 +59,9 @@ const DUREES = [
   { minutes: 120, titre: '2h' },
   { minutes: 180, titre: '3h' },
 ];
+/** Le temps de voir la tuile choisie s'allumer avant de passer à l'étape suivante */
+const PAUSE_CHOIX = 260;
+
 /** Bornes de « Quand » : de la minute en cours jusqu'à 7 jours (la carte montre les 7 prochains jours) */
 function bornes(maintenant: Date) {
   const min = new Date(maintenant);
@@ -59,53 +72,70 @@ function bornes(maintenant: Date) {
   return { min, max };
 }
 
-/** Ce qu'on retient de la dernière session publiée depuis ce téléphone : sert à pré-remplir et à « Relancer » */
-type Modele = { sport: Sport; joueurs: number; duree: number; debutants: boolean; lieu: Omit<Lieu, 'choisi'> };
+/** Ce qu'on retient d'une session publiée depuis ce téléphone : sert à « Relancer » */
+type Modele = ModeleGenerique<Omit<Lieu, 'choisi'>>;
+/** Les 3 dernières créations différentes */
+const CLE_MODELES = 'catch.dernieres-creations';
+/** Ancienne clé (une seule création) : relue une fois pour ne rien perdre */
 const CLE_MODELE = 'catch.derniere-creation';
+
+const QUESTIONS: Record<Champ, string> = {
+  sport: 'Quel sport ?',
+  quand: 'Quand ?',
+  joueurs: 'Combien de joueurs, toi compris ?',
+  ou: 'Où ?',
+};
+
+/**
+ * Créer, en trois temps :
+ * - `depart` : « Nouvelle session » ou « Relancer » une des 3 dernières (montré dès qu'on a déjà créé) ;
+ * - `etapes` : une question à la fois, la phrase se remplit au-dessus ;
+ * - `phrase` : la phrase complète et « Publier » ; toucher un mot rouvre seulement ce choix.
+ */
+type Mode = 'chargement' | 'depart' | 'etapes' | 'phrase';
 
 export default function Creer() {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const { top, bottom } = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  // Tous les sports d'un coup d'œil : 5 tuiles par ligne, 8 px entre elles
-  // 4 par ligne sur les petits téléphones, pour que « Badminton » ne soit pas coupé
+  // Tous les sports d'un coup d'œil : 5 tuiles par ligne (4 sur les petits téléphones, pour que « Badminton » ne soit pas coupé)
   const parLigne = width < 360 ? 4 : 5;
   const largeurTuile = Math.floor((width - 2 * Espaces.marge - (parLigne - 1) * 8) / parLigne);
   const { compte } = useCompte();
   const { creer, position } = useSessions();
 
-  // L'onglet reste ouvert en arrière-plan : « Aujourd'hui » et les heures proposées sont recalculés à chaque retour
+  // L'onglet reste ouvert en arrière-plan : « maintenant » et les créneaux proposés sont recalculés à chaque retour
   const [ouverture, setOuverture] = useState(() => new Date());
   useFocusEffect(useCallback(() => setOuverture(new Date()), []));
   const { min: dateMin, max: maxHabituel } = useMemo(() => bornes(ouverture), [ouverture]);
 
-  // Première création : rien n'est pré-rempli, 3 choix seulement (sport, quand, où). Ensuite tout l'est.
-  // `undefined` le temps de relire le téléphone.
-  const [modele, setModele] = useState<Modele | null | undefined>(undefined);
-  const premiereFois = modele === null;
+  const [mode, setMode] = useState<Mode>('chargement');
+  /** Étapes de la session en cours (toutes pour une nouvelle ; moins si on vient d'un lieu ou d'un événement) */
+  const [aFaire, setAFaire] = useState<Champ[]>(ORDRE);
+  const [etape, setEtape] = useState<Champ>('sport');
+  /** Étapes déjà validées : les autres restent des trous dans la phrase */
+  const [faits, setFaits] = useState<Champ[]>([]);
+  /** Mode phrase : le choix rouvert en touchant un mot */
+  const [edition, setEdition] = useState<Champ | null>(null);
   const [plusDOptions, setPlusDOptions] = useState(false);
+
+  const [modeles, setModeles] = useState<Modele[]>([]);
   const [sport, setSport] = useState<Sport | null>(null);
-  // Début choisi avec le sélecteur du système. `null` : maintenant, l'heure exacte du téléphone,
-  // qui suit l'horloge tant qu'on n'y touche pas (il suffit de valider)
+  // Début choisi avec le sélecteur du système. `null` : maintenant, l'heure exacte du téléphone
   const [debutChoisi, setDebutChoisi] = useState<Date | null>(null);
   const [lieu, setLieu] = useState<Lieu>(LIEU_PAR_DEFAUT);
   const [precision, setPrecision] = useState('');
   const [joueurs, setJoueurs] = useState(ficheSport('foot').joueurs);
   const [debutants, setDebutants] = useState(true);
   const [duree, setDuree] = useState(90);
-  // Vrai après un « Publier » sans lieu choisi : on explique pourquoi la carte s'est ouverte
-  const [lieuDemande, setLieuDemande] = useState(false);
   const [enAttente, setEnAttente] = useState(false);
   const [envoi, setEnvoi] = useState(false);
   const [carteOuverte, setCarteOuverte] = useState(false);
-  // Toucher un mot de la phrase descend jusqu'au choix correspondant
   const defilement = useRef<ScrollViewInstance>(null);
-  const positions = useRef<Partial<Record<Champ, number>>>({});
   const lieux = useLieuxSport();
-  // « Lancer une session ici » depuis la fiche d'un lieu : Créer s'ouvre avec ce sport et ce lieu
+  // « Lancer une session ici » depuis la fiche d'un lieu, « On y va ensemble » depuis un événement
   const params = useLocalSearchParams<{ lieu?: string; sport?: string; evenement?: string }>();
-  // « On y va ensemble » depuis la fiche d'un événement : la session est rattachée à cet événement
   const evenements = useEvenements();
   const [evenementId, setEvenementId] = useState<string | null>(null);
   const evenement = evenements.find((e) => e.id === evenementId);
@@ -121,47 +151,75 @@ export default function Creer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [position]);
 
-  // On relit la dernière création au démarrage et on pré-remplit avec : dernier sport, dernier lieu, mêmes réglages
-  useEffect(() => {
-    AsyncStorage.getItem(CLE_MODELE)
-      .then((texte) => {
-        const lu: Modele | null = texte ? JSON.parse(texte) : null;
-        setModele(lu);
-        // Ouvert depuis « Lancer une session ici » : le sport et le lieu demandés passent avant la dernière création
-        if (!lu || params.lieu || params.evenement) return;
-        setSport(lu.sport);
-        setJoueurs(lu.joueurs);
-        setDuree(lu.duree);
-        setDebutants(lu.debutants);
-        setLieu({ ...lu.lieu, choisi: true });
-      })
-      .catch(() => setModele(null));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  function choisirSport(cle: Sport) {
-    if (cle === sport) return;
-    vibrer.selection();
-    setSport(cle);
-    setJoueurs(ficheSport(cle).joueurs);
+  /** Repart de zéro sur une nouvelle session, étape par étape */
+  function nouvelle(etapes: Champ[] = ORDRE) {
+    setAFaire(etapes);
+    setEtape(etapes[0]);
+    setFaits([]);
+    setEdition(null);
+    setMode('etapes');
   }
 
-  function relancer() {
-    if (!modele) return;
+  // On relit les dernières créations au démarrage : s'il y en a, l'écran de départ propose de les relancer
+  useEffect(() => {
+    Promise.all([AsyncStorage.getItem(CLE_MODELES), AsyncStorage.getItem(CLE_MODELE)])
+      .then(([liste, ancienne]) => {
+        const lus: Modele[] = liste ? JSON.parse(liste) : ancienne ? [JSON.parse(ancienne)] : [];
+        setModeles(lus);
+        // Ouvert depuis un lieu ou un événement : ce choix-là passe avant (le mode est déjà réglé)
+        setMode((avant) => (avant !== 'chargement' ? avant : lus.length ? 'depart' : 'etapes'));
+      })
+      .catch(() => setMode((avant) => (avant === 'chargement' ? 'etapes' : avant)));
+  }, []);
+
+  // À chaque nouvelle étape, on remonte en haut : la question est juste sous la phrase
+  useEffect(() => {
+    defilement.current?.scrollTo({ y: 0, animated: true });
+  }, [mode, etape]);
+
+  function relancer(m: Modele) {
     vibrer.selection();
-    setSport(modele.sport);
-    setJoueurs(modele.joueurs);
-    setDuree(modele.duree);
-    setDebutants(modele.debutants);
+    setSport(m.sport);
+    setJoueurs(m.joueurs);
+    setDuree(m.duree);
+    setDebutants(m.debutants);
     setPrecision('');
-    setLieu({ ...modele.lieu, choisi: true });
+    setEvenementId(null);
+    setLieu({ ...m.lieu, choisi: true });
+    // Même heure que la dernière fois, au prochain créneau
+    setDebutChoisi(m.heure ? prochainCreneau(m.heure.heures, m.heure.minutes, new Date()) : null);
+    setEdition(null);
+    setMode('phrase');
+  }
+
+  /** L'étape (ou le choix rouvert) est faite : on passe à la suivante, ou à la phrase complète */
+  function valider(champ: Champ) {
+    if (mode === 'phrase') {
+      setEdition(null);
+      return;
+    }
+    const nouveauxFaits = faits.includes(champ) ? faits : [...faits, champ];
+    setFaits(nouveauxFaits);
+    // Une étape revisitée en touchant la phrase : on reprend à la première encore à faire
+    const suivante = aFaire.find((e) => !nouveauxFaits.includes(e)) ?? etapeSuivante(champ, aFaire);
+    if (suivante && !nouveauxFaits.includes(suivante)) setEtape(suivante);
+    else setMode('phrase');
+  }
+
+  function choisirSport(cle: Sport) {
+    vibrer.selection();
+    if (cle !== sport) {
+      setSport(cle);
+      setJoueurs(ficheSport(cle).joueurs);
+    }
+    setTimeout(() => valider('sport'), PAUSE_CHOIX);
   }
 
   function choisirLieuSport(choisi: LieuSport) {
     vibrer.selection();
-    setLieuDemande(false);
     setPrecision('');
     setLieu({ position: choisi.position, nom: choisi.nom, commune: choisi.commune, choisi: true });
+    setTimeout(() => valider('ou'), PAUSE_CHOIX);
   }
 
   // Appliquée pendant l'affichage (pas dans un effet) dès que les lieux sont lus ; puis on oublie la demande,
@@ -174,10 +232,13 @@ export default function Creer() {
     const cle = params.sport && params.sport in Pictos ? (params.sport as Sport) : lieuVenu.sports[0];
     setDemandeTraitee(demandeLieu);
     setSport(cle);
-    if (cle !== sport) setJoueurs(ficheSport(cle).joueurs);
+    setJoueurs(ficheSport(cle).joueurs);
+    setDebutChoisi(null);
     setPrecision('');
-    setLieuDemande(false);
+    setEvenementId(null);
     setLieu({ position: lieuVenu.position, nom: lieuVenu.nom, commune: lieuVenu.commune, choisi: true });
+    // Le sport et le lieu sont donnés : il reste quand et combien
+    nouvelle(['quand', 'joueurs']);
   }
   useEffect(() => {
     if (demandeTraitee) router.setParams({ lieu: undefined, sport: undefined });
@@ -192,16 +253,16 @@ export default function Creer() {
     setEvenementTraite(params.evenement);
     setEvenementId(evenementVenu.id);
     setSport(evenementVenu.sport);
-    if (evenementVenu.sport !== sport) setJoueurs(ficheSport(evenementVenu.sport).joueurs);
+    setJoueurs(ficheSport(evenementVenu.sport).joueurs);
     setDebutChoisi(evenementVenu.debut);
     setPrecision('');
-    setLieuDemande(false);
     setLieu({
       position: evenementVenu.position,
       nom: evenementVenu.depart,
       commune: evenementVenu.commune,
       choisi: true,
     });
+    nouvelle(['joueurs']);
   }
   useEffect(() => {
     if (evenementTraite) router.setParams({ evenement: undefined });
@@ -221,36 +282,46 @@ export default function Creer() {
   const debutAffiche = debutChoisi && debutChoisi > dateMin ? debutChoisi : dateMin;
   // À moins de 5 minutes d'ici, c'est « maintenant »
   const maintenant = debutAffiche.getTime() - dateMin.getTime() < 5 * MINUTE;
-  const texteQuand = maintenant ? 'maintenant' : quand(debutAffiche, ouverture).toLowerCase();
-  /** Le début de la session au moment de publier : jamais dans le passé */
-  function debutAPublier() {
-    const maintenant = new Date();
-    return debutChoisi && debutChoisi > maintenant ? debutChoisi : maintenant;
-  }
   const texteDuree = DUREES.find((d) => d.minutes === duree)?.titre ?? '1h30';
-  // La phrase du haut : chaque choix y est surligné, ce qui manque est un trou à remplir
+  /** Début de la session au moment de publier : jamais dans le passé */
+  function debutAPublier() {
+    const instant = new Date();
+    return debutChoisi && debutChoisi > instant ? debutChoisi : instant;
+  }
+
+  // Pendant les étapes, un choix pas encore validé reste un trou, même s'il a une valeur par défaut
+  const montre = (champ: Champ) => mode !== 'etapes' || faits.includes(champ) || !aFaire.includes(champ);
   const morceaux = phraseCreation({
-    sport: sport ? { cle: sport, nom: fiche.nom } : null,
-    quand: maintenant ? 'maintenant' : quandCreation(debutAffiche, ouverture),
-    joueurs: sport ? joueurs : null,
-    lieu: lieu.choisi ? nomLieu : null,
+    sport: sport && montre('sport') ? { cle: sport, nom: fiche.nom } : null,
+    quand: montre('quand') ? (maintenant ? 'maintenant' : quandCreation(debutAffiche, ouverture)) : null,
+    joueurs: sport && montre('joueurs') ? joueurs : null,
+    lieu: lieu.choisi && montre('ou') ? nomLieu : null,
   });
-  function allerA(champ: Champ) {
+
+  function toucherPhrase(champ: Champ) {
     vibrer.selection();
-    // Le lieu pas encore choisi : la carte s'ouvre directement
-    if (champ === 'ou' && !lieu.choisi && !suggestions.length) {
-      setCarteOuverte(true);
+    if (mode === 'phrase') {
+      setEdition((avant) => (avant === champ ? null : champ));
       return;
     }
-    const y = positions.current[champ];
-    if (y !== undefined) defilement.current?.scrollTo({ y: Math.max(0, y - 16), animated: true });
+    // Pendant les étapes : on revient sur un choix déjà fait, ou on va à l'étape en cours
+    if (faits.includes(champ) || champ === etape) setEtape(champ);
   }
-  // Ce qu'il reste à choisir avant de pouvoir publier
-  const manque = [!sport && 'un sport', !lieu.choisi && 'un lieu'].filter(Boolean) as string[];
-  const recap =
-    sport
-      ? `${fiche.nom} · ${texteQuand} · ${texteDuree} · ${joueurs} joueurs`
-      : `Choisis ${manque.join(', ').replace(/, ([^,]*)$/, ' et $1')}`;
+
+  function retour() {
+    vibrer.selection();
+    if (mode === 'etapes') {
+      const avant = etapePrecedente(etape, aFaire);
+      if (avant) {
+        setEtape(avant);
+        return;
+      }
+    }
+    if (modeles.length) setMode('depart');
+  }
+  const retourPossible =
+    (mode === 'etapes' && (!!etapePrecedente(etape, aFaire) || modeles.length > 0)) ||
+    (mode === 'phrase' && modeles.length > 0);
 
   async function envoyer() {
     if (envoi || !sport) return;
@@ -281,42 +352,47 @@ export default function Creer() {
     }
     const { id } = resultat;
     vibrer.succes();
-    // On retient cette création : la prochaine fois, tout sera pré-rempli avec
-    const nouveau: Modele = {
-      sport,
-      joueurs,
-      duree,
-      debutants,
-      lieu: { position: lieu.position, nom: nomLieu, commune: lieu.commune },
-    };
-    setModele(nouveau);
-    AsyncStorage.setItem(CLE_MODELE, JSON.stringify(nouveau)).catch(() => {});
+    // On retient cette création pour « Relancer » (pas celles d'un événement : il n'a lieu qu'une fois)
+    if (!evenement) {
+      const liste = retenirCreation(modeles, {
+        sport,
+        joueurs,
+        duree,
+        debutants,
+        lieu: { position: lieu.position, nom: nomLieu, commune: lieu.commune },
+        heure: { heures: debut.getHours(), minutes: debut.getMinutes() },
+      });
+      setModeles(liste);
+      AsyncStorage.setItem(CLE_MODELES, JSON.stringify(liste)).catch(() => {});
+    }
     // Le formulaire repart de zéro : revenir ici ne publie pas la même session une deuxième fois
     setPrecision('');
     setDebutChoisi(null);
     setEvenementId(null);
+    setSport(null);
     setLieu((avant) => ({ ...avant, choisi: false }));
-    setLieuDemande(false);
-    // Retour sur la carte : la session y tombe à sa place (sa pastille ne sort pas de terre comme les autres)
+    setPlusDOptions(false);
+    setMode(evenement && !modeles.length ? 'etapes' : 'depart');
+    // Retour sur la carte : la session y tombe à sa place
     marquerVue(id);
     router.navigate({ pathname: '/', params: { publiee: id } });
   }
 
   function publier() {
-    const etape = etapePublication({ sportChoisi: !!sport, lieuChoisi: lieu.choisi, connecte: !!compte?.prenom });
-    // Sport pas encore choisi : la phrase du bas dit ce qui manque
-    if (etape === 'sport') {
+    const etapeManquante = etapePublication({ sportChoisi: !!sport, lieuChoisi: lieu.choisi, connecte: !!compte?.prenom });
+    if (etapeManquante === 'sport') {
       vibrer.avertissement();
+      setEdition('sport');
       return;
     }
     // Pas de lieu par défaut publié par mégarde : on ouvre la carte pour le choisir
-    if (etape === 'lieu') {
+    if (etapeManquante === 'lieu') {
       vibrer.avertissement();
-      setLieuDemande(true);
+      setEdition('ou');
       setCarteOuverte(true);
       return;
     }
-    if (etape === 'envoyer') {
+    if (etapeManquante === 'envoyer') {
       envoyer();
       return;
     }
@@ -335,6 +411,131 @@ export default function Creer() {
     }, [enAttente, compte?.prenom]),
   );
 
+  /** Le choix d'un champ : une étape, ou le choix rouvert depuis la phrase */
+  function panneau(champ: Champ) {
+    if (champ === 'sport') {
+      return (
+        <View style={[styles.tuiles, styles.dansMarges]}>
+          {SPORTS.map(({ cle, nom, nomTuile }) => {
+            const actif = cle === sport && montre('sport');
+            return (
+              <Pressable
+                key={cle}
+                accessibilityRole="button"
+                accessibilityState={{ selected: actif }}
+                onPress={() => choisirSport(cle)}
+                style={[styles.tuile, { width: largeurTuile }, actif && styles.tuileActive]}>
+                <PictoQuiSaute sport={cle} taille={32} actif={actif} />
+                <Text
+                  maxFontSizeMultiplier={1.3}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.8}
+                  style={[styles.tuileTexte, actif && styles.tuileTexteActif]}>
+                  {nomTuile ?? nom}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      );
+    }
+    if (champ === 'quand') {
+      return (
+        <View style={[styles.dansMarges, styles.panneau]}>
+          {/* L'heure exacte du téléphone par défaut : pour « maintenant », il suffit de valider */}
+          <ChoixDateHeure
+            valeur={debutAffiche}
+            onChange={setDebutChoisi}
+            min={dateMin}
+            max={dateMax}
+            pasMinutes={1}
+            affichage={mode === 'etapes' ? 'roue' : 'compact'}
+          />
+          <Bouton titre={maintenant ? 'Maintenant, c’est bon' : 'C’est bon'} onPress={() => valider('quand')} />
+        </View>
+      );
+    }
+    if (champ === 'joueurs') {
+      return (
+        <View style={[styles.dansMarges, styles.panneau]}>
+          <ChoixJoueurs valeur={joueurs} onChange={setJoueurs} />
+          <Bouton titre={`${joueurs} joueurs, c’est bon`} onPress={() => valider('joueurs')} />
+        </View>
+      );
+    }
+    return (
+      <View style={[styles.dansMarges, styles.panneau]}>
+        {suggestions.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.suggestionsZone}
+            contentContainerStyle={styles.suggestions}>
+            {suggestions.map(({ lieu: suggestion, distance }) => {
+              const actif = lieuConnu?.id === suggestion.id;
+              return (
+                <Pressable
+                  key={suggestion.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: actif }}
+                  accessibilityLabel={`${suggestion.nom}, ${texteType(suggestion)}, ${texteDistance(distance)}`}
+                  onPress={() => choisirLieuSport(suggestion)}
+                  style={[styles.suggestion, actif && styles.suggestionActive]}>
+                  <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.suggestionNom, actif && { color: c.rougeTexte }]}>
+                    {suggestion.nom}
+                  </Text>
+                  <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={styles.aide}>
+                    {texteType(suggestion)} · {texteDistance(distance)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        )}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={lieu.choisi ? `Lieu : ${lieu.nom}. Changer` : 'Choisir le lieu sur la carte'}
+          onPress={() => setCarteOuverte(true)}
+          style={({ pressed }) => [styles.lieu, pressed && { opacity: 0.85 }]}>
+          <View style={styles.apercu}>
+            <ApercuCarte key={`${lieu.position.latitude},${lieu.position.longitude}`} position={lieu.position} />
+          </View>
+          <View style={styles.lieuBas}>
+            <View style={styles.textes}>
+              <Text maxFontSizeMultiplier={1.3} style={styles.fort} numberOfLines={1}>
+                {lieu.choisi ? lieu.nom : 'Lieu à choisir'}
+              </Text>
+              <Text maxFontSizeMultiplier={1.3} style={styles.aide} numberOfLines={1}>
+                {lieu.choisi
+                  ? lieu.commune || 'Lieu choisi'
+                  : suggestions.length
+                    ? 'Touche un lieu au-dessus, ou place l’épingle'
+                    : 'Place l’épingle là où vous jouez'}
+              </Text>
+            </View>
+            <Text maxFontSizeMultiplier={1.3} style={styles.changer}>
+              {lieu.choisi ? 'Changer' : 'Choisir sur la carte'}
+            </Text>
+          </View>
+        </Pressable>
+        <TextInput
+          value={precision}
+          onChangeText={setPrecision}
+          placeholder="Nom du lieu (facultatif) : terrain, salle, parc"
+          placeholderTextColor={c.texteSecondaire}
+          maxLength={40}
+          returnKeyType="done"
+          style={styles.champ}
+        />
+        {lieu.choisi && <Bouton titre="C’est bon" onPress={() => valider('ou')} />}
+      </View>
+    );
+  }
+
+  const enPhrase = mode === 'phrase';
+  const basPied = Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur;
+
   return (
     <View style={styles.fond}>
       <ScrollView
@@ -342,19 +543,93 @@ export default function Creer() {
         style={StyleSheet.absoluteFill}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
-          paddingTop: top + 24,
-          paddingBottom: Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur + HAUTEUR_PIED + 24,
+          paddingTop: top + 16,
+          paddingBottom: basPied + (enPhrase ? HAUTEUR_PIED : 0) + 24,
           gap: 20,
         }}>
-        <View style={styles.marges}>
+        <View style={[styles.haut, styles.dansMarges]}>
+          {retourPossible && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Retour"
+              onPress={retour}
+              hitSlop={8}
+              style={({ pressed }) => [styles.retour, pressed && styles.presse]}>
+              <IconeRetour couleur={c.encre} taille={20} />
+            </Pressable>
+          )}
           <Text maxFontSizeMultiplier={1.3} accessibilityRole="header" style={styles.titre}>
-            Créer une session
+            {mode === 'depart' ? 'Créer' : 'Créer une session'}
           </Text>
-          {/* La phrase se réécrit toute seule pendant qu'on fait ses choix (idée de Mathias) */}
-          <PhraseCreation morceaux={morceaux} onToucher={allerA} />
         </View>
 
-        {evenement && (
+        {mode === 'depart' && (
+          <Animated.View entering={FadeInDown.duration(Durees.standard)} style={[styles.dansMarges, styles.depart]}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                vibrer.selection();
+                setSport(null);
+                setDebutChoisi(null);
+                setPrecision('');
+                setEvenementId(null);
+                setLieu((avant) => ({ ...avant, choisi: false }));
+                nouvelle();
+              }}
+              style={({ pressed }) => [styles.nouvelle, pressed && styles.nouvellePressee]}>
+              <View style={styles.nouvellePlus}>
+                <IconeCreer couleur={c.surRouge} taille={26} />
+              </View>
+              <View style={styles.textes}>
+                <Text maxFontSizeMultiplier={1.3} style={styles.nouvelleTitre}>
+                  Nouvelle session
+                </Text>
+                <Text maxFontSizeMultiplier={1.3} style={styles.nouvelleTexte}>
+                  Sport, quand, combien, où
+                </Text>
+              </View>
+              <IconeChevron couleur={c.surRouge} taille={20} />
+            </Pressable>
+
+            <Text maxFontSizeMultiplier={1.3} style={styles.etiquette}>
+              Relancer
+            </Text>
+            {modeles.map((m) => {
+              const ficheM = ficheSport(m.sport);
+              const creneau = m.heure ? prochainCreneau(m.heure.heures, m.heure.minutes, ouverture) : null;
+              return (
+                <Pressable
+                  key={`${m.sport}-${m.lieu.nom}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Relancer : ${ficheM.nom}, ${m.lieu.nom}, ${m.joueurs} joueurs${creneau ? `, ${quandCreation(creneau, ouverture)}` : ''}`}
+                  onPress={() => relancer(m)}
+                  style={({ pressed }) => [styles.relance, pressed && styles.presse]}>
+                  <View style={styles.relancePicto}>
+                    <PictoSport sport={m.sport} taille={30} />
+                  </View>
+                  <View style={styles.textes}>
+                    <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={styles.fort}>
+                      {ficheM.nom} · {m.lieu.nom}
+                    </Text>
+                    <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={styles.aide}>
+                      {m.joueurs} joueurs{creneau ? ` · ${quandCreation(creneau, ouverture)}` : ''}
+                    </Text>
+                  </View>
+                  <IconeChevron couleur={c.texteSecondaire} taille={18} />
+                </Pressable>
+              );
+            })}
+          </Animated.View>
+        )}
+
+        {(mode === 'etapes' || enPhrase) && (
+          <View style={styles.dansMarges}>
+            {/* La phrase se remplit à chaque choix (idée de Mathias) ; toucher un mot y revient */}
+            <PhraseCreation morceaux={morceaux} onToucher={toucherPhrase} />
+          </View>
+        )}
+
+        {evenement && (mode === 'etapes' || enPhrase) && (
           <View style={[styles.evenement, styles.dansMarges]}>
             <IconeDrapeau couleur={c.encre} taille={22} />
             <View style={styles.textes}>
@@ -380,211 +655,106 @@ export default function Creer() {
           </View>
         )}
 
-        {modele && !evenement && (
-          <Pressable
-            accessibilityRole="button"
-            onPress={relancer}
-            style={({ pressed }) => [styles.relancer, styles.dansMarges, pressed && { opacity: 0.7 }]}>
-            <IconeRelancer couleur={c.rouge} taille={22} />
-            <View style={styles.textes}>
-              <Text maxFontSizeMultiplier={1.3} style={[styles.fort, { color: c.rougeTexte }]}>Relancer ta dernière session</Text>
-              <Text maxFontSizeMultiplier={1.3} style={[styles.aide, { color: c.rougeTexte }]} numberOfLines={1}>
-                {ficheSport(modele.sport).nom} · {modele.lieu.nom}
-              </Text>
-            </View>
-          </Pressable>
+        {mode === 'etapes' && (
+          // Une question à la fois : elle arrive doucement par en dessous
+          <Animated.View key={etape} entering={FadeInDown.duration(Durees.standard)} style={styles.section}>
+            <Text maxFontSizeMultiplier={1.3} style={[styles.question, styles.dansMarges]}>
+              {QUESTIONS[etape]}
+            </Text>
+            {panneau(etape)}
+          </Animated.View>
         )}
 
-        <View style={styles.section} onLayout={(e) => {
-          positions.current.sport = e.nativeEvent.layout.y;
-        }}>
-          <Text maxFontSizeMultiplier={1.3} style={[styles.etiquette, styles.dansMarges]}>Sport</Text>
-          <View style={[styles.tuiles, styles.dansMarges]}>
-            {SPORTS.map(({ cle, nom, nomTuile }) => {
-              const actif = cle === sport;
-              return (
-                <Pressable
-                  key={cle}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: actif }}
-                  onPress={() => choisirSport(cle)}
-                  style={[styles.tuile, { width: largeurTuile }, actif && styles.tuileActive]}>
-                  <PictoQuiSaute sport={cle} taille={32} actif={actif} />
-                  <Text maxFontSizeMultiplier={1.3}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.8}
-                    style={[styles.tuileTexte, actif && styles.tuileTexteActif]}>
-                    {nomTuile ?? nom}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
+        {enPhrase && edition && (
+          <Animated.View key={edition} entering={FadeInDown.duration(Durees.standard)} style={styles.section}>
+            <View style={[styles.ligne, styles.dansMarges]}>
+              <Text maxFontSizeMultiplier={1.3} style={[styles.question, styles.textes]}>
+                {QUESTIONS[edition]}
+              </Text>
+              <Pressable accessibilityRole="button" hitSlop={8} onPress={() => setEdition(null)}>
+                <Text maxFontSizeMultiplier={1.3} style={styles.changer}>
+                  Fermer
+                </Text>
+              </Pressable>
+            </View>
+            {panneau(edition)}
+          </Animated.View>
+        )}
 
-        <View style={styles.section} onLayout={(e) => {
-          positions.current.quand = e.nativeEvent.layout.y;
-        }}>
-          <Text maxFontSizeMultiplier={1.3} style={[styles.etiquette, styles.dansMarges]}>Quand</Text>
-          {/* L'heure exacte du téléphone par défaut : pour « maintenant », il suffit de valider */}
-          <View style={styles.dansMarges}>
-            <ChoixDateHeure
-              valeur={debutAffiche}
-              onChange={setDebutChoisi}
-              min={dateMin}
-              max={dateMax}
-              pasMinutes={1}
-            />
-          </View>
-        </View>
-
-        <View style={styles.section} onLayout={(e) => {
-          positions.current.joueurs = e.nativeEvent.layout.y;
-        }}>
-          <View style={[styles.ligne, styles.dansMarges]}>
-            <Text maxFontSizeMultiplier={1.3} style={styles.etiquette}>Joueurs</Text>
-            <Text maxFontSizeMultiplier={1.3} style={styles.aide}>toi compris</Text>
-          </View>
-          <View style={styles.dansMarges}>
-            <ChoixJoueurs valeur={joueurs} onChange={setJoueurs} />
-          </View>
-        </View>
-
-        <View style={[styles.section, styles.dansMarges]} onLayout={(e) => {
-          positions.current.ou = e.nativeEvent.layout.y;
-        }}>
-          <Text maxFontSizeMultiplier={1.3} style={styles.etiquette}>Où</Text>
-          {suggestions.length > 0 && (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.suggestionsZone}
-              contentContainerStyle={styles.suggestions}>
-              {suggestions.map(({ lieu: suggestion, distance }) => {
-                const actif = lieuConnu?.id === suggestion.id;
-                return (
-                  <Pressable
-                    key={suggestion.id}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: actif }}
-                    accessibilityLabel={`${suggestion.nom}, ${texteType(suggestion)}, ${texteDistance(distance)}`}
-                    onPress={() => !actif && choisirLieuSport(suggestion)}
-                    style={[styles.suggestion, actif && styles.suggestionActive]}>
-                    <Text
-                      maxFontSizeMultiplier={1.3}
-                      numberOfLines={1}
-                      style={[styles.suggestionNom, actif && { color: c.rougeTexte }]}>
-                      {suggestion.nom}
-                    </Text>
-                    <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={styles.aide}>
-                      {texteType(suggestion)} · {texteDistance(distance)}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-          )}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={lieu.choisi ? `Lieu : ${lieu.nom}. Changer` : 'Choisir le lieu sur la carte'}
-            onPress={() => setCarteOuverte(true)}
-            style={({ pressed }) => [styles.lieu, pressed && { opacity: 0.85 }]}>
-            <View style={styles.apercu}>
-              <ApercuCarte
-                key={`${lieu.position.latitude},${lieu.position.longitude}`}
-                position={lieu.position}
+        {enPhrase && !edition && (
+          <View style={[styles.dansMarges, styles.section]}>
+            <Text maxFontSizeMultiplier={1.3} style={styles.aide}>
+              Touche un mot surligné pour le changer.
+            </Text>
+            {!plusDOptions ? (
+              <Bouton
+                titre="Plus d’options : durée, débutants"
+                variante="lien"
+                onPress={() => {
+                  vibrer.selection();
+                  setPlusDOptions(true);
+                }}
               />
-            </View>
-            <View style={styles.lieuBas}>
-              <View style={styles.textes}>
-                <Text maxFontSizeMultiplier={1.3} style={styles.fort} numberOfLines={1}>
-                  {lieu.choisi ? lieu.nom : 'Lieu à choisir'}
+            ) : (
+              <>
+                <Text maxFontSizeMultiplier={1.3} style={styles.etiquette}>
+                  Durée
                 </Text>
-                <Text maxFontSizeMultiplier={1.3} style={[styles.aide, lieuDemande && !lieu.choisi && { color: c.rougeTexte }]} numberOfLines={1}>
-                  {lieu.choisi
-                    ? lieu.commune || 'Lieu choisi'
-                    : suggestions.length
-                      ? 'Touche un lieu au-dessus, ou place l’épingle'
-                      : 'Place l’épingle là où vous jouez'}
-                </Text>
-              </View>
-              <Text maxFontSizeMultiplier={1.3} style={styles.changer}>{lieu.choisi ? 'Changer' : 'Choisir sur la carte'}</Text>
-            </View>
-          </Pressable>
-          <TextInput
-            value={precision}
-            onChangeText={setPrecision}
-            placeholder="Nom du lieu (facultatif) : terrain, salle, parc"
-            placeholderTextColor={c.texteSecondaire}
-            maxLength={40}
-            returnKeyType="done"
-            style={styles.champ}
-          />
-        </View>
-
-        {premiereFois && !plusDOptions ? (
-          <View style={styles.dansMarges}>
-            <Bouton
-              titre="Plus d’options : durée, débutants"
-              variante="lien"
-              onPress={() => {
-                vibrer.selection();
-                setPlusDOptions(true);
-              }}
-            />
+                <View accessibilityRole="radiogroup" style={styles.puces}>
+                  {DUREES.map(({ minutes, titre }) => {
+                    const actif = minutes === duree;
+                    return (
+                      <Pressable
+                        key={minutes}
+                        accessibilityRole="radio"
+                        accessibilityState={{ checked: actif }}
+                        onPress={() => {
+                          if (!actif) vibrer.selection();
+                          setDuree(minutes);
+                        }}
+                        style={[styles.puce, actif && styles.puceActive]}>
+                        <Text maxFontSizeMultiplier={1.3} style={[styles.puceTexte, actif && { color: c.surEncre }]}>
+                          {titre}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                <View style={styles.ligne}>
+                  <Text maxFontSizeMultiplier={1.3} style={[styles.etiquette, styles.textes]}>
+                    Débutants bienvenus
+                  </Text>
+                  <Switch
+                    value={debutants}
+                    onValueChange={(valeur) => {
+                      vibrer.selection();
+                      setDebutants(valeur);
+                    }}
+                    trackColor={{ true: c.rouge, false: c.trait }}
+                    thumbColor={c.rondPicto}
+                  />
+                </View>
+              </>
+            )}
           </View>
-        ) : (
-          <>
-        <View style={styles.section}>
-          <Text maxFontSizeMultiplier={1.3} style={[styles.etiquette, styles.dansMarges]}>Durée</Text>
-          <View accessibilityRole="radiogroup" style={[styles.puces, styles.dansMarges]}>
-            {DUREES.map(({ minutes, titre }) => {
-              const actif = minutes === duree;
-              return (
-                <Pressable
-                  key={minutes}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: actif }}
-                  onPress={() => {
-                    if (!actif) vibrer.selection();
-                    setDuree(minutes);
-                  }}
-                  style={[styles.puce, actif && styles.puceActive]}>
-                  <Text maxFontSizeMultiplier={1.3} style={[styles.puceTexte, actif && { color: c.surEncre }]}>{titre}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        <View style={[styles.ligne, styles.dansMarges]}>
-          <Text maxFontSizeMultiplier={1.3} style={[styles.etiquette, styles.textes]}>Débutants bienvenus</Text>
-          <Switch
-            value={debutants}
-            onValueChange={(valeur) => {
-              vibrer.selection();
-              setDebutants(valeur);
-            }}
-            trackColor={{ true: c.rouge, false: c.trait }}
-            thumbColor={c.rondPicto}
-          />
-        </View>
-
-          </>
         )}
       </ScrollView>
-      {/* Toujours visible au-dessus de la barre : ce qui sera publié, et le bouton */}
-      <View
-        style={[
-          styles.pied,
-          { paddingBottom: Math.max(bottom, BarreNavigation.margeBas) + BarreNavigation.hauteur + 10 },
-        ]}>
-        <Text maxFontSizeMultiplier={1.3} style={styles.recap} numberOfLines={1}>
-          {recap}
-        </Text>
-        <Bouton titre={envoi ? 'On la pose sur la carte…' : 'Publier la session'} disabled={envoi} attente={envoi} onPress={publier} />
-      </View>
+
+      {/* La phrase complète : ce qui sera publié, et le bouton, toujours visibles au-dessus de la barre */}
+      {enPhrase && (
+        <View style={[styles.pied, { paddingBottom: basPied + 10 }]}>
+          <Text maxFontSizeMultiplier={1.3} style={styles.recap} numberOfLines={1}>
+            {texteDuree}
+            {debutants ? ' · débutants bienvenus' : ''}
+          </Text>
+          <Bouton
+            titre={envoi ? 'On la pose sur la carte…' : 'Publier la session'}
+            disabled={envoi}
+            attente={envoi}
+            onPress={publier}
+          />
+        </View>
+      )}
       {carteOuverte && (
         <ChoixLieu
           ouvert
@@ -592,9 +762,9 @@ export default function Creer() {
           lieux={suggestions.length ? lieuxDuSport(lieux, sport!, lieu.position).map((s) => s.lieu) : []}
           onFermer={() => setCarteOuverte(false)}
           onChoisir={(choisi) => {
-            setLieuDemande(false);
             setLieu(choisi);
             setCarteOuverte(false);
+            setTimeout(() => valider('ou'), PAUSE_CHOIX);
           }}
         />
       )}
@@ -618,33 +788,71 @@ const creerStyles = (c: Palette) =>
       borderTopWidth: 1,
       borderTopColor: c.trait,
     },
-    recap: {
-      fontFamily: Polices.texteMoyen,
-      fontSize: Tailles.aide,
-      color: c.texteSecondaire,
-      textAlign: 'center',
-    },
-    marges: { paddingHorizontal: Espaces.marge, gap: 10 },
+    recap: { fontFamily: Polices.texteMoyen, fontSize: Tailles.aide, color: c.texteSecondaire, textAlign: 'center' },
     dansMarges: { marginHorizontal: Espaces.marge },
-    titre: { fontFamily: Polices.titre, fontSize: Tailles.titreEcran, color: c.encre },
-    section: { gap: 10 },
+    haut: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: Espaces.cibleTactile },
+    retour: {
+      width: Espaces.cibleTactile,
+      height: Espaces.cibleTactile,
+      borderRadius: Rayons.pilule,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.carte,
+      borderWidth: 1,
+      borderColor: c.trait,
+    },
+    titre: { flex: 1, fontFamily: Polices.titre, fontSize: Tailles.titreEcran, color: c.encre },
+    section: { gap: 12 },
+    panneau: { gap: 12 },
+    question: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
     etiquette: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
     textes: { flex: 1, gap: 2 },
     fort: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
-    ligne: { flexDirection: 'row', alignItems: 'baseline', gap: 8, minHeight: 24 },
-    relancer: {
-      minHeight: 56,
+    ligne: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 24 },
+    presse: { backgroundColor: c.beige },
+    depart: { gap: 12 },
+    nouvelle: {
+      minHeight: 76,
       paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingVertical: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+      borderRadius: Rayons.carte,
+      backgroundColor: c.rouge,
+      boxShadow: c.ombre,
+    },
+    nouvellePressee: { opacity: 0.85 },
+    nouvellePlus: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.marqueurSurRouge,
+    },
+    nouvelleTitre: { fontFamily: Polices.titre, fontSize: Tailles.titreCarte, color: c.surRouge },
+    nouvelleTexte: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.surRouge, opacity: 0.85 },
+    relance: {
+      minHeight: 64,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
-      backgroundColor: c.rougeDoux,
-      borderRadius: 18,
-      borderWidth: 1.5,
-      borderStyle: 'dashed',
-      borderColor: c.rougeBordure,
+      borderRadius: Rayons.carte,
+      backgroundColor: c.carte,
+      borderWidth: 1,
+      borderColor: c.trait,
+    },
+    relancePicto: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.beige,
     },
     evenement: {
       minHeight: 56,

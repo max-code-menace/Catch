@@ -2,7 +2,14 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { phraseCreation, sportDansLaPhrase } from '../src/lib/phrase-creation.ts';
+import {
+  etapePrecedente,
+  etapeSuivante,
+  phraseCreation,
+  prochainCreneau,
+  retenirCreation,
+  sportDansLaPhrase,
+} from '../src/lib/phrase-creation.ts';
 import { quandCreation } from '../src/lib/formats.ts';
 
 const lire = (morceaux) =>
@@ -40,4 +47,40 @@ test('quand dans la phrase', () => {
   assert.equal(quandCreation(new Date(2026, 10, 17, 18, 0), lundiMidi), 'demain à 18h');
   assert.equal(quandCreation(new Date(2026, 10, 19, 19, 0), lundiMidi), 'jeudi à 19h');
   assert.equal(quandCreation(new Date(2026, 10, 28, 10, 0), lundiMidi), 'samedi 28 novembre à 10h');
+});
+
+test('phrase des étapes : « quand » reste un trou tant qu’il n’est pas choisi', () => {
+  const phrase = phraseCreation({ sport: { cle: 'padel', nom: 'Padel' }, quand: null, joueurs: null, lieu: null });
+  assert.equal(lire(phrase), 'Je lance du padel [quand ?] [combien ?] Rendez-vous [où ?]');
+});
+
+test('étapes suivantes et précédentes', () => {
+  const toutes = ['sport', 'quand', 'joueurs', 'ou'];
+  assert.equal(etapeSuivante('sport', toutes), 'quand');
+  assert.equal(etapeSuivante('ou', toutes), null);
+  // Depuis un lieu : seulement quand et joueurs
+  assert.equal(etapeSuivante('quand', ['quand', 'joueurs']), 'joueurs');
+  assert.equal(etapeSuivante('joueurs', ['quand', 'joueurs']), null);
+  assert.equal(etapePrecedente('quand', ['quand', 'joueurs']), null);
+  assert.equal(etapePrecedente('ou', toutes), 'joueurs');
+});
+
+test('Relancer : la même heure, au prochain créneau', () => {
+  const quinzeHeures = new Date(2026, 10, 16, 15, 0);
+  assert.deepEqual(prochainCreneau(19, 0, quinzeHeures), new Date(2026, 10, 16, 19, 0));
+  assert.deepEqual(prochainCreneau(9, 30, quinzeHeures), new Date(2026, 10, 17, 9, 30));
+  // Moins de 10 minutes devant soi : le lendemain
+  assert.deepEqual(prochainCreneau(15, 5, quinzeHeures), new Date(2026, 10, 17, 15, 5));
+});
+
+test('Relancer : les 3 dernières créations différentes', () => {
+  const m = (sport, nom) => ({ sport, joueurs: 4, duree: 90, debutants: true, lieu: { nom } });
+  let liste = [];
+  liste = retenirCreation(liste, m('foot', 'Josaphat'));
+  liste = retenirCreation(liste, m('padel', 'Tour & Taxis'));
+  liste = retenirCreation(liste, m('foot', 'Josaphat'));
+  assert.deepEqual(liste.map((x) => x.sport), ['foot', 'padel']);
+  liste = retenirCreation(liste, m('tennis', 'Forest'));
+  liste = retenirCreation(liste, m('basket', 'Cinquantenaire'));
+  assert.deepEqual(liste.map((x) => x.sport), ['basket', 'tennis', 'foot']);
 });
