@@ -7,7 +7,7 @@ import { EcranSecondaire } from '@/components/ecran-secondaire';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { useCompte } from '@/lib/compte';
 import { vibrer } from '@/lib/haptics';
-import { bloquer, MOTIFS, signaler, type Cible, type Motif } from '@/lib/moderation';
+import { bloquer, MOTIFS, MOTIFS_PHOTO, signaler, type Cible, type Motif } from '@/lib/moderation';
 import { useSessions } from '@/lib/sessions';
 import { useMessages } from '@/lib/messages';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
@@ -16,10 +16,11 @@ const TITRES: Record<Cible, string> = {
   session: 'Signaler cette session',
   joueur: 'Signaler cette personne',
   message: 'Signaler ce message',
+  photo: 'Signaler cette photo',
 };
 
 /**
- * Signalement d'une session, d'une personne ou d'un message.
+ * Signalement d'une session, d'une personne, d'un message ou d'une photo de profil (`id` = la personne).
  * Paramètres : `cible`, `id` (ce qu'on signale), `nom` (ce qu'on affiche), et si une personne
  * est derrière, `auteur` (son identifiant) et `prenom` pour proposer de la bloquer.
  */
@@ -93,6 +94,7 @@ export default function Signaler() {
         <Text style={styles.texte}>
           C’est transmis à l’équipe de Catch. On regarde ça dès que possible. Si tu es en danger, appelle le 112.
         </Text>
+        {cible === 'photo' && <Text style={styles.texte}>Tu ne vois plus cette photo.</Text>}
         {peutBloquer && !bloque && (
           <View style={styles.carte}>
             <Text style={styles.libelle}>Bloquer {quiBloquer} ?</Text>
@@ -121,7 +123,7 @@ export default function Signaler() {
       {nom ? <Text style={styles.texte}>{nom}</Text> : null}
       <Text style={styles.libelle}>Qu’est-ce qui ne va pas ?</Text>
       <View accessibilityRole="radiogroup" style={styles.motifs}>
-        {MOTIFS.map((m) => {
+        {(cible === 'photo' ? MOTIFS_PHOTO : MOTIFS).map((m) => {
           const actif = motif === m.valeur;
           return (
             <Pressable

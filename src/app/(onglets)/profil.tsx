@@ -658,7 +658,11 @@ function SectionPotes({ donnees }: { donnees: ReturnType<typeof usePotes> }) {
               key={p.id}
               accessibilityRole="button"
               accessibilityLabel={`Écrire à ${p.prenom}`}
+              accessibilityHint="Appui long pour signaler"
+              accessibilityActions={[{ name: 'longpress', label: 'Plus d’options' }]}
+              onAccessibilityAction={() => optionsPote(p)}
               onPress={() => ecrireA({ autreId: p.id, prenom: p.prenom, connecte: true })}
+              onLongPress={() => optionsPote(p)}
               style={styles.rondAvecNom}>
               <RondPote prenom={p.prenom} index={i} photo={p.photo} />
               <Text style={styles.nomRond} numberOfLines={1}>
@@ -667,10 +671,34 @@ function SectionPotes({ donnees }: { donnees: ReturnType<typeof usePotes> }) {
             </Pressable>
           ))}
         </View>
-        <Text style={styles.aide}>Touche un pote pour lui écrire.</Text>
+        <Text style={styles.aide}>Touche un pote pour lui écrire. Appui long pour signaler.</Text>
       </View>
     </View>
   );
+}
+
+/** Appui long sur un pote : lui écrire, signaler sa photo, le signaler */
+function optionsPote(p: Pote) {
+  vibrer.selection();
+  const signalerCible = (cible: 'photo' | 'joueur') =>
+    router.push({
+      pathname: '/signaler',
+      params: {
+        cible,
+        id: p.id,
+        nom: cible === 'photo' ? `La photo de profil de ${p.prenom}` : p.prenom,
+        auteur: p.id,
+        prenom: p.prenom,
+      },
+    });
+  choisir({
+    titre: p.prenom,
+    options: [
+      { texte: `Écrire à ${p.prenom}`, onPress: () => ecrireA({ autreId: p.id, prenom: p.prenom, connecte: true }) },
+      ...(p.photo ? [{ texte: 'Signaler sa photo', destructif: true, onPress: () => signalerCible('photo') }] : []),
+      { texte: `Signaler ${p.prenom}`, destructif: !p.photo, onPress: () => signalerCible('joueur') },
+    ],
+  });
 }
 
 /** Onglet Sports : une tuile par sport, et « Ajouter un sport » */

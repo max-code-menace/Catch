@@ -1,7 +1,7 @@
 // Signaler, bloquer, débloquer. Les signalements sont lus par l'équipe sur le site Supabase, jamais par l'app.
 import { supabase } from '@/lib/supabase';
 
-export type Cible = 'session' | 'joueur' | 'message';
+export type Cible = 'session' | 'joueur' | 'message' | 'photo';
 export type Motif = 'comportement' | 'contenu' | 'faux' | 'danger' | 'autre';
 
 export const MOTIFS: { valeur: Motif; titre: string; detail: string }[] = [
@@ -9,6 +9,14 @@ export const MOTIFS: { valeur: Motif; titre: string; detail: string }[] = [
   { valeur: 'contenu', titre: 'Contenu inapproprié', detail: 'Message ou description choquants' },
   { valeur: 'faux', titre: 'Fausse session ou arnaque', detail: 'Session qui n’existe pas, demande d’argent' },
   { valeur: 'danger', titre: 'Je me sens en danger', detail: 'Menace, lieu ou situation dangereuse' },
+  { valeur: 'autre', titre: 'Autre chose', detail: 'Un problème qui n’est pas dans la liste' },
+];
+
+/** Pour une photo de profil : les mêmes motifs côté base, des mots qui parlent d'une photo */
+export const MOTIFS_PHOTO: { valeur: Motif; titre: string; detail: string }[] = [
+  { valeur: 'contenu', titre: 'Photo choquante', detail: 'Nudité, violence, symbole haineux' },
+  { valeur: 'faux', titre: 'Ce n’est pas cette personne', detail: 'Photo volée, célébrité, faux profil' },
+  { valeur: 'comportement', titre: 'Photo blessante', detail: 'Moquerie, provocation, contenu qui vise quelqu’un' },
   { valeur: 'autre', titre: 'Autre chose', detail: 'Un problème qui n’est pas dans la liste' },
 ];
 
