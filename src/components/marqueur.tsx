@@ -1,14 +1,6 @@
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withDelay,
-  withTiming,
-} from 'react-native-reanimated';
 
-import { Durees } from '@/constants/theme';
 import { useCouleurs } from '@/lib/theme';
 
 /** Inclinaison des titres « penchés » : assez pour donner de l'élan, pas assez pour gêner la lecture */
@@ -30,37 +22,54 @@ type PropsMot = {
   maxFontSizeMultiplier?: number;
 };
 
-/**
- * Le trait de surligneur seul, posé en absolu derrière un texte (moitié basse).
- * Le texte se met par-dessus, dans le même parent : `backgroundColor` d'un Text couvrirait toute la ligne.
- */
-export function TraitMarqueur({
-  couleur,
-  anime,
-  delai = 0,
-  cle,
-}: {
+type PropsSurligne = {
+  children: string;
+  style: StyleProp<TextStyle>;
   couleur?: string;
+  /** Faux : texte sans trait */
+  marque?: boolean;
+  maxFontSizeMultiplier?: number;
+  /** Gardés pour plus tard : le trait est fixe (animé, il restait invisible sur l'iPhone de Maxime) */
   anime?: boolean;
   delai?: number;
-  /** Quand elle change, le trait se redessine (nouveau mot, nouveau nombre) */
   cle?: string | number;
-}) {
+};
+
+/**
+ * Un texte avec un trait de surligneur sous sa moitié basse.
+ * Le trait n'est PAS en position absolue (invisible sur l'iPhone de Maxime, 25 novembre) : c'est une vraie vue
+ * dans le flux, posée avant le texte, qui prend sa hauteur sur la hauteur mesurée du texte, puis le texte
+ * remonte dessus avec une marge négative (il est dessiné après, donc par-dessus).
+ */
+export function TexteSurligne({ children, style, couleur, marque = true, maxFontSizeMultiplier = 1.3 }: PropsSurligne) {
   const c = useCouleurs();
-  const reduit = useReducedMotion();
-  const trace = useSharedValue(anime && !reduit ? 0 : 1);
-
-  useEffect(() => {
-    if (!anime || reduit) return;
-    trace.set(0);
-    trace.set(withDelay(delai, withTiming(1, { duration: Durees.emphasized })));
-  }, [anime, reduit, cle, delai, trace]);
-
-  // Le trait s'allonge de gauche à droite en largeur (pas en échelle : une échelle à 0 pouvait le laisser invisible sur iPhone)
-  const styleTrait = useAnimatedStyle(() => ({ width: `${trace.get() * 100}%` }));
+  const [hauteur, setHauteur] = useState(0);
+  const haut = Math.round(hauteur * 0.5);
+  const epais = Math.round(hauteur * 0.4);
+  const trait = marque && hauteur > 0;
   return (
-    <View pointerEvents="none" style={styles.trait}>
-      <Animated.View style={[styles.encre, { backgroundColor: couleur ?? c.marqueur }, styleTrait]} />
+    <View style={styles.mot}>
+      {trait && (
+        <View
+          pointerEvents="none"
+          style={{
+            height: epais,
+            marginTop: haut,
+            marginHorizontal: -DEBORD,
+            borderRadius: 3,
+            backgroundColor: couleur ?? c.marqueur,
+          }}
+        />
+      )}
+      <Text
+        maxFontSizeMultiplier={maxFontSizeMultiplier}
+        onLayout={(e) => {
+          const h = e.nativeEvent.layout.height;
+          if (Math.abs(h - hauteur) > 0.5) setHauteur(h);
+        }}
+        style={[style, trait && { marginTop: -(haut + epais) }]}>
+        {children}
+      </Text>
     </View>
   );
 }
@@ -68,12 +77,16 @@ export function TraitMarqueur({
 /** Un mot, avec ou sans trait de surligneur (idée de Mathias). */
 export function Mot({ texte, style, marque = true, couleur, anime, delai = 0, maxFontSizeMultiplier = 1.3 }: PropsMot) {
   return (
-    <View>
-      {marque && <TraitMarqueur couleur={couleur} anime={anime} delai={delai} cle={texte} />}
-      <Text maxFontSizeMultiplier={maxFontSizeMultiplier} style={style}>
-        {texte}
-      </Text>
-    </View>
+    <TexteSurligne
+      style={style}
+      marque={marque}
+      couleur={couleur}
+      anime={anime}
+      delai={delai}
+      cle={texte}
+      maxFontSizeMultiplier={maxFontSizeMultiplier}>
+      {texte}
+    </TexteSurligne>
   );
 }
 
@@ -121,12 +134,5 @@ export function Marqueur({ texte, penche, centre, titre, styleCadre, delai = 0, 
 const styles = StyleSheet.create({
   cadre: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end' },
   centre: { justifyContent: 'center' },
-  trait: {
-    position: 'absolute',
-    left: -DEBORD,
-    right: -DEBORD,
-    top: '52%',
-    bottom: '10%',
-  },
-  encre: { height: '100%', borderRadius: 3 },
+  mot: { overflow: 'visible' },
 });
