@@ -22,7 +22,8 @@ import { ChoixJoueurs } from '@/components/choix-joueurs';
 import { ChoixLieu } from '@/components/choix-lieu';
 import { IconeChevron, IconeCreer, IconeDrapeau, IconeRetour } from '@/components/icones';
 import { PhraseCreation } from '@/components/phrase-creation';
-import { PictoQuiSaute, PictoSport } from '@/components/picto-sport';
+import { PictoSport } from '@/components/picto-sport';
+import { TuileSport } from '@/components/tuile-sport';
 import { BarreNavigation, Durees, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { Pictos, type Sport } from '@/donnees/pictos';
 import { CENTRE_ZONE } from '@/donnees/sessions';
@@ -136,10 +137,7 @@ export default function Creer() {
   const styles = useStyles(creerStyles);
   const { top, bottom } = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  // Tous les sports d'un coup d'œil : 5 tuiles par ligne (4 sur les petits téléphones, pour que « Badminton » ne soit pas coupé)
-  const parLigne = width < 360 ? 4 : 5;
-  const largeurTuile = Math.floor((width - 2 * Espaces.marge - (parLigne - 1) * 8) / parLigne);
-  // Les autres choix en 3 colonnes (2 pour le niveau), comme la maquette
+  // Les sports (en photos) et les autres choix en 3 colonnes (2 pour le niveau), comme la maquette
   const largeur3 = Math.floor((width - 2 * Espaces.marge - 2 * 8) / 3);
   const largeur2 = Math.floor((width - 2 * Espaces.marge - 8) / 2);
   const { compte } = useCompte();
@@ -461,27 +459,16 @@ export default function Creer() {
     if (champ === 'sport') {
       return (
         <View style={[styles.tuiles, styles.dansMarges]}>
-          {SPORTS.map(({ cle, nom, nomTuile }) => {
-            const actif = cle === sport && montre('sport');
-            return (
-              <Pressable
-                key={cle}
-                accessibilityRole="button"
-                accessibilityState={{ selected: actif }}
-                onPress={() => choisirSport(cle)}
-                style={[styles.tuile, { width: largeurTuile }, actif && styles.tuileActive]}>
-                <PictoQuiSaute sport={cle} taille={32} actif={actif} />
-                <Text
-                  maxFontSizeMultiplier={1.3}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.8}
-                  style={[styles.tuileTexte, actif && styles.tuileTexteActif]}>
-                  {nomTuile ?? nom}
-                </Text>
-              </Pressable>
-            );
-          })}
+          {SPORTS.map(({ cle, nom, nomTuile }) => (
+            <TuileSport
+              key={cle}
+              sport={cle}
+              nom={nomTuile ?? nom}
+              choisie={cle === sport && montre('sport')}
+              largeur={largeur3}
+              onPress={() => choisirSport(cle)}
+            />
+          ))}
         </View>
       );
     }
@@ -897,19 +884,7 @@ const creerStyles = (c: Palette) =>
       borderRadius: 18,
     },
     tuiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-    tuile: {
-      minHeight: 68,
-      paddingHorizontal: 2,
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 3,
-      backgroundColor: c.carte,
-      borderRadius: 14,
-      borderWidth: 1.5,
-      borderColor: c.trait,
-    },
     tuileActive: { backgroundColor: c.rougeDoux, borderColor: c.rouge },
-    tuileTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.pastille, color: c.encre },
     tuileTexteActif: { fontFamily: Polices.texteDemi, color: c.rougeTexte },
     tuileChoix: {
       minHeight: 64,
