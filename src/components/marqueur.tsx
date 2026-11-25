@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 
 import { useCouleurs } from '@/lib/theme';
@@ -29,7 +30,7 @@ type PropsSurligne = {
   /** Faux : texte sans trait */
   marque?: boolean;
   maxFontSizeMultiplier?: number;
-  /** Gardés pour plus tard : le trait est fixe (animé, il restait invisible sur l'iPhone de Maxime) */
+  /** Le trait se tire de gauche à droite à l'arrivée du texte et à chaque changement de texte */
   anime?: boolean;
   delai?: number;
   cle?: string | number;
@@ -41,31 +42,46 @@ type PropsSurligne = {
  * dans le flux, posée avant le texte, qui prend sa hauteur sur la hauteur mesurée du texte, puis le texte
  * remonte dessus avec une marge négative (il est dessiné après, donc par-dessus).
  */
-export function TexteSurligne({ children, style, couleur, marque = true, maxFontSizeMultiplier = 1.3 }: PropsSurligne) {
+export function TexteSurligne({ children, style, couleur, marque = true, anime, delai = 0, maxFontSizeMultiplier = 1.3 }: PropsSurligne) {
   const c = useCouleurs();
+  const reduit = useReducedMotion();
   const [hauteur, setHauteur] = useState(0);
+  const [largeur, setLargeur] = useState(0);
+  // Le trait grandit en pixels (largeur mesurée du texte), dans le flux : rien en position absolue
+  const avance = useSharedValue(anime && !reduit ? 0 : 1);
+  useEffect(() => {
+    if (!anime || reduit || largeur <= 0) return;
+    avance.set(0);
+    avance.set(withDelay(delai, withTiming(1, { duration: 380, easing: Easing.out(Easing.cubic) })));
+  }, [anime, reduit, largeur, delai, children, avance]);
+  const styleLargeur = useAnimatedStyle(() => ({ width: (largeur + 2 * DEBORD) * avance.get() }));
   const haut = Math.round(hauteur * 0.5);
   const epais = Math.round(hauteur * 0.4);
   const trait = marque && hauteur > 0;
   return (
     <View style={styles.mot}>
       {trait && (
-        <View
+        <Animated.View
           pointerEvents="none"
-          style={{
-            height: epais,
-            marginTop: haut,
-            marginHorizontal: -DEBORD,
-            borderRadius: 3,
-            backgroundColor: couleur ?? c.marqueur,
-          }}
+          style={[
+            {
+              height: epais,
+              marginTop: haut,
+              marginLeft: -DEBORD,
+              borderRadius: 3,
+              backgroundColor: couleur ?? c.marqueur,
+              alignSelf: 'flex-start',
+            },
+            anime && largeur > 0 ? styleLargeur : { width: largeur + 2 * DEBORD },
+          ]}
         />
       )}
       <Text
         maxFontSizeMultiplier={maxFontSizeMultiplier}
         onLayout={(e) => {
-          const h = e.nativeEvent.layout.height;
+          const { height: h, width: l } = e.nativeEvent.layout;
           if (Math.abs(h - hauteur) > 0.5) setHauteur(h);
+          if (Math.abs(l - largeur) > 0.5) setLargeur(l);
         }}
         style={[style, trait && { marginTop: -(haut + epais) }]}>
         {children}

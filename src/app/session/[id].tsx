@@ -229,7 +229,7 @@ export default function DetailSession() {
                   <Text maxFontSizeMultiplier={1.2} style={styles.placesTexte}>
                     {entete.places.apres}
                   </Text>
-                  <TexteSurligne couleur={c.marqueurSurRouge} maxFontSizeMultiplier={1.2} style={styles.placesTexte}>
+                  <TexteSurligne couleur={c.marqueurSurRouge} anime delai={250} cle={libres} maxFontSizeMultiplier={1.2} style={styles.placesTexte}>
                     à prendre
                   </TexteSurligne>
                 </View>
