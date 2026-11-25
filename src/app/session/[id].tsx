@@ -5,11 +5,7 @@ import Animated, {
   interpolate,
   useAnimatedScrollHandler,
   useAnimatedStyle,
-  useReducedMotion,
   useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,6 +14,7 @@ import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
 import { BoutonCatch } from '@/components/bouton-catch';
 import { EquipeSession } from '@/components/equipe-session';
+import { PointEnDirect } from '@/components/pastille-session';
 import {
   IconeCalendrier,
   IconeDrapeau,
@@ -56,22 +53,6 @@ import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 /** Hauteur de l'en-tête rouge, sous la barre d'état */
 const HAUTEUR_ENTETE = 230;
-
-/** Le point de la pilule du temps : il bat quand la session est en direct */
-function PointQuiBat({ bat }: { bat: boolean }) {
-  const styles = useStyles(creerStyles);
-  const reduit = useReducedMotion();
-  const echelle = useSharedValue(1);
-  useEffect(() => {
-    if (!bat || reduit) {
-      echelle.set(1);
-      return;
-    }
-    echelle.set(withRepeat(withSequence(withTiming(1.4, { duration: 500 }), withTiming(0.8, { duration: 500 })), -1));
-  }, [bat, reduit, echelle]);
-  const style = useAnimatedStyle(() => ({ transform: [{ scale: echelle.get() }] }));
-  return <Animated.View style={[styles.point, style]} />;
-}
 
 export default function DetailSession() {
   const c = useCouleurs();
@@ -236,7 +217,7 @@ export default function DetailSession() {
               )}
               {!!entete.places && (
                 <View style={styles.pilule}>
-                  <PointQuiBat bat={entete.temps === 'En direct'} />
+                  {entete.temps === 'En direct' ? <PointEnDirect couleur={c.rouge} /> : <View style={styles.point} />}
                   <Text maxFontSizeMultiplier={1.2} numberOfLines={1} style={styles.piluleTexte}>
                     {entete.temps} · {heure(session.debut)}
                   </Text>
