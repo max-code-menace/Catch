@@ -1,3 +1,4 @@
+import * as Updates from 'expo-updates';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -707,6 +708,10 @@ export default function Creer() {
         {(mode === 'etapes' || enPhrase) && (
           <View style={styles.dansMarges}>
             {/* La phrase se remplit à chaque choix (idée de Mathias) ; toucher un mot y revient */}
+            {/* TEMPORAIRE : repère de version (à retirer) */}
+            <Text style={{ fontSize: 11, color: c.texteSecondaire }}>
+              {`Version surligneur B · ${Updates.updateId?.slice(0, 8) ?? 'sans mise à jour'}`}
+            </Text>
             <PhraseCreation morceaux={morceaux} onToucher={toucherPhrase} />
           </View>
         )}

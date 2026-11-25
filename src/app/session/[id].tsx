@@ -31,7 +31,7 @@ import { PictoSport } from '@/components/picto-sport';
 import { TerrainSport } from '@/components/terrain-sport';
 import { Chargement } from '@/components/chargement';
 import { ChiffreQuiDefile } from '@/components/chiffre-qui-defile';
-import { INCLINAISON, TraitMarqueur } from '@/components/marqueur';
+import { INCLINAISON, TexteSurligne } from '@/components/marqueur';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import {
   annulationLibre,
@@ -229,12 +229,9 @@ export default function DetailSession() {
                   <Text maxFontSizeMultiplier={1.2} style={styles.placesTexte}>
                     {entete.places.apres}
                   </Text>
-                  <View>
-                    <TraitMarqueur couleur={c.marqueurSurRouge} anime cle={libres} delai={250} />
-                    <Text maxFontSizeMultiplier={1.2} style={styles.placesTexte}>
-                      à prendre
-                    </Text>
-                  </View>
+                  <TexteSurligne couleur={c.marqueurSurRouge} maxFontSizeMultiplier={1.2} style={styles.placesTexte}>
+                    à prendre
+                  </TexteSurligne>
                 </View>
               )}
               {!!entete.places && (

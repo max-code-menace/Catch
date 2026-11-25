@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 
 import { useCouleurs } from '@/lib/theme';
@@ -21,32 +22,71 @@ type PropsMot = {
   maxFontSizeMultiplier?: number;
 };
 
-/**
- * Le trait de surligneur seul, posé en absolu derrière un texte (moitié basse).
- * Le texte se met par-dessus, dans le même parent : `backgroundColor` d'un Text couvrirait toute la ligne.
- */
-export function TraitMarqueur({
-  couleur,
-}: {
+type PropsSurligne = {
+  children: string;
+  style: StyleProp<TextStyle>;
   couleur?: string;
-  /** Gardés pour plus tard : le trait est fixe depuis le 25 novembre (animé, il restait invisible sur l'iPhone de Maxime) */
+  /** Faux : texte sans trait */
+  marque?: boolean;
+  maxFontSizeMultiplier?: number;
+  /** Gardés pour plus tard : le trait est fixe (animé, il restait invisible sur l'iPhone de Maxime) */
   anime?: boolean;
   delai?: number;
   cle?: string | number;
-}) {
+};
+
+/**
+ * Un texte avec un trait de surligneur sous sa moitié basse.
+ * Le trait n'est PAS en position absolue (invisible sur l'iPhone de Maxime, 25 novembre) : c'est une vraie vue
+ * dans le flux, posée avant le texte, qui prend sa hauteur sur la hauteur mesurée du texte, puis le texte
+ * remonte dessus avec une marge négative (il est dessiné après, donc par-dessus).
+ */
+export function TexteSurligne({ children, style, couleur, marque = true, maxFontSizeMultiplier = 1.3 }: PropsSurligne) {
   const c = useCouleurs();
-  return <View pointerEvents="none" style={[styles.trait, { backgroundColor: couleur ?? c.marqueur }]} />;
+  const [hauteur, setHauteur] = useState(0);
+  const haut = Math.round(hauteur * 0.5);
+  const epais = Math.round(hauteur * 0.4);
+  const trait = marque && hauteur > 0;
+  return (
+    <View style={styles.mot}>
+      {trait && (
+        <View
+          pointerEvents="none"
+          style={{
+            height: epais,
+            marginTop: haut,
+            marginHorizontal: -DEBORD,
+            borderRadius: 3,
+            backgroundColor: couleur ?? c.marqueur,
+          }}
+        />
+      )}
+      <Text
+        maxFontSizeMultiplier={maxFontSizeMultiplier}
+        onLayout={(e) => {
+          const h = e.nativeEvent.layout.height;
+          if (Math.abs(h - hauteur) > 0.5) setHauteur(h);
+        }}
+        style={[style, trait && { marginTop: -(haut + epais) }]}>
+        {children}
+      </Text>
+    </View>
+  );
 }
 
 /** Un mot, avec ou sans trait de surligneur (idée de Mathias). */
 export function Mot({ texte, style, marque = true, couleur, anime, delai = 0, maxFontSizeMultiplier = 1.3 }: PropsMot) {
   return (
-    <View>
-      {marque && <TraitMarqueur couleur={couleur} anime={anime} delai={delai} cle={texte} />}
-      <Text maxFontSizeMultiplier={maxFontSizeMultiplier} style={style}>
-        {texte}
-      </Text>
-    </View>
+    <TexteSurligne
+      style={style}
+      marque={marque}
+      couleur={couleur}
+      anime={anime}
+      delai={delai}
+      cle={texte}
+      maxFontSizeMultiplier={maxFontSizeMultiplier}>
+      {texte}
+    </TexteSurligne>
   );
 }
 
@@ -94,12 +134,5 @@ export function Marqueur({ texte, penche, centre, titre, styleCadre, delai = 0, 
 const styles = StyleSheet.create({
   cadre: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end' },
   centre: { justifyContent: 'center' },
-  trait: {
-    position: 'absolute',
-    left: -DEBORD,
-    right: -DEBORD,
-    top: '52%',
-    bottom: '10%',
-    borderRadius: 3,
-  },
+  mot: { overflow: 'visible' },
 });
