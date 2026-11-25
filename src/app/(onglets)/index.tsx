@@ -1,11 +1,9 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { SessionQuiTombe } from '@/components/session-qui-tombe';
 import { BandeauCarte } from '@/components/bandeau-carte';
-import { Chargement } from '@/components/chargement';
 import { BarreHaut, type Vue } from '@/components/barre-haut';
 import { Bouton } from '@/components/bouton';
 import { CarteSessions } from '@/components/carte-sessions';
@@ -32,7 +30,6 @@ import { maPosition } from '@/lib/lieux';
 import { sessionsDuLieu, useLieuxSport } from '@/lib/lieux-sport';
 import { useFiltreMesSports, useMesSports } from '@/lib/mes-sports';
 import { useSessions } from '@/lib/sessions';
-import { Durees } from '@/constants/theme';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 /** Rayon affiché par défaut, et distance au-delà de laquelle on ne propose plus d'aller voir */
@@ -52,13 +49,6 @@ export default function Carte() {
   const [cible, setCible] = useState<(Coordonnees & { cle: number; rayonKm?: number }) | null>(null);
   const [rayon, setRayon] = useState(RAYON_KM);
 
-  // « Recherche des sessions » n'apparaît que si ça dure, pour ne pas clignoter
-  const [attenteLongue, setAttenteLongue] = useState(false);
-  useEffect(() => {
-    if (etat !== 'chargement') return;
-    const minuteur = setTimeout(() => setAttenteLongue(true), 400);
-    return () => clearTimeout(minuteur);
-  }, [etat]);
   const [vue, setVue] = useState<Vue>('carte');
 
   // Filtre de la carte : « Mes sports » (étoile de la barre du haut), puis sessions, événements, salles et terrains
@@ -305,13 +295,6 @@ export default function Carte() {
           <Bouton variante="secondaire" titre="Tout voir" onPress={() => setTypes(TOUS_LES_TYPES)} />
         </PanneauCarte>
       )}
-      {etat === 'chargement' && attenteLongue && (
-        <View pointerEvents="none" style={styles.attente}>
-          <Animated.View entering={FadeIn.duration(Durees.standard)} exiting={FadeOut.duration(Durees.standard)}>
-            <Chargement carte />
-          </Animated.View>
-        </View>
-      )}
       <BarreHaut
         vue={vue}
         onBasculer={() => {
@@ -410,5 +393,4 @@ export default function Carte() {
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
     ecran: { flex: 1, backgroundColor: c.fond },
-    attente: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
   });

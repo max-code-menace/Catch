@@ -96,7 +96,7 @@ Maquettes jouables : [Catch · Ambiance et animations](https://claude.ai/artifac
 
 | Moment | Ce qui se passe | Où |
 | --- | --- | --- |
-| Attente d'un écran | `BalleRebond` (parabole, écrasée au sol, ombre) + phrases qui défilent (« On gonfle les ballons… ») | `components/chargement.tsx` (`Chargement`) : carte, détail, Profil |
+| Attente d'un écran | `BalleRebond` (parabole, écrasée au sol, ombre) + phrases qui défilent (« On gonfle les ballons… ») | `components/chargement.tsx` (`Chargement`) : détail, Profil. **Plus sur la carte** (25 novembre, demande de Maxime : elle n'apparaissait qu'une demi-seconde et ne servait à rien ; les pastilles qui sortent de terre suffisent) |
 | Attente d'une liste | `CartesFantomes` : la forme des cartes avec les lignes d'un terrain, qui respire | Mes sessions, Messages |
 | Arrivée des sessions | Chaque pastille sort de terre, de haut en bas, 70 ms d'écart (`lib/apparitions.ts`, `Apparition`), une seule fois par session | Carte (téléphone et web) |
 | Bouton rouge | Tranche foncée dessous (`rougeTranche`), le bouton s'y enfonce de 3 px | `Bouton` principal, `BoutonCatch` |
@@ -121,7 +121,7 @@ Maquettes jouables : [Catch · Ambiance et animations](https://claude.ai/artifac
 **Tri du 25 novembre** (demande de Maxime : « vérifie toutes les animations, garde les utiles »). Retiré : le bandeau « 7 sessions près de toi » à chaque ouverture (il fêtait l'ouverture de l'app, contre la règle 3, et doublait les pastilles qui sortent de terre ; il cachait le haut de la carte 2,8 s). Harmonisé : le point « en direct » du détail battait autrement que celui des pastilles, c'est maintenant le même. Resserré : « Tu l'as catchée ! », ton rond rejoint l'équipe à 650 ms au lieu de 950 (juste après la balle). Nettoyé : les réglages d'animation du surligneur, plus utilisés. `BandeauCarte` ne sert plus qu'à « C'est en ligne ! ».
 
 - Onglets : fondu 250 ms. Carte ↔ Liste : fondu croisé.
-- Balle d'attente après 400 ms (la carte), cartes fantômes tout de suite.
+- Pas d'attente affichée sur la carte ; cartes fantômes tout de suite dans les listes.
 - La balle est le seul élément qui rebondit vraiment. Les pastilles, pictos et le rond « Toi » ont seulement un léger dépassement en arrivant ; la session publiée s'écrase un peu en touchant la carte.
 - Catch et envoi de message en interface optimiste, avec retour en arrière propre en cas d'échec.
 - « Réduire les animations » respecté : déplacements remplacés par des fondus, boucles arrêtées.
