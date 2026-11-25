@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Bouton } from '@/components/bouton';
 import { Aide, Ecran } from '@/components/ecran';
@@ -8,12 +8,13 @@ import { PictoSport } from '@/components/picto-sport';
 import { CartesFantomes } from '@/components/chargement';
 import { Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
+import { Terrains } from '@/donnees/terrains';
 import { useCompte } from '@/lib/compte';
 import { quand, quandPhrase } from '@/lib/formats';
 import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
-/** Une session où je suis inscrit : touche pour ouvrir son détail. */
+/** Une session où je suis inscrit : le terrain du sport en bandeau, touche pour ouvrir son détail. */
 function LigneSession({ session, moi }: { session: Session; moi: string }) {
   const styles = useStyles(creerStyles);
   const c = useCouleurs();
@@ -23,18 +24,9 @@ function LigneSession({ session, moi }: { session: Session; moi: string }) {
       accessibilityRole="button"
       accessibilityLabel={`${session.titre}, ${quandPhrase(session)}, ${session.lieu}${organise ? ', tu organises' : ''}`}
       onPress={() => router.push({ pathname: '/session/[id]', params: { id: session.id } })}
-      style={({ pressed }) => [styles.carte, pressed && { backgroundColor: c.beige }]}>
-      <View style={styles.picto}>
-        <PictoSport sport={session.sport} taille={30} />
-      </View>
-      <View style={styles.textes}>
-        <Text style={styles.libelle} numberOfLines={1}>
-          {session.titre} · {quand(session.debut)}
-        </Text>
-        <Text style={styles.aide} numberOfLines={1}>
-          {session.lieu}
-          {session.commune ? `, ${session.commune}` : ''}
-        </Text>
+      style={({ pressed }) => [styles.carte, pressed && { opacity: 0.85 }]}>
+      <View>
+        <Image source={Terrains[session.sport]} style={styles.terrain} resizeMode="cover" accessibilityIgnoresInvertColors />
         {organise && (
           <View style={styles.badge}>
             <Text maxFontSizeMultiplier={1.3} style={styles.badgeTexte}>
@@ -43,7 +35,21 @@ function LigneSession({ session, moi }: { session: Session; moi: string }) {
           </View>
         )}
       </View>
-      <IconeChevron couleur={c.texteSecondaire} taille={20} />
+      <View style={styles.bas}>
+        <View style={styles.picto}>
+          <PictoSport sport={session.sport} taille={26} />
+        </View>
+        <View style={styles.textes}>
+          <Text style={styles.libelle} numberOfLines={1}>
+            {session.titre} · {quand(session.debut)}
+          </Text>
+          <Text style={styles.aide} numberOfLines={1}>
+            {session.lieu}
+            {session.commune ? `, ${session.commune}` : ''}
+          </Text>
+        </View>
+        <IconeChevron couleur={c.texteSecondaire} taille={20} />
+      </View>
     </Pressable>
   );
 }
@@ -107,18 +113,17 @@ const creerStyles = (c: Palette) =>
     section: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.texteSecondaire },
     vide: { gap: 16 },
     carte: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      padding: 16,
       backgroundColor: c.carte,
       borderRadius: Rayons.carte,
       borderWidth: 1,
       borderColor: c.trait,
+      overflow: 'hidden',
     },
+    terrain: { width: '100%', height: 140, backgroundColor: c.beige },
+    bas: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
     picto: {
-      width: 44,
-      height: 44,
+      width: 40,
+      height: 40,
       borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
@@ -128,12 +133,14 @@ const creerStyles = (c: Palette) =>
     libelle: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     badge: {
-      alignSelf: 'flex-start',
-      marginTop: 4,
+      position: 'absolute',
+      top: 12,
+      left: 12,
       paddingHorizontal: 8,
       paddingVertical: 2,
       borderRadius: Rayons.pilule,
-      backgroundColor: c.orangeDoux,
+      backgroundColor: c.carte,
+      boxShadow: c.ombrePetite,
     },
     badgeTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.micro, color: c.orangeTexte },
   });
