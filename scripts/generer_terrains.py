@@ -54,13 +54,19 @@ def _norm(a):
 class Camera:
     """x : de gauche à droite, y : en s'éloignant, z : vers le haut (mètres)."""
 
-    def __init__(self, position, cible, cadre, remplir=0.92, decalage=(0.0, 0.0)):
+    def __init__(self, position, cible, cadre=None, remplir=0.92, decalage=(0.0, 0.0), focale=None):
         self.pos = position
         self.f = _norm(_sous(cible, position))
         self.r = _norm(_vect(self.f, (0, 0, 1)))
         self.u = _vect(self.r, self.f)
         self.echelle = 1.0
         self.ox = self.oy = 0.0
+        if cadre is None:
+            # Focale fixe (en largeurs d'image) : la cible au centre, comme un objectif d'appareil photo
+            self.echelle = (focale or 1.2) * LARGEUR
+            self.ox = LARGEUR / 2 + decalage[0] * LARGEUR
+            self.oy = HAUTEUR / 2 + decalage[1] * HAUTEUR
+            return
         # Cadrage : les points de `cadre` remplissent l'image (une part `remplir`, peut dépasser 1 pour couper)
         pts = [self._brut(p) for p in cadre]
         xs = [p[0] for p in pts]
@@ -114,6 +120,23 @@ class Scene:
         self.sol: list[str] = []  # surfaces et lignes au sol, dans l'ordre
         self.objets: list[tuple[float, str]] = []  # (profondeur, svg), triés du fond vers l'avant
         self.dessus: list[str] = []
+        self.ombres: list[str] = []
+        self.grain = False  # ombres portées, entre le sol et les objets
+        self.soleil = (0.62, 0.55, -0.56)  # direction de la lumière : vers la droite et le fond, en descendant
+
+    def projete(self, p):
+        """Où l'ombre d'un point tombe au sol."""
+        k = p[2] / -self.soleil[2]
+        return (p[0] + self.soleil[0] * k, p[1] + self.soleil[1] * k, 0.0)
+
+    def ombre_portee(self, points, opacite=0.3):
+        """Ombre d'une face plane : chaque sommet projeté au sol le long du soleil."""
+        self.ombres.append(self.poly([self.projete(p) for p in points], '#4A1004', f'fill-opacity="{opacite}"'))
+
+    def ombre_trait(self, a, b, largeur, opacite=0.3):
+        pa, pb = self.cam(self.projete(a)), self.cam(self.projete(b))
+        self.ombres.append(f'<line x1="{pa[0]:.2f}" y1="{pa[1]:.2f}" x2="{pb[0]:.2f}" y2="{pb[1]:.2f}" stroke="#4A1004" '
+                           f'stroke-opacity="{opacite}" stroke-width="{largeur:.2f}" stroke-linecap="round"/>')
 
     # -- utilitaires ------------------------------------------------------
     def pts(self, points):
@@ -129,7 +152,9 @@ class Scene:
     def au_sol(self, points, couleur, z=0.0, extra=''):
         self.sol.append(self.poly([(x, y, z) for x, y in points], couleur, extra))
 
-    def objet(self, points, couleur, extra='', prof=None):
+    def objet(self, points, couleur, extra='', prof=None, ombre=0.0):
+        if ombre:
+            self.ombre_portee(points, ombre)
         if prof is None:
             prof = max(self.cam.profondeur(p) for p in points)
         self.objets.append((prof, self.poly(points, couleur, extra)))
@@ -230,6 +255,8 @@ class Scene:
         if c[0] > x2:
             faces.append(([(1, 0, 0), (1, 1, 0), (1, 1, 1), (1, 0, 1)], cote))
         prof = self.cam.profondeur(((x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2))
+        for f in ([(x1, y1), (x2, y1)], [(x2, y1), (x2, y2)], [(x2, y2), (x1, y2)], [(x1, y2), (x1, y1)]):
+            self.ombre_portee([(f[0][0], f[0][1], z1), (f[1][0], f[1][1], z1), (f[1][0], f[1][1], z2), (f[0][0], f[0][1], z2)], 0.22)
         svg = ''.join(self.poly([sommets[s] for s in f], col) for f, col in faces)
         self.objets.append((prof, svg))
 
@@ -239,8 +266,23 @@ class Scene:
         largeur = 2 * r * self.cam.echelle / self.cam.profondeur((x, y, h / 2))
         if prof is None:
             prof = self.cam.profondeur((x, y, h / 2))
+        self.ombre_trait((x, y, 0), (x, y, h), max(largeur, 1.2), 0.28)
         self.objets.append((prof, f'<line x1="{bx:.2f}" y1="{by:.2f}" x2="{hx:.2f}" y2="{hy:.2f}" stroke="{couleur}" '
                                   f'stroke-width="{max(largeur, 1.2):.2f}" stroke-linecap="round"/>'))
+
+    def balle(self, x, y, r, couleur=LIGNE, z=None, coutures=None):
+        """Une balle posée au sol (ou en l'air à `z`), avec son ombre et un reflet."""
+        z = r if z is None else z
+        c = self.projete((x, y, z))
+        self.ombres.append(self.poly([(c[0] + r * 0.95 * math.cos(2 * math.pi * i / 20), c[1] + r * 0.7 * math.sin(2 * math.pi * i / 20), 0) for i in range(20)],
+                                     '#4A1004', 'fill-opacity="0.35"'))
+        cx, cy = self.cam((x, y, z))
+        rr = r * self.cam.echelle / self.cam.profondeur((x, y, z))
+        dessin = (f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{rr:.2f}" fill="{couleur}"/>'
+                  f'<path d="M {cx - rr:.2f} {cy:.2f} A {rr:.2f} {rr:.2f} 0 0 0 {cx + rr:.2f} {cy:.2f} A {rr * 0.9:.2f} {rr * 0.75:.2f} 0 0 1 {cx - rr:.2f} {cy:.2f} Z" fill="#5A1405" fill-opacity="0.22"/>'
+                  + (coutures(cx, cy, rr) if coutures else '')
+                  + f'<circle cx="{cx - rr * 0.35:.2f}" cy="{cy - rr * 0.4:.2f}" r="{rr * 0.28:.2f}" fill="#FFFFFF" fill-opacity="0.55"/>')
+        self.objets.append((self.cam.profondeur((x, y, z)) - r, dessin))
 
     def ombre(self, points):
         self.au_sol(points, OMBRE)
@@ -253,6 +295,9 @@ class Scene:
         """Filet vertical tendu de a à b (x, y), entre les hauteurs bas et haut."""
         (ax, ay), (bx2, by2) = a, b
         p = self.cam.profondeur(((ax + bx2) / 2, (ay + by2) / 2, (bas + haut) / 2)) + prof_dec
+        self.ombre_portee([(ax, ay, bas), (bx2, by2, bas), (bx2, by2, haut), (ax, ay, haut)], 0.10 + opacite * 0.4)
+        if bande:
+            self.ombre_portee([(ax, ay, haut - bande), (bx2, by2, haut - bande), (bx2, by2, haut), (ax, ay, haut)], 0.25)
         morceaux = [self.poly([(ax, ay, bas), (bx2, by2, bas), (bx2, by2, haut), (ax, ay, haut)],
                               couleur, f'fill-opacity="{opacite}"')]
         l = math.dist(a, b)
@@ -301,13 +346,17 @@ class Scene:
             '<stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>'
             '<linearGradient id="voile" x1="0" y1="0" x2="0" y2="1"><stop offset="0.55" stop-color="#5A1405" stop-opacity="0"/>'
             '<stop offset="1" stop-color="#5A1405" stop-opacity="0.22"/></linearGradient>'
+            '<filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="4" stitchTiles="stitch"/>'
+            '<feColorMatrix type="saturate" values="0"/></filter>'
             '</defs>'
             f'<rect width="{LARGEUR}" height="{HAUTEUR}" fill="url(#fond)"/>'
             + (fond or '')
-            + ''.join(self.sol) + self._brume() + objets + ''.join(self.dessus)
+            + ''.join(self.sol) + ''.join(self.ombres) + self._brume() + objets + ''.join(self.dessus)
             + f'<rect width="{LARGEUR}" height="{HAUTEUR}" fill="url(#lumiere)"/>'
             f'<rect width="{LARGEUR}" height="{HAUTEUR}" fill="url(#voile)"/>'
-            '</svg>'
+            + (f'<rect width="{LARGEUR}" height="{HAUTEUR}" filter="url(#grain)" opacity="0.10" style="mix-blend-mode:overlay"/>'
+               if self.grain else '')
+            + '</svg>'
         )
 
 
@@ -335,11 +384,11 @@ def surface(s: Scene, x1, y1, x2, y2, couleur=SOL):
 # Les terrains (dimensions officielles)
 # ---------------------------------------------------------------------------
 
-def foot():
+def foot(cam=None, trait=0.45, essai=False):
     # Loi 1 de l'IFAB : 105 × 68, surface de réparation 16,5 × 40,32, but 7,32 × 2,44
     L, l = 105.0, 68.0
-    cam = camera_cote(L, l, hauteur_rel=0.55, remplir=0.97)
-    s = Scene(cam, 0.45)
+    cam = cam or camera_cote(L, l, hauteur_rel=0.55, remplir=0.97)
+    s = Scene(cam, trait)
     sol_autour(s, L, l, 40)
     # bandes de tonte
     for i in range(10):
@@ -372,14 +421,15 @@ def foot():
     for coin_x in (-1, 1):
         for coin_y in (-1, 1):
             s.poteau(coin_x * L / 2, coin_y * l / 2, 1.5, 0.04, ENCRE)
-    return s.svg()
+    return s if essai else s.svg()
 
 
-def basket():
+def basket(cam_essai=None, trait=0.07, essai=False):
     # FIBA : 28 × 15, raquette 4,90 × 5,80, ligne à 3 points 6,75 m (6,60 dans les coins, à 0,90 m des côtés)
     L, l = 28.0, 15.0
     cam = camera_cote(L, l, hauteur_rel=0.6, remplir=0.94, extra=[(-L / 2 - 1, 0, 3.95), (L / 2 + 1, 0, 3.95)])
-    s = Scene(cam, 0.07)
+    cam = cam_essai or cam
+    s = Scene(cam, trait)
     sol_autour(s, L, l, 6)
     surface(s, -L / 2 - 1, -l / 2 - 1, L / 2 + 1, l / 2 + 1, SOL)
     s.rectangle(-L / 2, -l / 2, L / 2, l / 2)
@@ -420,7 +470,7 @@ def basket():
         s.objets.append((cam.profondeur((panier, 0, 3.05)) - 0.5,
                          f'<polygon points="{s.pts(anneau)}" fill="none" stroke="{ENCRE}" stroke-width="2"/>'))
         s.ombre([(support - 0.4, -0.6), (support + 0.4, -0.6), (support + 0.4, 0.6), (support - 0.4, 0.6)])
-    return s.svg()
+    return s if essai else s.svg()
 
 
 def volley():
@@ -483,16 +533,16 @@ def tennis():
     return s.svg()
 
 
-def padel():
+def padel(cam_essai=None, trait=0.05, essai=False):
     # FIP : 20 × 10, lignes de service à 6,95 m du filet, ligne centrale qui dépasse de 20 cm,
     # filet 0,88 m au centre / 0,92 m aux poteaux. Vitres du fond : 10 m × 3 m + grillage jusqu'à 4 m.
     # Vitres des côtés : 2 m à 3 m de haut puis 2 m à 2 m de haut ; le reste du côté en grillage à 3 m.
     L, l = 20.0, 10.0
     cam = camera_cote(L, l, hauteur_rel=0.62, remplir=0.95, extra=[(-L / 2, l / 2, 4), (L / 2, l / 2, 4), (L / 2, -l / 2, 4)])
-    s = Scene(cam, 0.05)
+    cam = cam_essai or cam
+    s = Scene(cam, trait)
     sol_autour(s, L, l, 6)
     surface(s, -L / 2, -l / 2, L / 2, l / 2)
-    s.rectangle(-L / 2, -l / 2, L / 2, l / 2, couleur='rgba(255,243,234,0.0)')
     for x in (-6.95, 6.95):
         s.segment((x, -l / 2), (x, l / 2))
     s.segment((-6.95 - 0.2, 0), (6.95 + 0.2, 0))
@@ -511,7 +561,7 @@ def padel():
         s.poteau(0, y, 0.92, 0.04)
 
     def vitre(points):
-        s.objet(points, VERRE, 'fill-opacity="0.42" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="0.9"')
+        s.objet(points, VERRE, 'fill-opacity="0.42" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="0.9"', ombre=0.12)
 
     def grille(a, b, bas, haut_):
         s.filet(a, b, bas, haut_, 0.2, couleur=ENCRE, trait=0.35, opacite=0.08)
@@ -535,7 +585,7 @@ def padel():
         for y in (-l / 2 / 3, l / 2 / 3, -l / 2, l / 2):
             s.poteau(sens * L / 2, y, 4, 0.05)
     s.rectangle(-L / 2, -l / 2, L / 2, l / 2)
-    return s.svg()
+    return s if essai else s.svg()
 
 
 def badminton():
@@ -964,6 +1014,76 @@ def autre():
     return s.svg()
 
 
+# ---------------------------------------------------------------------------
+# Essais du passage « directeur artistique » : cadrage serré, soleil, grain, ballon
+# ---------------------------------------------------------------------------
+
+def coutures_basket(cx, cy, r):
+    t = f'stroke="{ENCRE}" stroke-width="{max(r * 0.09, 0.7):.2f}" fill="none"'
+    return (f'<line x1="{cx - r:.2f}" y1="{cy:.2f}" x2="{cx + r:.2f}" y2="{cy:.2f}" {t}/>'
+            f'<line x1="{cx:.2f}" y1="{cy - r:.2f}" x2="{cx:.2f}" y2="{cy + r:.2f}" {t}/>'
+            f'<path d="M {cx - r * 0.7:.2f} {cy - r * 0.7:.2f} Q {cx - r * 0.25:.2f} {cy:.2f} {cx - r * 0.7:.2f} {cy + r * 0.7:.2f}" {t}/>'
+            f'<path d="M {cx + r * 0.7:.2f} {cy - r * 0.7:.2f} Q {cx + r * 0.25:.2f} {cy:.2f} {cx + r * 0.7:.2f} {cy + r * 0.7:.2f}" {t}/>')
+
+
+def coutures_foot(cx, cy, r):
+    morceaux = [f'<polygon points="{" ".join(f"{cx + r * 0.38 * math.cos(math.radians(90 + 72 * i)):.2f},{cy - r * 0.38 * math.sin(math.radians(90 + 72 * i)):.2f}" for i in range(5))}" fill="{ENCRE}"/>']
+    for i in range(5):
+        a = math.radians(90 + 72 * i + 36)
+        px, py = cx + r * 0.92 * math.cos(a), cy - r * 0.92 * math.sin(a)
+        morceaux.append(f'<circle cx="{px:.2f}" cy="{py:.2f}" r="{r * 0.2:.2f}" fill="{ENCRE}"/>')
+    nom = f'ballon{int(cx)}{int(cy)}'
+    return (f'<clipPath id="{nom}"><circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r:.2f}"/></clipPath>'
+            f'<g clip-path="url(#{nom})">' + ''.join(morceaux) + '</g>')
+
+
+def essai_foot():
+    # Surface de réparation et but, vus depuis l'extérieur du point de penalty
+    cam = Camera((27, -19, 11), (47.0, 0, 0.6), focale=1.55, decalage=(0.0, 0.0))
+    s = foot(cam=cam, trait=0.13, essai=True)
+    s.grain = True
+    s.balle(52.5 - 11, 0, 0.24, LIGNE, coutures=coutures_foot)
+    return s.svg()
+
+
+def essai_basket():
+    # Demi-terrain : raquette, cercle de lancer franc, ligne à 3 points, panneau et filet
+    cam = Camera((-6, -15, 10), (10.6, 0.2, 1.5), focale=1.75, decalage=(0.0, 0.0))
+    s = basket(cam_essai=cam, trait=0.06, essai=True)
+    s.grain = True
+    panier = 14 - 1.575
+    # filet du panier : tronc de cône de 45 cm
+    morceaux = []
+    for i in range(12):
+        a = 2 * math.pi * i / 12
+        haut = (panier + 0.23 * math.cos(a), 0.23 * math.sin(a), 3.05)
+        bas = (panier + 0.14 * math.cos(a + 0.4), 0.14 * math.sin(a + 0.4), 2.62)
+        pa, pb = cam(haut), cam(bas)
+        morceaux.append(f'<line x1="{pa[0]:.2f}" y1="{pa[1]:.2f}" x2="{pb[0]:.2f}" y2="{pb[1]:.2f}" stroke="{LIGNE}" stroke-width="0.9"/>')
+    bas = [(panier + 0.14 * math.cos(2 * math.pi * i / 16), 0.14 * math.sin(2 * math.pi * i / 16), 2.62) for i in range(16)]
+    morceaux.append(f'<polygon points="{s.pts(bas)}" fill="none" stroke="{LIGNE}" stroke-width="0.9"/>')
+    s.objets.append((cam.profondeur((panier, 0, 2.8)) - 0.6, ''.join(morceaux)))
+    # carré du panneau : 59 × 45 cm, bas au niveau du cercle
+    planche = 14 - 1.2
+    s.objets.append((cam.profondeur((planche, 0, 3.4)) - 0.02,
+                     s.poly([(planche - 0.01, -0.295, 3.05), (planche - 0.01, 0.295, 3.05), (planche - 0.01, 0.295, 3.5), (planche - 0.01, -0.295, 3.5)],
+                            'none', f'stroke="{ENCRE}" stroke-width="1.6"')))
+    s.balle(10.2, 3.4, 0.26, '#F59A52', coutures=coutures_basket)
+    return s.svg()
+
+
+def essai_padel():
+    # Depuis le coin, derrière la vitre du fond : vitres, grillage, filet et une balle
+    cam = Camera((-44, -15, 19), (-1.0, 0.3, 0.9), focale=2.3, decalage=(0.0, 0.0))
+    s = padel(cam_essai=cam, trait=0.05, essai=True)
+    s.grain = True
+    s.balle(-5.2, -1.8, 0.12, '#FFF3EA')
+    s.balle(-7.6, 2.6, 0.12, '#FFF3EA')
+    return s.svg()
+
+
+ESSAIS = {'essai-foot': essai_foot, 'essai-basket': essai_basket, 'essai-padel': essai_padel}
+
 TERRAINS = {
     'foot': foot, 'basket': basket, 'volley': volley, 'tennis': tennis, 'padel': padel,
     'badminton': badminton, 'squash': squash, 'pingpong': pingpong, 'escalade': escalade, 'boxe': boxe,
@@ -976,8 +1096,9 @@ if __name__ == '__main__':
     racine = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     dossier = os.path.join(racine, 'design', 'terrains')
     os.makedirs(dossier, exist_ok=True)
+    tous = {**TERRAINS, **ESSAIS}
     choix = sys.argv[1:] or list(TERRAINS)
     for nom in choix:
         with open(os.path.join(dossier, f'{nom}.svg'), 'w', encoding='utf-8') as f:
-            f.write(TERRAINS[nom]())
+            f.write(tous[nom]())
         print('✓', nom)
