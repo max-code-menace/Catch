@@ -81,7 +81,10 @@ export default function Carte() {
   toutesLesSessions.forEach((session) => {
     if (distance(origine, session.position) / 1000 <= rayon) comptes[session.sport] = (comptes[session.sport] ?? 0) + 1;
   });
-  const lieuxCarte = types.lieux ? lieux : [];
+  // Un lieu où une session est prévue ne garde pas sa propre pastille : celle de la session est posée dessus
+  const lieuxCarte = types.lieux
+    ? lieux.filter((lieu) => !types.sessions || sessionsDuLieu(lieu, sessions).length === 0)
+    : [];
   const evenementsCarte = types.evenements ? evenements : [];
 
   // Retour de Créer : la session qu'on vient de publier tombe sur la carte, puis « C'est en ligne ! »

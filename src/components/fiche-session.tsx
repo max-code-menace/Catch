@@ -62,9 +62,15 @@ export function FicheSession({ session, distance, catchee, organisee, onOuvrir, 
           <Text maxFontSizeMultiplier={1.3} style={styles.mots}>
             {session.titre}{' '}
           </Text>
-          <Mot texte={quand} couleur={c.marqueurSurRouge} style={styles.mots} />
+          {/* La virgule reste collée au moment : la phrase ne passe jamais à la ligne juste avant elle */}
+          <View style={styles.colle}>
+            <Mot texte={quand} couleur={c.marqueurSurRouge} style={styles.mots} />
+            <Text maxFontSizeMultiplier={1.3} style={styles.mots}>
+              ,{' '}
+            </Text>
+          </View>
           <Text maxFontSizeMultiplier={1.3} style={styles.mots}>
-            , {texteDistance(distance)}
+            {texteDistance(distance).replace(/ /g, '\u00A0')}
           </Text>
         </Pressable>
         {catchee ? (
@@ -139,6 +145,7 @@ const creerStyles = (c: Palette) =>
       overflow: 'hidden',
     },
     phrase: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
+    colle: { flexDirection: 'row', alignItems: 'center' },
     mots: { fontFamily: Polices.titre, fontSize: Tailles.accent, lineHeight: 24, color: c.surRouge },
     statut: {
       minHeight: 40,
