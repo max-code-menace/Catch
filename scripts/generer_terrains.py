@@ -121,7 +121,7 @@ class Scene:
         self.objets: list[tuple[float, str]] = []  # (profondeur, svg), triés du fond vers l'avant
         self.dessus: list[str] = []
         self.ombres: list[str] = []
-        self.grain = False  # ombres portées, entre le sol et les objets
+        self.grain = True  # ombres portées, entre le sol et les objets
         self.soleil = (0.62, 0.55, -0.56)  # direction de la lumière : vers la droite et le fond, en descendant
 
     def projete(self, p):
@@ -473,10 +473,10 @@ def basket(cam_essai=None, trait=0.07, essai=False):
     return s if essai else s.svg()
 
 
-def volley():
+def volley(cam=None, essai=False):
     # FIVB : 18 × 9, lignes d'attaque à 3 m du filet, filet 2,43 m (hommes), 1 m de haut, poteaux à 1 m des côtés
     L, l = 18.0, 9.0
-    cam = camera_cote(L, l, hauteur_rel=0.55, remplir=0.98, extra=[(0, -l / 2 - 1, 2.6), (0, l / 2 + 1, 2.6)])
+    cam = cam or camera_cote(L, l, hauteur_rel=0.55, remplir=0.98, extra=[(0, -l / 2 - 1, 2.6), (0, l / 2 + 1, 2.6)])
     s = Scene(cam, 0.05)
     sol_autour(s, L, l, 5)
     surface(s, -L / 2, -l / 2, L / 2, l / 2)
@@ -490,13 +490,13 @@ def volley():
     for y in (-l / 2 - 1, l / 2 + 1):
         s.poteau(0, y, 2.55, 0.06)
         s.trait3d((0, y, 2.43), (0, y + (0.5 if y < 0 else -0.5), 2.43), ENCRE, 1)
-    return s.svg()
+    return s if essai else s.svg()
 
 
-def tennis():
+def tennis(cam=None, essai=False):
     # ITF : 23,77 × 10,97 (simple 8,23), carrés de service 6,40 m, filet 0,914 m au centre, 1,07 m aux poteaux
     L, l = 23.77, 10.97
-    cam = camera_cote(L, l, hauteur_rel=0.58, remplir=0.96)
+    cam = cam or camera_cote(L, l, hauteur_rel=0.58, remplir=0.96)
     s = Scene(cam, 0.05)
     sol_autour(s, L, l, 8)
     surface(s, -L / 2 - 4, -l / 2 - 2.5, L / 2 + 4, l / 2 + 2.5, SOL_CLAIR)
@@ -530,7 +530,7 @@ def tennis():
     s.objets.append((cam.profondeur((0, 0, 0.5)), ''.join(morceaux)))
     for y in (y0, y1):
         s.poteau(0, y, 1.07, 0.05)
-    return s.svg()
+    return s if essai else s.svg()
 
 
 def padel(cam_essai=None, trait=0.05, essai=False):
@@ -588,11 +588,11 @@ def padel(cam_essai=None, trait=0.05, essai=False):
     return s if essai else s.svg()
 
 
-def badminton():
+def badminton(cam=None, essai=False):
     # BWF : 13,40 × 6,10 (simple 5,18), ligne de service court à 1,98 m du filet,
     # ligne de service long double à 0,76 m du fond, filet 1,524 m au centre / 1,55 m aux poteaux
     L, l = 13.40, 6.10
-    cam = camera_cote(L, l, hauteur_rel=0.55, remplir=0.96, extra=[(0, -l / 2, 1.55), (0, l / 2, 1.55)])
+    cam = cam or camera_cote(L, l, hauteur_rel=0.55, remplir=0.96, extra=[(0, -l / 2, 1.55), (0, l / 2, 1.55)])
     s = Scene(cam, 0.04)
     sol_autour(s, L, l, 4)
     surface(s, -L / 2 - 1.5, -l / 2 - 1.5, L / 2 + 1.5, l / 2 + 1.5, SOL_CLAIR)
@@ -608,15 +608,15 @@ def badminton():
     for y in (-l / 2, l / 2):
         s.poteau(0, y, 1.55, 0.03)
         s.ombre([(-0.3, y - 0.3), (0.3, y - 0.3), (0.3, y + 0.3), (-0.3, y + 0.3)])
-    return s.svg()
+    return s if essai else s.svg()
 
 
-def squash():
+def squash(cam=None, essai=False):
     # WSF : 9,75 × 6,40. Mur avant : ligne haute 4,57 m, ligne de service 1,78 m, plaque (tin) 0,48 m.
     # Mur du fond 2,13 m. Ligne courte à 5,44 m du mur avant, carrés de service 1,60 m.
     L, l = 9.75, 6.40  # y : du mur du fond (−) au mur avant (+), x : largeur
     y_f, y_a = -L / 2, L / 2
-    cam = Camera((0, y_f - 4.6, 3.6), (0, 1.2, 1.4),
+    cam = cam or Camera((0, y_f - 4.6, 3.6), (0, 1.2, 1.4),
                  [(-l / 2, y_f, 0), (l / 2, y_f, 0), (-l / 2, y_a, 4.57), (l / 2, y_a, 4.57), (-l / 2, y_a, 0)],
                  remplir=1.02)
     s = Scene(cam, 0.05)
@@ -656,14 +656,14 @@ def squash():
     ombre = (f'<line x1="{cam((-l/2, y_a, 0))[0]:.2f}" y1="{cam((-l/2, y_a, 0))[1]:.2f}" x2="{cam((l/2, y_a, 0))[0]:.2f}" '
              f'y2="{cam((l/2, y_a, 0))[1]:.2f}" stroke="#5A1405" stroke-opacity="0.25" stroke-width="2"/>')
     s.sol.append(ombre)
-    return s.svg()
+    return s if essai else s.svg()
 
 
-def pingpong():
+def pingpong(cam=None, essai=False):
     # ITTF : table 2,74 × 1,525 à 0,76 m, bords blancs de 2 cm, ligne centrale 3 mm,
     # filet 15,25 cm de haut qui dépasse de 15,25 cm de chaque côté
     L, l, h = 2.74, 1.525, 0.76
-    cam = Camera((1.9, -3.6, 2.6), (0, 0.1, 0.55), [(-L / 2 - 0.4, -l / 2, 0), (L / 2 + 0.4, -l / 2, 0),
+    cam = cam or Camera((1.9, -3.6, 2.6), (0, 0.1, 0.55), [(-L / 2 - 0.4, -l / 2, 0), (L / 2 + 0.4, -l / 2, 0),
                                                        (-L / 2, l / 2, h), (L / 2, l / 2, h), (0, l / 2 + 1.3, 0)],
                  remplir=1.02)
     s = Scene(cam, 0.02)
@@ -687,12 +687,12 @@ def pingpong():
     s.filet((0, -l / 2 - 0.1525), (0, l / 2 + 0.1525), h, h + 0.1525, 0.02, bande=0.012)
     for y in (-l / 2 - 0.1525, l / 2 + 0.1525):
         s.poteau(0, y, h + 0.1525, 0.015)
-    return s.svg()
+    return s if essai else s.svg()
 
 
-def escalade():
+def escalade(cam=None, essai=False):
     # Mur de bloc : pans de 4,5 m (dalle, vertical, dévers) au-dessus d'un tapis de 30 cm
-    cam = Camera((0, -9.5, 3.0), (0, 0, 2.0), [(-6.5, 0.0, 0), (6.5, 0.0, 0), (-6.5, 1.2, 4.6), (6.5, 1.2, 4.6)], remplir=1.04)
+    cam = cam or Camera((0, -9.5, 3.0), (0, 0, 2.0), [(-6.5, 0.0, 0), (6.5, 0.0, 0), (-6.5, 1.2, 4.6), (6.5, 1.2, 4.6)], remplir=1.04)
     s = Scene(cam, 0.05)
     s.au_sol([(-10, -8), (10, -8), (10, 3), (-10, 3)], SOL_EXT)
     s.boite(-6.8, -2.2, 0, 6.8, 0.6, 0.3, dessus='#3B2723', cote='#2A1C18', face='#2A1C18')
@@ -723,15 +723,15 @@ def escalade():
             c = alea.choice(couleurs)
             morceaux.append(f'<ellipse cx="{cx:.2f}" cy="{cy:.2f}" rx="{rr:.2f}" ry="{rr * 0.8:.2f}" fill="{c}" transform="rotate({alea.uniform(-40, 40):.0f} {cx:.2f} {cy:.2f})"/>')
         s.objets.append((cam.profondeur(((a[0] + b[0]) / 2, y0 + dy, 2.5)) + 3, ''.join(morceaux)))
-    return s.svg()
+    return s if essai else s.svg()
 
 
-def boxe():
+def boxe(cam=None, essai=False):
     # Ring : 6,10 m entre les cordes, plateau à 1 m du sol, 4 cordes à 40, 71, 102 et 132 cm,
     # coins rouge et bleu en diagonale, deux coins neutres blancs
     c, plateau = 6.10, 1.0
     m = c / 2 + 0.6  # le plateau dépasse de 60 cm
-    cam = Camera((4.5, -c / 2 - 11, 6.5), (0, 0, 1.2), [(-m, -m, 0), (m, -m, 0), (m, m, 0), (-c / 2, c / 2, plateau + 1.42), (c / 2, c / 2, plateau + 1.42)], remplir=0.9)
+    cam = cam or Camera((4.5, -c / 2 - 11, 6.5), (0, 0, 1.2), [(-m, -m, 0), (m, -m, 0), (m, m, 0), (-c / 2, c / 2, plateau + 1.42), (c / 2, c / 2, plateau + 1.42)], remplir=0.9)
     s = Scene(cam, 0.05)
     sol_autour(s, 20, 20, 0)
     s.ombre([(-m - 0.3, -m), (m + 0.6, -m), (m + 0.6, m + 0.4), (-m - 0.3, m + 0.4)])
@@ -756,13 +756,13 @@ def boxe():
             if a[1] == b[1] == -1:
                 prof = min(cam.profondeur(pa), cam.profondeur(pb)) - 0.5
             s.trait3d(pa, pb, LIGNE, 1.6, prof=prof)
-    return s.svg()
+    return s if essai else s.svg()
 
 
-def course():
+def course(cam=None, essai=False):
     # Piste de 400 m (World Athletics) : lignes droites de 84,39 m, virages de 36,50 m de rayon, 8 couloirs de 1,22 m
     R, D, n, w = 36.5, 84.39, 8, 1.22
-    cam = Camera((40, -95, 42), (18, 0, 0), [(-D / 2, -R - n * w, 0), (D / 2 + R + n * w, 0, 0), (D / 2, R + n * w, 0)], remplir=1.15, decalage=(-0.04, 0.02))
+    cam = cam or Camera((40, -95, 42), (18, 0, 0), [(-D / 2, -R - n * w, 0), (D / 2 + R + n * w, 0, 0), (D / 2, R + n * w, 0)], remplir=1.15, decalage=(-0.04, 0.02))
     s = Scene(cam, 0.05)
     s.au_sol([(-200, -200), (200, -200), (200, 200), (-200, 200)], SOL_EXT)
 
@@ -787,12 +787,12 @@ def course():
     for k in range(n):  # numéros de couloir : petits traits sur la ligne d'arrivée
         y = -R - (k + 0.5) * w
         s.segment((D / 2 + 1.2, y), (D / 2 + 1.8, y), largeur=0.25)
-    return s.svg()
+    return s if essai else s.svg()
 
 
-def velo():
+def velo(cam=None, essai=False):
     # Route qui serpente dans la campagne, ligne blanche en tirets
-    cam = Camera((0, -40, 16), (0, 30, 0), [(-30, 0, 0), (30, 0, 0), (-30, 90, 0), (30, 90, 0)], remplir=1.0)
+    cam = cam or Camera((0, -40, 16), (0, 30, 0), [(-30, 0, 0), (30, 0, 0), (-30, 90, 0), (30, 90, 0)], remplir=1.0)
     s = Scene(cam, 0.15)
     s.au_sol([(-200, -60), (200, -60), (200, 400), (-200, 400)], SOL)
     for i in range(12):  # champs en bandes
@@ -829,13 +829,13 @@ def velo():
                          f'<ellipse cx="{cx:.2f}" cy="{cy:.2f}" rx="{rr:.2f}" ry="{rr * 1.35:.2f}" fill="#8F2410"/>'
                          f'<ellipse cx="{cx - rr * 0.3:.2f}" cy="{cy - rr * 0.35:.2f}" rx="{rr * 0.45:.2f}" ry="{rr * 0.6:.2f}" fill="#A8301A"/>'))
         s.ombre([(x - 1.5, y - 0.5), (x + 2.5, y - 0.5), (x + 2.5, y + 1.5), (x - 1.5, y + 1.5)])
-    return s.svg()
+    return s if essai else s.svg()
 
 
-def ultimate():
+def ultimate(cam=None, essai=False):
     # WFDF : 100 × 37 dont deux zones d'en-but de 18 m ; plots orange aux 8 coins
     L, l = 100.0, 37.0
-    cam = camera_cote(L, l, hauteur_rel=0.5, remplir=0.97)
+    cam = cam or camera_cote(L, l, hauteur_rel=0.5, remplir=0.97)
     s = Scene(cam, 0.35)
     sol_autour(s, L, l, 40)
     for i in range(10):
@@ -849,17 +849,17 @@ def ultimate():
             p = [(x - 0.5, y, 0), (x + 0.5, y, 0), (x, y, 0.9)]
             s.objet(p, '#FFD23F')
     # le disque, en l'air
-    cx, cy = cam((6, -4, 2.2))
-    rr = 0.6 * cam.echelle / cam.profondeur((6, -4, 2.2))
+    cx, cy = cam((24, -6, 2.2))
+    rr = 0.6 * cam.echelle / cam.profondeur((24, -6, 2.2))
     s.dessus.append(f'<ellipse cx="{cx:.2f}" cy="{cy:.2f}" rx="{rr * 1.5:.2f}" ry="{rr * 0.55:.2f}" fill="{LIGNE}"/>'
                     f'<ellipse cx="{cx:.2f}" cy="{cy - rr * 0.08:.2f}" rx="{rr:.2f}" ry="{rr * 0.32:.2f}" fill="none" stroke="#E0CFC4" stroke-width="1"/>')
-    s.ombre_ronde(6.3, -3.6, 0.9, 0.5)
-    return s.svg()
+    s.ombre_ronde(*s.projete((24, -6, 2.2))[:2], 0.9, 0.5)
+    return s if essai else s.svg()
 
 
-def spikeball():
+def spikeball(cam=None, essai=False):
     # Filet rond de 91 cm à 25 cm du sol, 5 pieds, sur l'herbe d'un parc ; balle jaune
-    cam = Camera((0, -3.4, 2.6), (0, 0.2, 0.1), [(-1.6, -0.5, 0), (1.6, -0.5, 0), (-1.6, 1.4, 0), (1.6, 1.4, 0)], remplir=1.0)
+    cam = cam or Camera((0, -3.4, 2.6), (0, 0.2, 0.1), [(-1.6, -0.5, 0), (1.6, -0.5, 0), (-1.6, 1.4, 0), (1.6, 1.4, 0)], remplir=1.0)
     s = Scene(cam, 0.03)
     s.au_sol([(-20, -10), (20, -10), (20, 20), (-20, 20)], SOL)
     alea = random.Random(5)
@@ -889,13 +889,13 @@ def spikeball():
     s.dessus.append(f'<circle cx="{bx:.2f}" cy="{by:.2f}" r="{rb:.2f}" fill="#FFD23F"/>'
                     f'<circle cx="{bx - rb * 0.3:.2f}" cy="{by - rb * 0.3:.2f}" r="{rb * 0.35:.2f}" fill="#FFF3B0"/>')
     s.ombre_ronde(0.8, -0.2, 0.07, 0.05)
-    return s.svg()
+    return s if essai else s.svg()
 
 
-def petanque():
+def petanque(cam=None, essai=False):
     # Terrain de 15 × 4 en gravier, cercle de lancer de 50 cm, cochonnet et boules de 7,5 cm
     L, l = 15.0, 4.0
-    cam = Camera((-1.2, -3.2, 2.0), (2.3, 0.2, 0), [(0.8, -l / 2, 0), (4.5, -l / 2, 0), (0.8, l / 2, 0), (4.5, l / 2, 0)], remplir=1.1)
+    cam = cam or Camera((-1.2, -3.2, 2.0), (2.3, 0.2, 0), [(0.8, -l / 2, 0), (4.5, -l / 2, 0), (0.8, l / 2, 0), (4.5, l / 2, 0)], remplir=1.1)
     s = Scene(cam, 0.03)
     s.au_sol([(-40, -30), (40, -30), (40, 30), (-40, 30)], SOL_EXT)
     GRAVIER = '#F2875E'
@@ -924,12 +924,12 @@ def petanque():
             dessin = (f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{rr:.2f}" fill="{base}"/>'
                       f'<circle cx="{cx - rr * 0.3:.2f}" cy="{cy - rr * 0.35:.2f}" r="{rr * 0.35:.2f}" fill="#D8D2CF" fill-opacity="0.8"/>')
         s.objets.append((cam.profondeur((x, y, 0)), dessin))
-    return s.svg()
+    return s if essai else s.svg()
 
 
-def streetworkout():
+def streetworkout(cam=None, essai=False):
     # Aire de street workout : barres de traction (2,2 m), barres parallèles (1,2 m), espalier ; sol amortissant
-    cam = Camera((0, -9.5, 4.2), (0, 0.5, 1.3), [(-5.5, -1.5, 0), (5.5, -1.5, 0), (-5.5, 1.5, 2.6), (5.5, 1.5, 2.6)], remplir=1.0)
+    cam = cam or Camera((0, -9.5, 4.2), (0, 0.5, 1.3), [(-5.5, -1.5, 0), (5.5, -1.5, 0), (-5.5, 1.5, 2.6), (5.5, 1.5, 2.6)], remplir=1.0)
     s = Scene(cam, 0.05)
     s.au_sol([(-30, -20), (30, -20), (30, 30), (-30, 30)], SOL_EXT)
     surface(s, -6, -2.5, 6, 2.5, '#C94A2B')
@@ -961,14 +961,14 @@ def streetworkout():
         barre((4.2, 1.0, k * 0.27), (5.2, 1.0, k * 0.27))
     for x0, x1, y in ((-5.2, -0.6, 0.6), (1.0, 3.2, -0.3), (4.0, 5.4, 1.0)):
         s.ombre([(x0, y - 0.5), (x1 + 0.5, y - 0.5), (x1 + 0.5, y + 0.4), (x0, y + 0.4)])
-    return s.svg()
+    return s if essai else s.svg()
 
 
-def rugby():
+def rugby(cam=None, essai=False):
     # World Rugby : 100 m entre les lignes d'essai, 70 m de large, en-buts de 10 m,
     # lignes des 22 m pleines, des 10 m en tirets, tirets à 5 m et 15 m des touches ; poteaux en H de 5,60 m, barre à 3 m
     L, l, eb = 100.0, 70.0, 10.0
-    cam = camera_cote(L + 2 * eb, l, hauteur_rel=0.52, remplir=0.96, extra=[(L / 2, 0, 16), (-L / 2, 0, 16)])
+    cam = cam or camera_cote(L + 2 * eb, l, hauteur_rel=0.52, remplir=0.96, extra=[(L / 2, 0, 16), (-L / 2, 0, 16)])
     s = Scene(cam, 0.4)
     sol_autour(s, L + 2 * eb, l, 40)
     for i in range(12):
@@ -987,14 +987,16 @@ def rugby():
         for y in (-2.8, 2.8):
             s.poteau(x, y, 16, 0.12, LIGNE)
             s.boite(x - 0.35, y - 0.35, 0, x + 0.35, y + 0.35, 1.8, dessus='#E8E0DA', cote='#D7CCC5', face='#CFC3BB')
-        s.trait3d((x, -2.8, 3), (x, 2.8, 3), LIGNE, 2.2, prof=cam.profondeur((x, 0, 3)) - 1)
-    return s.svg()
+        ep = max(2.2, 0.24 * cam.echelle / cam.profondeur((x, 0, 3)))
+        s.ombre_trait((x, -2.8, 3), (x, 2.8, 3), ep, 0.28)
+        s.trait3d((x, -2.8, 3), (x, 2.8, 3), LIGNE, ep, prof=cam.profondeur((x, 0, 3)) - 1)
+    return s if essai else s.svg()
 
 
-def autre():
+def autre(cam=None, essai=False):
     # Terrain multisport (« agora ») de 30 × 15 : lignes de foot et de basket, palissade basse
     L, l = 30.0, 15.0
-    cam = camera_cote(L, l, hauteur_rel=0.6, remplir=1.0, extra=[(-L / 2, 0, 1.2), (L / 2, 0, 1.2)])
+    cam = cam or camera_cote(L, l, hauteur_rel=0.6, remplir=1.0, extra=[(-L / 2, 0, 1.2), (L / 2, 0, 1.2)])
     s = Scene(cam, 0.08)
     sol_autour(s, L, l, 8)
     surface(s, -L / 2, -l / 2, L / 2, l / 2)
@@ -1011,7 +1013,7 @@ def autre():
         s.boite(x - 0.05, 1.5, 0, x + 0.05, l / 2, 1.2, dessus=ENCRE, cote=ENCRE_CLAIR, face=ENCRE_CLAIR)
     s.filet((-L / 2, l / 2), (L / 2, l / 2), 0, 1.2, 0.6, couleur=ENCRE)
     s.filet((-L / 2, -l / 2), (L / 2, -l / 2), 0, 1.2, 0.6, couleur=ENCRE)
-    return s.svg()
+    return s if essai else s.svg()
 
 
 # ---------------------------------------------------------------------------
@@ -1037,7 +1039,7 @@ def coutures_foot(cx, cy, r):
             f'<g clip-path="url(#{nom})">' + ''.join(morceaux) + '</g>')
 
 
-def essai_foot():
+def essai_foot():  # (utilisé par v_foot)
     # Surface de réparation et but, vus depuis l'extérieur du point de penalty
     cam = Camera((27, -19, 11), (47.0, 0, 0.6), focale=1.55, decalage=(0.0, 0.0))
     s = foot(cam=cam, trait=0.13, essai=True)
@@ -1082,13 +1084,140 @@ def essai_padel():
     return s.svg()
 
 
-ESSAIS = {'essai-foot': essai_foot, 'essai-basket': essai_basket, 'essai-padel': essai_padel}
+def coutures_volley(cx, cy, r):
+    t = f'stroke="{ENCRE}" stroke-opacity="0.55" stroke-width="{max(r * 0.08, 0.6):.2f}" fill="none"'
+    return (f'<path d="M {cx - r * 0.95:.2f} {cy - r * 0.3:.2f} Q {cx:.2f} {cy - r * 0.05:.2f} {cx + r * 0.95:.2f} {cy - r * 0.3:.2f}" {t}/>'
+            f'<path d="M {cx - r * 0.8:.2f} {cy + r * 0.55:.2f} Q {cx:.2f} {cy + r * 0.25:.2f} {cx + r * 0.8:.2f} {cy + r * 0.55:.2f}" {t}/>'
+            f'<path d="M {cx - r * 0.1:.2f} {cy - r:.2f} Q {cx - r * 0.45:.2f} {cy:.2f} {cx - r * 0.1:.2f} {cy + r:.2f}" {t}/>')
 
+
+def coutures_tennis(cx, cy, r):
+    t = f'stroke="#FFFFFF" stroke-width="{max(r * 0.12, 0.6):.2f}" fill="none"'
+    return (f'<path d="M {cx - r * 0.9:.2f} {cy - r * 0.4:.2f} Q {cx - r * 0.2:.2f} {cy:.2f} {cx - r * 0.9:.2f} {cy + r * 0.4:.2f}" {t}/>'
+            f'<path d="M {cx + r * 0.9:.2f} {cy - r * 0.4:.2f} Q {cx + r * 0.2:.2f} {cy:.2f} {cx + r * 0.9:.2f} {cy + r * 0.4:.2f}" {t}/>')
+
+
+BALLE_TENNIS = '#E9EE8A'
+
+
+def volant(s: Scene, x, y, z, taille=0.09):
+    """Volant de badminton en l'air : bouchon et jupe de plumes."""
+    cam = s.cam
+    base = cam((x, y, z))
+    jupe = [cam((x - taille * 0.7, y, z + taille * 1.1)), cam((x + taille * 0.7, y, z + taille * 1.1))]
+    rr = taille * 0.35 * cam.echelle / cam.profondeur((x, y, z))
+    dessin = (f'<polygon points="{base[0]:.2f},{base[1]:.2f} {jupe[0][0]:.2f},{jupe[0][1]:.2f} {jupe[1][0]:.2f},{jupe[1][1]:.2f}" fill="{LIGNE}"/>'
+              f'<circle cx="{base[0]:.2f}" cy="{base[1]:.2f}" r="{rr:.2f}" fill="{ENCRE}"/>')
+    s.objets.append((cam.profondeur((x, y, z)) - 1, dessin))
+    s.ombre_ronde(*s.projete((x, y, z))[:2], taille * 0.6, taille * 0.4)
+
+
+def ballon_rugby(s: Scene, x, y, longueur=0.3):
+    cam = s.cam
+    cx, cy = cam((x, y, longueur * 0.32))
+    rr = longueur * cam.echelle / cam.profondeur((x, y, 0))
+    s.ombre_ronde(x + 0.25, y + 0.2, longueur * 0.7, longueur * 0.35)
+    s.objets.append((cam.profondeur((x, y, 0)) - 0.5,
+                     f'<ellipse cx="{cx:.2f}" cy="{cy:.2f}" rx="{rr:.2f}" ry="{rr * 0.6:.2f}" fill="{LIGNE}" transform="rotate(-18 {cx:.2f} {cy:.2f})"/>'
+                     f'<ellipse cx="{cx:.2f}" cy="{cy + rr * 0.15:.2f}" rx="{rr * 0.9:.2f}" ry="{rr * 0.4:.2f}" fill="#5A1405" fill-opacity="0.18" transform="rotate(-18 {cx:.2f} {cy:.2f})"/>'
+                     f'<line x1="{cx - rr * 0.3:.2f}" y1="{cy - rr * 0.3:.2f}" x2="{cx + rr * 0.3:.2f}" y2="{cy - rr * 0.45:.2f}" stroke="{ENCRE}" stroke-width="1" transform="rotate(-18 {cx:.2f} {cy:.2f})"/>'))
+
+
+def v_foot():
+    return essai_foot()
+
+
+def v_basket():
+    return essai_basket()
+
+
+def v_padel():
+    return essai_padel()
+
+
+def v_volley():
+    s = volley(cam=Camera((-21, -24, 12), (0.5, 0, 1.3), focale=1.85), essai=True)
+    s.balle(-2.6, -1.2, 0.22, LIGNE, z=3.6, coutures=coutures_volley)
+    return s.svg()
+
+
+def v_tennis():
+    s = tennis(cam=Camera((-30, -25, 13), (-1.5, 0, 0.4), focale=1.75), essai=True)
+    for x, y in ((-9.6, -2.2), (-10.1, -1.7), (-6.9, 3.4)):
+        s.balle(x, y, 0.1, BALLE_TENNIS, coutures=coutures_tennis)
+    return s.svg()
+
+
+def v_badminton():
+    s = badminton(cam=Camera((-14, -15, 8), (0, 0, 0.9), focale=1.8), essai=True)
+    volant(s, -1.2, -0.8, 2.3, 0.12)
+    return s.svg()
+
+
+def v_squash():
+    s = squash(essai=True)
+    s.balle(0.9, 2.6, 0.06, ENCRE)
+    return s.svg()
+
+
+def v_pingpong():
+    s = pingpong(essai=True)
+    s.balle(-0.6, -0.2, 0.025, LIGNE, z=0.76 + 0.22)
+    return s.svg()
+
+
+def v_escalade():
+    return escalade(essai=True).svg()
+
+
+def v_boxe():
+    return boxe(essai=True).svg()
+
+
+def v_course():
+    R, D, n, w = 36.5, 84.39, 8, 1.22
+    return course(cam=Camera((25, -100, 24), (40, -38, 0), focale=2.3), essai=True).svg()
+
+
+def v_velo():
+    return velo(essai=True).svg()
+
+
+def v_ultimate():
+    s = ultimate(cam=Camera((-2, -52, 22), (30, 0, 0), focale=1.35), essai=True)
+    return s.svg()
+
+
+def v_spikeball():
+    return spikeball(essai=True).svg()
+
+
+def v_petanque():
+    return petanque(essai=True).svg()
+
+
+def v_streetworkout():
+    return streetworkout(essai=True).svg()
+
+
+def v_rugby():
+    s = rugby(cam=Camera((14, -34, 12), (49, 0, 4.0), focale=1.45), essai=True)
+    ballon_rugby(s, 40, -4, 0.34)
+    return s.svg()
+
+
+def v_autre():
+    s = autre(cam=Camera((-17, -21, 11), (4, 0, 0.5), focale=1.55), essai=True)
+    s.balle(3, -2.5, 0.25, LIGNE, coutures=coutures_foot)
+    return s.svg()
+
+
+# Ce que l'app affiche : la version serrée, avec soleil et ballon, de chaque terrain
 TERRAINS = {
-    'foot': foot, 'basket': basket, 'volley': volley, 'tennis': tennis, 'padel': padel,
-    'badminton': badminton, 'squash': squash, 'pingpong': pingpong, 'escalade': escalade, 'boxe': boxe,
-    'course': course, 'velo': velo, 'ultimate': ultimate, 'spikeball': spikeball, 'petanque': petanque,
-    'streetworkout': streetworkout, 'rugby': rugby, 'autre': autre,
+    'foot': v_foot, 'basket': v_basket, 'volley': v_volley, 'tennis': v_tennis, 'padel': v_padel,
+    'badminton': v_badminton, 'squash': v_squash, 'pingpong': v_pingpong, 'escalade': v_escalade, 'boxe': v_boxe,
+    'course': v_course, 'velo': v_velo, 'ultimate': v_ultimate, 'spikeball': v_spikeball, 'petanque': v_petanque,
+    'streetworkout': v_streetworkout, 'rugby': v_rugby, 'autre': v_autre,
 }
 
 if __name__ == '__main__':
@@ -1096,7 +1225,7 @@ if __name__ == '__main__':
     racine = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     dossier = os.path.join(racine, 'design', 'terrains')
     os.makedirs(dossier, exist_ok=True)
-    tous = {**TERRAINS, **ESSAIS}
+    tous = TERRAINS
     choix = sys.argv[1:] or list(TERRAINS)
     for nom in choix:
         with open(os.path.join(dossier, f'{nom}.svg'), 'w', encoding='utf-8') as f:
