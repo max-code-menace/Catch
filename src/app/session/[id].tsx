@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   interpolate,
   useAnimatedScrollHandler,
@@ -25,11 +25,11 @@ import {
   IconeRetour,
 } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
-import { TerrainSport } from '@/components/terrain-sport';
 import { Chargement } from '@/components/chargement';
 import { ChiffreQuiDefile } from '@/components/chiffre-qui-defile';
 import { INCLINAISON, TexteSurligne } from '@/components/marqueur';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
+import { Terrains } from '@/donnees/terrains';
 import {
   annulationLibre,
   distance,
@@ -176,7 +176,13 @@ export default function DetailSession() {
         onScroll={surDefilement}
         scrollEventThrottle={16}>
         <View style={[styles.enteteSport, { height: top + HAUTEUR_ENTETE, paddingTop: top }]}>
-          <TerrainSport sport={session.sport} couleur={c.surRouge} />
+          {/* L'illustration du terrain du sport (vraies dimensions), comme dans Mes sessions */}
+          <Image
+            source={Terrains[session.sport]}
+            style={StyleSheet.absoluteFill}
+            resizeMode="cover"
+            accessibilityIgnoresInvertColors
+          />
           {/* Page d'invitation (web) : le logo défile avec l'en-tête rouge */}
           {invitation && (
             <Text accessibilityLabel="Catch" style={[styles.logo, { top: top + 16 }]}>
