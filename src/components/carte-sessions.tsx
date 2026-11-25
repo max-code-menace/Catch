@@ -9,7 +9,7 @@ import { ApparitionSi, PastilleGroupeSessions, PastilleQuiEclate, PastilleSessio
 import { CENTRE_ZONE, type Coordonnees, type Session } from '@/donnees/sessions';
 import type { Evenement } from '@/lib/evenements';
 import { useApparitions } from '@/lib/apparitions';
-import { descriptionGroupe, descriptionPastille, estEnDirect } from '@/lib/formats';
+import { descriptionGroupe, descriptionPastille, etiquetteGroupe, etiquettePastille } from '@/lib/formats';
 import { texteType, type LieuSport } from '@/lib/lieux-sport';
 import { eclatsVisibles, groupesDeSessions, zoomDuGroupe } from '@/lib/pastilles-carte';
 import { OUVERTURE_REGROUPEMENT, regrouper } from '@/lib/regroupement';
@@ -175,10 +175,10 @@ export function CarteSessions({
           return (
             <Marker
               // Clé stable tant que la bulle garde les mêmes sessions : pas de clignotement sur Android
-              key={`groupe-${groupe.cle}-${theme}`}
+              key={`groupe-${groupe.cle}-${etiquetteGroupe(membres)}-${theme}`}
               coordinate={groupe.position}
               anchor={{ x: 0.5, y: 0.5 }}
-              tracksViewChanges={choisie || delai !== undefined || membres.some((s) => estEnDirect(s))}
+              tracksViewChanges={choisie || delai !== undefined}
               zIndex={choisie ? 2 : 1}
               accessibilityRole="button"
               accessibilityLabel={descriptionGroupe(membres)}
@@ -197,11 +197,11 @@ export function CarteSessions({
         const pastille = <PastilleSession session={session} choisie={choisie} />;
         return (
           <Marker
-            key={`${session.id}-${theme}`}
+            key={`${session.id}-${session.inscrits.length}-${etiquettePastille(session)}-${theme}`}
             coordinate={session.position}
             anchor={{ x: 0.5, y: 0.5 }}
-            // Android fige les marqueurs en image : on ne les redessine que s'ils bougent
-            tracksViewChanges={choisie || delai !== undefined || estEnDirect(session)}
+            // Android fige les marqueurs en image : on ne les redessine que s'ils bougent (la clé change avec les inscrits et l'étiquette)
+            tracksViewChanges={choisie || delai !== undefined}
             zIndex={choisie ? 2 : 1}
             accessibilityRole="button"
             accessibilityLabel={descriptionPastille(session)}

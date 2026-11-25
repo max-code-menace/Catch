@@ -15,9 +15,10 @@ import {
   quandDetail,
   texteDistance,
   texteDuree,
-  textePastille,
+  etiquettePastille,
+  quandFiche,
   textePlaces,
-  texteGroupe,
+  etiquetteGroupe,
 } from '../src/lib/formats.ts';
 
 const HEURE = 3_600_000;
@@ -77,10 +78,16 @@ test('en direct : entre le début et la fin, pas avant ni après', () => {
   assert.equal(quandDetail(s, maintenant), "En ce moment · jusqu'à 13h");
 });
 
-test('pastille : en direct, il manque 1, sinon le moment', () => {
-  assert.equal(textePastille(session(new Date(Date.now() - 10 * 60_000), { inscrits: 6 })), 'Foot · 6 jouent');
+test('pastille : en direct, 1 ou 2 places, complet, sinon le moment', () => {
+  const direct = new Date(Date.now() - 10 * 60_000);
+  assert.equal(etiquettePastille(session(direct, { inscrits: 6 })), 'En direct');
   const demain = new Date(Date.now() + 26 * HEURE);
-  assert.equal(textePastille(session(demain, { joueurs: 4, inscrits: 3 })), 'Foot · il manque 1');
+  assert.equal(etiquettePastille(session(demain, { joueurs: 10, inscrits: 3 })), `Demain ${heure(demain)}`);
+  assert.equal(etiquettePastille(session(demain, { joueurs: 4, inscrits: 3 })), `Demain ${heure(demain)} · 1 pl.`);
+  assert.equal(etiquettePastille(session(demain, { joueurs: 4, inscrits: 2 })), `Demain ${heure(demain)} · 2 pl.`);
+  assert.equal(etiquettePastille(session(demain, { joueurs: 4, inscrits: 4 })), `Demain ${heure(demain)} · complet`);
+  const ceSoir = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate(), 19, 0);
+  assert.equal(etiquettePastille(session(ceSoir, { joueurs: 10, inscrits: 3 }), maintenant), '19h');
 });
 
 test('annulation libre jusqu’à 3 heures avant le début', () => {
@@ -117,15 +124,11 @@ test('VoiceOver : la pastille dit le sport, le moment et les places', () => {
 test('bulle de sessions : même sport, sports différents, en direct', () => {
   const foot = (h, j = 16) => session(new Date(2026, 10, j, h, 0));
   const autre = (sport, nomSport, h) => ({ ...foot(h), sport, nomSport });
-  assert.equal(texteGroupe([foot(19), foot(18), foot(20), foot(21)], maintenant), 'Foot ×4 · dès 18h');
-  assert.equal(texteGroupe([foot(19, 17), foot(20, 17)], maintenant), 'Foot ×2 · dès demain 19h');
-  assert.equal(texteGroupe([foot(19, 19), foot(20, 19)], maintenant), 'Foot ×2 · dès jeu. 19h');
+  assert.equal(etiquetteGroupe([foot(19), foot(18), foot(20), foot(21)], maintenant), 'dès 18h');
+  assert.equal(etiquetteGroupe([foot(19, 17), foot(20, 17)], maintenant), 'dès demain 19h');
+  assert.equal(etiquetteGroupe([foot(19, 19), foot(20, 19)], maintenant), 'dès jeu. 19h');
   // Une session en cours (11h-12h30, il est midi) : la bulle passe en direct
-  assert.equal(texteGroupe([foot(11), foot(19)], maintenant), 'Foot ×2 · en direct');
-  assert.equal(
-    texteGroupe([foot(19), autre('volley', 'Volley', 18), autre('padel', 'Padel', 20), foot(21)], maintenant),
-    '4 sessions',
-  );
+  assert.equal(etiquetteGroupe([foot(11), foot(19)], maintenant), 'En direct');
 });
 
 test('bulle de sessions : ce que lit VoiceOver', () => {
@@ -145,4 +148,15 @@ test('bulle de sessions : ce que lit VoiceOver', () => {
   );
   assert.equal(descriptionGroupe([foot(11), foot(19)], maintenant), '2 sessions de foot, à partir de 19h, dont 1 en ce moment');
   assert.equal(descriptionGroupe([foot(11), foot(11)], maintenant), '2 sessions de foot, en ce moment');
+});
+
+test('fiche de la carte : le moment dans la phrase', () => {
+  const dans = (heures, minutesEnPlus = 0) => session(new Date(maintenant.getTime() + heures * HEURE + minutesEnPlus * 60_000));
+  assert.equal(quandFiche(session(new Date(maintenant.getTime() - 10 * 60_000)), maintenant), 'en direct');
+  assert.equal(quandFiche(dans(0, 40), maintenant), 'dans 40 min');
+  assert.equal(quandFiche(dans(3), maintenant), 'dans 3 h');
+  // Plus tard le même jour : l'heure (un lundi midi, 19h dans 7 h)
+  assert.equal(quandFiche(session(new Date(2026, 10, 16, 19, 0)), maintenant), 'ce soir à 19h');
+  assert.equal(quandFiche(session(new Date(2026, 10, 17, 18, 0)), maintenant), 'demain à 18h');
+  assert.equal(quandFiche(session(new Date(2026, 10, 19, 19, 0)), maintenant), 'jeudi à 19h');
 });

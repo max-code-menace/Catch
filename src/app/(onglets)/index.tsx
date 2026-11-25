@@ -3,7 +3,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
-import { Balle } from '@/components/balle';
 import { SessionQuiTombe } from '@/components/session-qui-tombe';
 import { BandeauCarte } from '@/components/bandeau-carte';
 import { Chargement } from '@/components/chargement';
@@ -14,25 +13,24 @@ import { FicheEvenement } from '@/components/fiche-evenement';
 import { FicheGroupe } from '@/components/fiche-groupe';
 import { FicheLieu } from '@/components/fiche-lieu';
 import { FicheSession } from '@/components/fiche-session';
-import { BoutonPresDeMoi, BulleMesSports } from '@/components/boutons-carte';
-import { CartePlusProche } from '@/components/carte-plus-proche';
-import { FeuilleMesSports, TOUS_LES_TYPES, type TypesCarte } from '@/components/feuille-mes-sports';
-import { ToastMesSports } from '@/components/toast-mes-sports';
+import { BoutonPresDeMoi } from '@/components/boutons-carte';
+import { HAUTEUR_LIGNE_VIDE, LigneCarteVide } from '@/components/ligne-carte-vide';
+import { MenuFiltre, TOUS_LES_TYPES, type TypesCarte } from '@/components/menu-filtre';
 import { IconeDrapeau, IconeSansReseau } from '@/components/icones';
-import { PictoSport } from '@/components/picto-sport';
 import { ListeSessions } from '@/components/liste-sessions';
 import { PanneauCarte } from '@/components/panneau-carte';
 import { CENTRE_ZONE, NOM_ZONE, type Coordonnees, type Session } from '@/donnees/sessions';
 import { ficheSport } from '@/donnees/sports';
+import type { Sport } from '@/donnees/pictos';
 import { useCatch } from '@/lib/catch';
 import { inviter } from '@/lib/invitation';
 import { sessionsDeLEvenement, useEvenements } from '@/lib/evenements';
 import { filtreActif, listeSports, texteFiltre } from '@/lib/filtre-sports';
-import { distance, quand, texteDistance, textePlaces } from '@/lib/formats';
+import { distance } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { maPosition } from '@/lib/lieux';
 import { sessionsDuLieu, useLieuxSport } from '@/lib/lieux-sport';
-import { useBulleMesSports, useFiltreMesSports, useMesSports } from '@/lib/mes-sports';
+import { useFiltreMesSports, useMesSports } from '@/lib/mes-sports';
 import { useSessions } from '@/lib/sessions';
 import { Durees } from '@/constants/theme';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
@@ -43,14 +41,7 @@ const RAYON_MAX_KM = 30;
 /** Au-delà, on s'est éloigné de chez soi : « Près de moi » apparaît */
 const LOIN_M = 1500;
 const ZOOM_DEPART = 0.11;
-/** Hauteur de la petite carte « Rien à 5 km » : « Près de moi » se pose au-dessus */
-const HAUTEUR_PLUS_PROCHE = 96;
 const nomSport = (sport: Session['sport']) => ficheSport(sport).nom;
-
-/** L'élément le plus proche d'un point (événement, lieu), ou rien si la liste est vide */
-function plusProcheDe<T extends { position: Coordonnees }>(point: Coordonnees, liste: T[]): T | undefined {
-  return [...liste].sort((a, b) => distance(point, a.position) - distance(point, b.position))[0];
-}
 
 export default function Carte() {
   const styles = useStyles(creerStyles);
@@ -84,16 +75,19 @@ export default function Carte() {
   const choix = { sports: mesSports.sports, tous: mesSports.tous };
   const filtre = filtreActif(choix);
   const [types, setTypes] = useState<TypesCarte>(TOUS_LES_TYPES);
-  const [feuilleOuverte, setFeuilleOuverte] = useState(false);
-  // Message sous la barre après un toucher de l'étoile (« Tes sports · … » / « Tous les sports »)
-  const [annonce, setAnnonce] = useState<{ cle: number; tous: boolean } | null>(null);
-  const bulle = useBulleMesSports(mesSports.pret && mesSports.sports.length === 0);
+  // Menu des sports sous la pastille du haut
+  const [menuOuvert, setMenuOuvert] = useState(false);
   const voirSessions = types.sessions;
   const { sessions, eclats, lieux, evenements } = useFiltreMesSports({
     sessions: toutesLesSessions,
     eclats: tousLesEclats,
     lieux: useLieuxSport(),
     evenements: useEvenements(),
+  });
+  // Le petit nombre de chaque tuile du menu : les sessions du rayon, tous sports confondus
+  const comptes: Partial<Record<Sport, number>> = {};
+  toutesLesSessions.forEach((session) => {
+    if (distance(origine, session.position) / 1000 <= rayon) comptes[session.sport] = (comptes[session.sport] ?? 0) + 1;
   });
   const lieuxCarte = types.lieux ? lieux : [];
   const evenementsCarte = types.evenements ? evenements : [];
@@ -213,86 +207,30 @@ export default function Carte() {
       ? `Voir les ${plusLoin.length} sessions à ${rayonElargi} km`
       : `Voir la session à ${rayonElargi} km`
     : null;
-  // Rien dans le rayon : une petite carte montre ce qu'il y a de plus proche, plutôt qu'un grand panneau
-  const sessionsPlusLoin = sessions
-    .map((session, i) => ({ session, km: distancesKm[i] }))
-    .filter(({ km }) => km > rayon && km <= RAYON_MAX_KM)
-    .sort((a, b) => a.km - b.km);
-  const sessionProche = sessionsPlusLoin[0]?.session;
+  // Rien dans le rayon : une seule ligne dit quoi faire (voir plus loin, tous les sports, ce qu'il y a autour)
   // Filtre « Mes sports » : les sessions d'autres sports dans le rayon, pour ne jamais laisser une carte vide sans raison
   const autresSports = filtre
     ? toutesLesSessions.filter(
         (s) => !mesSports.sports.includes(s.sport) && distance(origine, s.position) / 1000 <= rayon,
       ).length
     : 0;
-  const rien = filtre ? `Rien ${texteFiltre(choix, nomSport)}` : 'Rien';
+  const rien = filtre ? `Rien ${texteFiltre(choix, nomSport)} à ${rayon} km` : `Rien à ${rayon} km`;
   function voirTousLesSports() {
     vibrer.selection();
     mesSports.setTous(true);
   }
-  const boutonAutres = autresSports
-    ? { titre: autresSports > 1 ? `+${autresSports} autres sports` : '+1 autre sport', onPress: voirTousLesSports }
-    : undefined;
-  const evenementProche = plusProcheDe(origine, evenements);
-  const lieuProche = evenementProche ? undefined : plusProcheDe(origine, lieux);
-
-  /** Ferme la petite carte, ouvre la fiche et centre la carte dessus */
-  function montrer(point: Coordonnees, ouvrirFiche: () => void) {
-    setPanneauFerme(true);
-    ouvrirFiche();
-    setCible({ ...point, cle: Date.now() });
-  }
-
-  const plusProcheAffiche: Omit<React.ComponentProps<typeof CartePlusProche>, 'onFermer'> = sessionProche
+  const autourExiste = evenements.length > 0 || lieux.length > 0;
+  const ligneVide: { texte: string; action?: string; onPress?: () => void } = autresSports
     ? {
-        picto: <PictoSport sport={sessionProche.sport} taille={30} />,
-        surtitre: `${rien} à ${rayon} km · la plus proche`,
-        titre: `${sessionProche.titre} · ${quand(sessionProche.debut)}`,
-        detail: `${texteDistance(distance(origine, sessionProche.position))} · ${textePlaces(sessionProche)}`,
-        onOuvrir: () => ouvrir(sessionProche),
-        bouton: boutonAutres ?? (rayonElargi
-          ? {
-              titre:
-                sessionsPlusLoin.length > 2
-                  ? `+${sessionsPlusLoin.length - 1} autres`
-                  : sessionsPlusLoin.length === 2
-                    ? '+1 autre'
-                    : 'Sur la carte',
-              onPress: () => voirPlusLoin(rayonElargi),
-            }
-          : undefined),
+        texte: rien,
+        action: `+${autresSports} ${autresSports > 1 ? 'autres sports' : 'autre sport'} ›`,
+        onPress: voirTousLesSports,
       }
-    : boutonAutres
-      ? {
-          picto: <Balle taille={28} />,
-          surtitre: `${rien} à ${rayon} km`,
-          titre: autresSports > 1 ? `${autresSports} autres sessions ici` : '1 autre session ici',
-          onOuvrir: voirTousLesSports,
-          bouton: { titre: 'Tout voir', onPress: voirTousLesSports },
-        }
-    : evenementProche
-      ? {
-          picto: <PictoSport sport={evenementProche.sport} taille={30} />,
-          surtitre: `${rien} à ${rayon} km · à faire autour`,
-          titre: evenementProche.nom,
-          detail: `${quand(evenementProche.debut)} · ${texteDistance(distance(origine, evenementProche.position))}`,
-          onOuvrir: () => montrer(evenementProche.position, () => choisirEvenement(evenementProche.id)),
-          bouton: { titre: 'Voir autour', onPress: voirAutour },
-        }
-      : lieuProche
-        ? {
-            picto: <PictoSport sport={lieuProche.sports[0]} taille={30} />,
-            surtitre: `${rien} à ${rayon} km · à faire autour`,
-            titre: lieuProche.nom,
-            detail: `${lieuProche.type === 'gratuit' ? 'Gratuit' : 'Payant'} · ${texteDistance(distance(origine, lieuProche.position))}`,
-            onOuvrir: () => montrer(lieuProche.position, () => choisirLieu(lieuProche.id)),
-            bouton: { titre: 'Voir autour', onPress: voirAutour },
-          }
-        : {
-            picto: <Balle taille={28} />,
-            surtitre: `${rien} à ${rayon} km pour l’instant`,
-            titre: 'Lance la première session du coin',
-          };
+    : rayonElargi
+      ? { texte: rien, action: `Voir à ${rayonElargi} km ›`, onPress: () => voirPlusLoin(rayonElargi) }
+      : autourExiste
+        ? { texte: rien, action: 'À faire autour ›', onPress: voirAutour }
+        : { texte: 'Personne ne joue encore ici' };
 
   // La liste montre les mêmes sessions que la carte : celles du rayon, les plus proches d'abord à heure égale
   const dansLeRayon = sessions.filter((_, i) => distancesKm[i] <= rayon);
@@ -353,10 +291,10 @@ export default function Carte() {
         </PanneauCarte>
       )}
       {/* On laisse la session finir d'éclater avant d'afficher « Rien à 5 km » */}
-      {plusProcheVisible && <CartePlusProche {...plusProcheAffiche} onFermer={() => setPanneauFerme(true)} />}
+      {plusProcheVisible && <LigneCarteVide {...ligneVide} />}
       {vue === 'carte' && aucuneFiche && (loin || (position === null && !positionRefusee)) && (
         <BoutonPresDeMoi
-          decalage={plusProcheVisible ? HAUTEUR_PLUS_PROCHE : 0}
+          decalage={plusProcheVisible ? HAUTEUR_LIGNE_VIDE : 0}
           onPress={() => {
             vibrer.selection();
             setPanneauFerme(false);
@@ -380,29 +318,21 @@ export default function Carte() {
         </View>
       )}
       <BarreHaut
-        zone={`${position ? 'Près de toi' : NOM_ZONE} · ${rayon} km`}
         vue={vue}
-        onBasculer={() => setVue(vue === 'carte' ? 'liste' : 'carte')}
-        nombreSports={filtre ? mesSports.sports.length : 0}
-        descriptionSports={
-          filtre ? `Mes sports : ${listeSports(mesSports.sports, nomSport)}` : 'Mes sports : tous les sports'
-        }
-        onMesSports={() => {
+        onBasculer={() => {
+          setMenuOuvert(false);
+          setVue(vue === 'carte' ? 'liste' : 'carte');
+        }}
+        sports={filtre ? mesSports.sports : []}
+        libelle={filtre ? listeSports(mesSports.sports, nomSport) : 'Tous les sports'}
+        menuOuvert={menuOuvert}
+        onMenu={() => {
           vibrer.selection();
-          bulle.cacher();
-          // Pas encore de sports choisis : on les choisit d'abord. Ensuite l'étoile bascule en un toucher.
-          if (mesSports.sports.length === 0) {
-            setFeuilleOuverte(true);
-            return;
-          }
-          const tous = !mesSports.tous;
-          mesSports.setTous(tous);
-          // Le petit message (avec « Modifier ») seulement quand on passe à ses sports, pas quand on revient à tous
-          setAnnonce(tous ? null : { cle: Date.now(), tous });
+          setMenuOuvert((ouvert) => !ouvert);
           setPanneauFerme(false);
         }}
       />
-      {vue === 'carte' && bandeauNombre && dansLeRayon.length > 0 && !annonce && !enLigne && !idQuiTombe && !bulle.afficher && aucuneFiche && (
+      {vue === 'carte' && bandeauNombre && dansLeRayon.length > 0 && !menuOuvert && !enLigne && !idQuiTombe && aucuneFiche && (
         <BandeauCarte
           cle={bandeauNombre}
           titre={`${dansLeRayon.length} ${dansLeRayon.length === 1 ? 'session' : 'sessions'} ${position ? 'près de toi' : `à ${NOM_ZONE}`}`}
@@ -429,36 +359,15 @@ export default function Carte() {
           onFini={() => setEnLigne(null)}
         />
       )}
-      {annonce && !feuilleOuverte && (
-        <ToastMesSports
-          cle={annonce.cle}
-          tous={annonce.tous}
-          sports={listeSports(mesSports.sports, nomSport)}
-          onModifier={() => {
-            setAnnonce(null);
-            setFeuilleOuverte(true);
-          }}
-          onFini={() => setAnnonce(null)}
+      {menuOuvert && (
+        <MenuFiltre
+          onFermer={() => setMenuOuvert(false)}
+          types={types}
+          onTypes={setTypes}
+          comptes={comptes}
+          zone={`${position ? 'Près de toi' : NOM_ZONE} · ${rayon} km`}
         />
       )}
-      {bulle.afficher && !feuilleOuverte && (
-        <BulleMesSports
-          onPress={() => {
-            bulle.cacher();
-            setFeuilleOuverte(true);
-          }}
-        />
-      )}
-      <FeuilleMesSports
-        visible={feuilleOuverte}
-        onFermer={() => {
-          setFeuilleOuverte(false);
-          setPanneauFerme(false);
-        }}
-        types={types}
-        onTypes={setTypes}
-        nombreSessions={dansLeRayon.length}
-      />
       {vue === 'carte' && choisie && (
         <FicheSession
           key={choisie.id}

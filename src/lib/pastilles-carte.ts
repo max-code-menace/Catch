@@ -4,7 +4,7 @@ import { PixelRatio } from 'react-native';
 
 import { Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
-import { estEnDirect, sportsDuGroupe, texteGroupe, textePastille } from '@/lib/formats';
+import { etiquetteGroupe, etiquettePastille } from '@/lib/formats';
 import {
   regrouperSessions,
   taillePastille,
@@ -15,23 +15,15 @@ import {
 import type { Eclat } from '@/lib/sessions';
 
 function options(): OptionsRegroupement<Session> {
-  // Le texte des pastilles grossit avec le réglage de l'iPhone, jusqu'à 130 %
+  // Le texte des étiquettes grossit avec le réglage de l'iPhone, jusqu'à 130 %
   const echelle = Math.min(1.3, PixelRatio.getFontScale());
   return {
     position: (s) => s.position,
     cle: (s) => s.id,
-    taille: (liste) => {
-      if (liste.length === 1) {
-        const [s] = liste;
-        return taillePastille({ texte: textePastille(s), direct: estEnDirect(s) }, Tailles.petit, echelle);
-      }
-      const sports = sportsDuGroupe(liste).length;
-      return taillePastille(
-        { texte: texteGroupe(liste), pictos: sports > 1 ? Math.min(3, sports) : 1, direct: liste.some((s) => estEnDirect(s)) },
-        Tailles.petit,
-        echelle,
-      );
-    },
+    taille: (liste) =>
+      liste.length === 1
+        ? taillePastille({ texte: etiquettePastille(liste[0]) }, Tailles.pastille, echelle)
+        : taillePastille({ texte: etiquetteGroupe(liste), groupe: true }, Tailles.pastille, echelle),
   };
 }
 

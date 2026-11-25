@@ -22,6 +22,8 @@ type Contexte = ChoixSports & {
   basculer: (sport: Sport) => void;
   /** « Tous les sports » (vrai) ou « Mes sports » (faux) */
   setTous: (tous: boolean) => void;
+  /** Depuis « Tous les sports » : ne garder que ce sport */
+  choisirSeul: (sport: Sport) => void;
 };
 
 const ContexteMesSports = createContext<Contexte | null>(null);
@@ -49,6 +51,7 @@ export function FournisseurMesSports({ children }: { children: React.ReactNode }
         pret,
         basculer: (sport) => changer(basculerSport(choix, sport)),
         setTous: (tous) => changer({ ...choix, tous }),
+        choisirSeul: (sport) => changer({ sports: [sport], tous: false }),
       }}>
       {children}
     </ContexteMesSports.Provider>
@@ -63,29 +66,6 @@ export function useMesSports() {
 
 /** Les sports qu'on peut choisir (tous sauf « Autre ») */
 export const SPORTS_A_CHOISIR = SPORTS.filter((s) => s.cle !== 'autre');
-
-/** Vrai une seule fois sur ce téléphone : la petite bulle « Choisis tes sports » sous l'étoile */
-const CLE_BULLE = 'catch.bulle-mes-sports';
-export function useBulleMesSports(afficherSiPossible: boolean) {
-  const [afficher, setAfficher] = useState(false);
-  useEffect(() => {
-    if (!afficherSiPossible) return;
-    AsyncStorage.getItem(CLE_BULLE)
-      .then((deja) => {
-        if (deja) return;
-        setAfficher(true);
-        return AsyncStorage.setItem(CLE_BULLE, '1');
-      })
-      .catch(() => {});
-  }, [afficherSiPossible]);
-  // Elle s'efface toute seule après quelques secondes
-  useEffect(() => {
-    if (!afficher) return;
-    const minuteur = setTimeout(() => setAfficher(false), 6000);
-    return () => clearTimeout(minuteur);
-  }, [afficher]);
-  return { afficher, cacher: () => setAfficher(false) };
-}
 
 /** Ce que la carte montre une fois le filtre « Mes sports » appliqué (tout, si le filtre n'est pas actif) */
 export function useFiltreMesSports<

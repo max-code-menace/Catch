@@ -55,7 +55,7 @@ Une seule couleur d'action par écran : le rouge. Un statut n'est jamais porté 
 - Écran de référence : 390 × 844. Marges latérales 20 px.
 - Cibles tactiles ≥ 44 px. Rayons : boutons 16, cartes 20, pastilles en pilule.
 - **Barre de navigation flottante** : pilule blanche détachée (20 px des bords, 26 px du bas), 4 onglets icône + texte, onglet actif rempli en rouge : Créer · Carte · Messages · Profil.
-- **Barre du haut (Carte et Liste)** : logo `catch`, zone (« Bruxelles · 5 km », ou « Près de toi · 5 km » quand la position est connue), bouton Liste/Carte, bouton recentrer.
+- **Barre du haut (Carte et Liste)** (25 novembre, finition B2 choisie par Maxime) : une pastille « catch | Tous les sports ⌄ » (les pictos et noms des sports choisis quand la carte est filtrée) qui ouvre un menu de tuiles de sports avec le nombre de sessions de chacun (« Tous » et un toucher par sport, puis Sessions / Événements / Lieux, « Bruxelles · 5 km » en pied) ; à côté, un rond Liste / Carte en un toucher. Plus d'étoile ni de recentrer (« Près de moi » apparaît quand il sert).
 
 ## Pictos des sports
 
@@ -67,10 +67,18 @@ Tailles d'usage : 20 px dans les pastilles de carte (dans un rond blanc), 36 px 
 
 Maquettes : [Les 4 idées de Mathias](https://claude.ai/artifact/EkHvny6qZnQV3vKcGdxRnW), version A de l'idée 3 choisie par Maxime.
 
-- **Marqueur** (`components/marqueur.tsx`, couleurs `marqueur` et `marqueurSurRouge`) : un trait de surligneur sous la moitié basse du texte. **Seulement 3 endroits** : la phrase de Créer, les places dans l'en-tête rouge du détail, « Tu l'as catchée ! ». Ailleurs il perdrait son effet.
+- **Marqueur** (`components/marqueur.tsx`, couleurs `marqueur` et `marqueurSurRouge`) : un trait de surligneur sous la moitié basse du texte. **Seulement 4 endroits** : la phrase de Créer, les places dans l'en-tête rouge du détail, « Tu l'as catchée ! », le moment dans la phrase de la fiche de la carte (« dans 3 h »). Ailleurs il perdrait son effet.
 - **Penché** (`INCLINAISON`, -8°) : l'en-tête du détail et « Tu l'as catchée ! ». Jamais pour du texte courant.
 - **En-tête du détail** (finition C1) : le nombre de places en énorme à gauche, « places à prendre » penché et surligné, le temps dans une pilule blanche (`phraseEntete` dans `lib/formats.ts`).
 - **Barre segmentée** (finitions S2 + S3, `components/barre-places.tsx`) : une case foncée par joueur, rouge pour soi, claire par place libre, 12 au plus, « 7/10 » à droite ; à 1 ou 2 places, cases libres en orange et badge « Presque plein » / « Il manque 1 joueur ». Liste et fiche de la carte. VoiceOver lit « 7 sur 10, 3 places ».
+
+## Carte : pastilles et fiche (25 novembre)
+
+Maquettes : [finitions](https://claude.ai/artifact/WopYaEQW5861Vg2SdVLMt4), choix de Maxime P2, F3, A, B2.
+
+- **Pastille d'une session (P2)** : anneau de 64 px, un trait par joueur (12 au plus, `lib/anneau-places.ts`), plein pour chaque inscrit ; picto au milieu ; étiquette posée sur le bas de l'anneau (« 19h », « Demain 18h », « 20h20 · 1 pl. », « En direct »). Encre normalement, **orange** s'il reste 1 ou 2 places, **rouge** en direct. Bulle de plusieurs sessions : disque à bord pointillé avec leur nombre, « dès 18h » dessous.
+- **Fiche de la carte (F3)** : bandeau rouge avec le terrain en filigrane, une phrase (« Foot à 5 dans 3 h, à 3 km », moment surligné) et un petit Catch blanc dedans ; dessous une ligne : lieu, barre des places. Inscrit : pastille « Tu y es » / « Ta session » à la place de Catch, avec « Inviter » et « Annuler… ».
+- **Carte vide (A)** : une seule ligne fine au-dessus de « + Créer », « Rien à 5 km · Voir à 9 km › ». Rien du tout : « Personne ne joue encore ici ».
 
 ## Animations
 

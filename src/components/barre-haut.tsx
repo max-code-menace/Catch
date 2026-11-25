@@ -1,28 +1,38 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { IconeCarte, IconeEtoile, IconeListe } from '@/components/icones';
+import { IconeCarte, IconeListe } from '@/components/icones';
+import { PictoSport } from '@/components/picto-sport';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
+import type { Sport } from '@/donnees/pictos';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 export type Vue = 'carte' | 'liste';
 
 type Props = {
-  zone: string;
   vue: Vue;
   onBasculer: () => void;
-  /** Nombre de sports choisis quand la carte est filtrée (0 : elle montre tout) */
-  nombreSports: number;
-  /** Lu par VoiceOver sur l'étoile */
-  descriptionSports: string;
-  onMesSports: () => void;
+  /** Sports choisis quand la carte est filtrée (vide : elle montre tout) */
+  sports: Sport[];
+  /** « Tous les sports » ou « Foot, padel » : lu à voix haute aussi */
+  libelle: string;
+  menuOuvert: boolean;
+  onMenu: () => void;
 };
 
-/** Hauteur occupée par la barre du haut, marge comprise : sert à décaler la liste. */
-export const HAUTEUR_BARRE_HAUT = 68;
+/** Hauteur occupée par la barre du haut, marge comprise : sert à décaler la liste et les messages. */
+export const HAUTEUR_BARRE_HAUT = 62;
+/** Hauteur de la pastille et du rond Liste / Carte */
+export const HAUTEUR_PASTILLE = 46;
+/** Nombre de pictos montrés dans la pastille quand on a choisi des sports */
+const PICTOS_MONTRES = 3;
 
-/** Barre flottante du haut : logo, zone, bascule Liste / Carte, étoile « Mes sports ». */
-export function BarreHaut({ zone, vue, onBasculer, nombreSports, descriptionSports, onMesSports }: Props) {
+/**
+ * Barre du haut (finition B2, choisie par Maxime le 24 novembre) : une pastille avec le logo et le filtre
+ * (« Tous les sports » ou les pictos et les noms des sports choisis), qui ouvre le menu des sports, et un rond
+ * Liste / Carte à côté, en un toucher.
+ */
+export function BarreHaut({ vue, onBasculer, sports, libelle, menuOuvert, onMenu }: Props) {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const { top } = useSafeAreaInsets();
@@ -30,37 +40,60 @@ export function BarreHaut({ zone, vue, onBasculer, nombreSports, descriptionSpor
   const Icone = versListe ? IconeListe : IconeCarte;
 
   return (
-    <View style={[styles.barre, { top: top + 8 }]}>
-      <Text maxFontSizeMultiplier={1.3} style={styles.logo}>catch</Text>
-      <View style={styles.separateur} />
-      <Text maxFontSizeMultiplier={1.3} style={styles.zone} numberOfLines={1}>
-        {zone}
-      </Text>
+    <View pointerEvents="box-none" style={[styles.barre, { top: top + 8 }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Sports : ${libelle}`}
+        accessibilityHint="Choisir les sports à montrer"
+        accessibilityState={{ expanded: menuOuvert }}
+        onPress={onMenu}
+        style={({ pressed }) => [styles.pastille, pressed && styles.presse]}>
+        <Text maxFontSizeMultiplier={1.3} style={styles.logo}>
+          catch
+        </Text>
+        <View style={styles.separateur} />
+        {sports.length > 0 && (
+          <View style={styles.pictos}>
+            {sports.slice(0, PICTOS_MONTRES).map((sport, i) => (
+              <View key={sport} style={[styles.rondPicto, i > 0 && styles.recouvert]}>
+                <PictoSport sport={sport} taille={18} />
+              </View>
+            ))}
+          </View>
+        )}
+        <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={styles.libelle}>
+          {libelle}
+        </Text>
+        <View style={{ transform: [{ rotate: menuOuvert ? '180deg' : '0deg' }] }}>
+          <Chevron couleur={c.encre} />
+        </View>
+      </Pressable>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={versListe ? 'Voir la liste' : 'Voir la carte'}
         onPress={onBasculer}
-        style={({ pressed }) => [styles.bascule, pressed && styles.presse]}>
-        <Icone couleur={c.encre} taille={18} />
-        <Text maxFontSizeMultiplier={1.3} style={styles.basculeTexte}>{versListe ? 'Liste' : 'Carte'}</Text>
+        style={({ pressed }) => [styles.rond, pressed && styles.presse]}>
+        <Icone couleur={c.encre} taille={20} />
       </Pressable>
-      {/* L'étoile garde sa place en vue liste : le filtre vaut aussi pour la liste */}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={descriptionSports}
-        accessibilityHint="Passe de tes sports à tous les sports"
-        onPress={onMesSports}
-        hitSlop={4}
-        style={({ pressed }) => [styles.etoile, nombreSports > 0 && styles.etoileActive, pressed && styles.presse]}>
-        <IconeEtoile couleur={nombreSports > 0 ? c.rouge : c.encre} taille={22} pleine={nombreSports > 0} />
-        {nombreSports > 0 && (
-          <View style={styles.compteur}>
-            <Text maxFontSizeMultiplier={1.2} style={styles.compteurTexte}>
-              {nombreSports}
-            </Text>
-          </View>
-        )}
-      </Pressable>
+    </View>
+  );
+}
+
+/** Petite flèche vers le bas, comme celle d'un menu déroulant */
+function Chevron({ couleur }: { couleur: string }) {
+  return (
+    <View style={{ width: 12, height: 8, alignItems: 'center' }}>
+      <View
+        style={{
+          width: 7,
+          height: 7,
+          borderRightWidth: 2,
+          borderBottomWidth: 2,
+          borderColor: couleur,
+          transform: [{ rotate: '45deg' }],
+          marginTop: -2,
+        }}
+      />
     </View>
   );
 }
@@ -71,9 +104,16 @@ const creerStyles = (c: Palette) =>
       position: 'absolute',
       left: 12,
       right: 12,
-      height: 52,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
+    },
+    pastille: {
+      flexShrink: 1,
+      height: HAUTEUR_PASTILLE,
       paddingLeft: 16,
-      paddingRight: 4,
+      paddingRight: 14,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
@@ -83,46 +123,32 @@ const creerStyles = (c: Palette) =>
       borderColor: c.trait,
       boxShadow: c.ombre,
     },
-    logo: { fontFamily: Polices.titre, fontSize: Tailles.sousTitre, color: c.rouge },
+    logo: { fontFamily: Polices.titre, fontSize: Tailles.accent, color: c.rouge },
     separateur: { width: 1, height: 20, backgroundColor: c.trait },
-    zone: { flex: 1, fontFamily: Polices.texteMoyen, fontSize: Tailles.petit, color: c.encre },
-    bascule: {
-      height: 40,
-      paddingHorizontal: 10,
-      flexDirection: 'row',
+    pictos: { flexDirection: 'row', paddingLeft: 6 },
+    rondPicto: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
       alignItems: 'center',
-      gap: 6,
-      borderRadius: Rayons.pilule,
-      backgroundColor: c.fond,
+      justifyContent: 'center',
+      backgroundColor: c.rondPicto,
       borderWidth: 1,
       borderColor: c.trait,
     },
-    basculeTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
-    etoile: {
-      width: Espaces.cibleTactile,
-      height: 40,
-      borderRadius: Rayons.pilule,
+    recouvert: { marginLeft: -6 },
+    libelle: { flexShrink: 1, fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
+    rond: {
+      width: HAUTEUR_PASTILLE,
+      height: HAUTEUR_PASTILLE,
+      borderRadius: HAUTEUR_PASTILLE / 2,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: c.fond,
+      backgroundColor: c.carte,
       borderWidth: 1,
       borderColor: c.trait,
+      boxShadow: c.ombre,
+      minWidth: Espaces.cibleTactile,
     },
-    etoileActive: { backgroundColor: c.rougeDoux, borderColor: c.rougeBordure },
-    compteur: {
-      position: 'absolute',
-      top: -5,
-      right: -3,
-      minWidth: 18,
-      height: 18,
-      paddingHorizontal: 4,
-      borderRadius: Rayons.pilule,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: c.rouge,
-      borderWidth: 2,
-      borderColor: c.carte,
-    },
-    compteurTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.minuscule, color: c.surRouge },
     presse: { backgroundColor: c.beige },
   });

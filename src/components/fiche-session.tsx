@@ -2,17 +2,16 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { SlideInDown, SlideOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Avatars } from '@/components/avatars';
-import { BadgeSession } from '@/components/badge-session';
+import { BarrePlaces } from '@/components/barre-places';
 import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
 import { BoutonCatch } from '@/components/bouton-catch';
 import { IconeInviter } from '@/components/icones';
-import { PictoSport } from '@/components/picto-sport';
-import { BarrePlaces } from '@/components/barre-places';
+import { Mot } from '@/components/marqueur';
+import { TerrainSport } from '@/components/terrain-sport';
 import { BarreNavigation, RESERVE_BAS, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
-import { estEnDirect, heure, placesLibres, quand, texteDistance, textePlaces } from '@/lib/formats';
+import { estEnDirect, heure, placesLibres, quandFiche, texteDistance } from '@/lib/formats';
 import { inviter } from '@/lib/invitation';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
@@ -32,82 +31,87 @@ type Props = {
   onAnnuler: () => void;
 };
 
-/** Fiche de la session choisie sur la carte, posée au-dessus de la barre de navigation. */
+/**
+ * Fiche de la session choisie sur la carte (finition F3, choisie par Maxime le 24 novembre) : un bandeau rouge
+ * avec une seule phrase (« Foot à 5 dans 3 h, à 3 km ») et Catch dedans, puis une ligne : lieu et places.
+ * Toucher la phrase ou la ligne ouvre le détail.
+ */
 export function FicheSession({ session, distance, catchee, organisee, onOuvrir, onDemande, onEnvoi, onCatch, onAnnuler }: Props) {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const { bottom } = useSafeAreaInsets();
   const enDirect = estEnDirect(session);
   const complet = placesLibres(session) === 0;
-  const avecBadge = enDirect || (placesLibres(session) > 0 && placesLibres(session) <= 2);
   const bas = Math.max(bottom, BarreNavigation.margeBas) + RESERVE_BAS + 12;
+  const quand = quandFiche(session);
+  const lieu = `${enDirect ? `Jusqu'à ${heure(session.fin)} · ` : ''}${session.lieu}`;
+  const statut = organisee ? 'Ta session' : 'Tu y es';
 
   return (
     <Animated.View
       entering={SlideInDown.duration(Durees.emphasized)}
       exiting={SlideOutDown.duration(Durees.standard)}
       style={[styles.fiche, { bottom: bas }]}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${session.titre}, voir le détail`}
-        onPress={onOuvrir}
-        style={styles.resume}>
-        <View style={styles.ligne}>
-          {avecBadge ? (
-            <BadgeSession session={session} />
-          ) : (
-            <Text style={styles.quand}>{quand(session.debut)}</Text>
-          )}
-          <Text style={styles.aide}>
-            {enDirect ? `Jusqu'à ${heure(session.fin)} · ` : ''}
-            {texteDistance(distance)}
+      <View style={styles.bandeau}>
+        <TerrainSport sport={session.sport} couleur={c.surRouge} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${session.titre}, ${quand}, ${texteDistance(distance)}, voir le détail`}
+          onPress={onOuvrir}
+          style={styles.phrase}>
+          <Text maxFontSizeMultiplier={1.3} style={styles.mots}>
+            {session.titre}{' '}
           </Text>
-        </View>
-
-        <View style={styles.ligne}>
-          <View style={styles.titreZone}>
-            <View style={styles.picto}>
-              <PictoSport sport={session.sport} taille={30} />
-            </View>
-            <Text style={styles.titre} numberOfLines={1}>
-              {session.titre}
+          <Mot texte={quand} couleur={c.marqueurSurRouge} style={styles.mots} />
+          <Text maxFontSizeMultiplier={1.3} style={styles.mots}>
+            , {texteDistance(distance)}
+          </Text>
+        </Pressable>
+        {catchee ? (
+          <View accessibilityLabel={statut} style={styles.statut}>
+            <Balle taille={14} />
+            <Text maxFontSizeMultiplier={1.3} style={styles.statutTexte}>
+              {statut}
             </Text>
           </View>
-          <Avatars initiales={session.inscrits} />
-        </View>
+        ) : complet ? (
+          <View accessibilityLabel="Complet" style={styles.statut}>
+            <Text maxFontSizeMultiplier={1.3} style={styles.statutTexte}>
+              Complet
+            </Text>
+          </View>
+        ) : (
+          <BoutonCatch surBandeau onDemande={onDemande} onEnvoi={onEnvoi} onCatch={onCatch} />
+        )}
+      </View>
 
-        <Text style={styles.aide}>
-          {session.lieu}, {session.commune} · {textePlaces(session)}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${lieu}, voir le détail`}
+        onPress={onOuvrir}
+        style={styles.ligne}>
+        <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={styles.lieu}>
+          {lieu}
         </Text>
-        <BarrePlaces session={session} />
+        <View style={styles.places}>
+          <BarrePlaces session={session} />
+        </View>
       </Pressable>
 
       {catchee && (
-        <View style={styles.confirmation}>
-          <Balle taille={18} />
-          <Text style={styles.confirmationTexte}>{organisee ? 'C’est ta session' : 'Tu l’as catchée !'}</Text>
+        <View style={styles.actions}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => inviter(session)}
+            style={({ pressed }) => [styles.inviter, pressed && { opacity: 0.6 }]}>
+            <IconeInviter couleur={c.rougeTexte} taille={18} />
+            <Text maxFontSizeMultiplier={1.3} style={styles.inviterTexte}>
+              Inviter
+            </Text>
+          </Pressable>
+          <Bouton titre={organisee ? 'Annuler la session' : 'Annuler ma participation'} variante="lien" onPress={onAnnuler} />
         </View>
       )}
-      <View style={styles.actions}>
-        <View style={styles.action}>
-          {catchee ? (
-            <Bouton
-              titre={organisee ? 'Annuler la session' : 'Annuler ma participation'}
-              variante="lien"
-              onPress={onAnnuler}
-            />
-          ) : (
-            <BoutonCatch complet={complet} onDemande={onDemande} onEnvoi={onEnvoi} onCatch={onCatch} />
-          )}
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Inviter"
-          onPress={() => inviter(session)}
-          style={({ pressed }) => [styles.inviter, pressed && styles.inviterPresse]}>
-          <IconeInviter couleur={c.encre} taille={22} />
-        </Pressable>
-      </View>
     </Animated.View>
   );
 }
@@ -118,52 +122,46 @@ const creerStyles = (c: Palette) =>
       position: 'absolute',
       left: 12,
       right: 12,
-      padding: 16,
-      gap: 10,
       backgroundColor: c.carte,
       borderRadius: Rayons.carte,
       borderWidth: 1,
       borderColor: c.trait,
       boxShadow: c.ombreFlottante,
+      overflow: 'hidden',
     },
-    ligne: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-    quand: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.encre },
-    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
-    titreZone: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
-    picto: {
-      width: 44,
-      height: 44,
-      borderRadius: 12,
-      backgroundColor: c.beige,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    titre: {
-      flex: 1,
-      fontFamily: Polices.titre,
-      fontSize: Tailles.titreSession,
-      color: c.encre,
-    },
-    resume: { gap: 10 },
-    confirmation: {
+    bandeau: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-      paddingTop: 4,
+      gap: 10,
+      paddingVertical: 14,
+      paddingHorizontal: 14,
+      backgroundColor: c.rouge,
+      overflow: 'hidden',
     },
-    actions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    action: { flex: 1 },
-    inviter: {
-      width: 52,
-      height: 52,
-      borderRadius: Rayons.bouton,
+    phrase: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
+    mots: { fontFamily: Polices.titre, fontSize: Tailles.accent, lineHeight: 24, color: c.surRouge },
+    statut: {
+      minHeight: 40,
+      paddingHorizontal: 14,
+      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: c.carte,
-      borderWidth: 1.5,
-      borderColor: c.trait,
+      gap: 6,
+      borderRadius: Rayons.pilule,
+      backgroundColor: c.surRouge,
     },
-    inviterPresse: { backgroundColor: c.beige },
-    confirmationTexte: { fontFamily: Polices.titre, fontSize: Tailles.sousTitre, color: c.encre },
+    statutTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.rouge },
+    ligne: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 12, paddingHorizontal: 14 },
+    lieu: { flex: 1, fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+    places: { width: 150 },
+    actions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 14,
+      paddingBottom: 4,
+      borderTopWidth: 1,
+      borderTopColor: c.trait,
+    },
+    inviter: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
+    inviterTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.rougeTexte },
   });

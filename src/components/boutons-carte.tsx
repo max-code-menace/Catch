@@ -1,8 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { HAUTEUR_BARRE_HAUT } from '@/components/barre-haut';
 import { IconeRecentrer } from '@/components/icones';
 import { BarreNavigation, Durees, Espaces, Polices, Rayons, RESERVE_BAS, Tailles } from '@/constants/theme';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
@@ -35,25 +34,6 @@ export function BoutonPresDeMoi({ onPress, decalage = 0 }: { onPress: () => void
   );
 }
 
-/** Petite bulle sous l'étoile, montrée une seule fois tant qu'on n'a pas choisi de sports */
-export function BulleMesSports({ onPress }: { onPress: () => void }) {
-  const styles = useStyles(creerStyles);
-  const { top } = useSafeAreaInsets();
-  return (
-    <Animated.View
-      entering={FadeIn.duration(Durees.standard)}
-      exiting={FadeOut.duration(Durees.standard)}
-      style={[styles.cadreBulle, { top: top + HAUTEUR_BARRE_HAUT + 4 }]}>
-      <View style={styles.pointe} />
-      <Pressable accessibilityRole="button" onPress={onPress} style={styles.bulle}>
-        <Text maxFontSizeMultiplier={1.3} style={styles.bulleTexte}>
-          Choisis tes sports : ensuite, l’étoile passe de tes sports à tous en un toucher.
-        </Text>
-      </Pressable>
-    </Animated.View>
-  );
-}
-
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
     cadrePresDeMoi: { position: 'absolute', right: 16 },
@@ -71,22 +51,4 @@ const creerStyles = (c: Palette) =>
       boxShadow: c.ombrePetite,
     },
     presDeMoiTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
-    cadreBulle: { position: 'absolute', right: 12, width: 220, alignItems: 'flex-end' },
-    // La pointe se place sous l'étoile (au bout de la barre du haut)
-    pointe: {
-      width: 12,
-      height: 12,
-      marginRight: 20,
-      marginBottom: -6,
-      backgroundColor: c.encre,
-      transform: [{ rotate: '45deg' }],
-    },
-    bulle: {
-      paddingVertical: 10,
-      paddingHorizontal: 12,
-      borderRadius: 14,
-      backgroundColor: c.encre,
-      boxShadow: c.ombreForte,
-    },
-    bulleTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.aide, color: c.surEncre },
   });
