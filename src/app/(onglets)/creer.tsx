@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -22,8 +23,8 @@ import { ChoixJoueurs } from '@/components/choix-joueurs';
 import { ChoixLieu } from '@/components/choix-lieu';
 import { IconeChevron, IconeCreer, IconeDrapeau, IconeRetour } from '@/components/icones';
 import { PhraseCreation } from '@/components/phrase-creation';
-import { PictoSport } from '@/components/picto-sport';
 import { TuileSport } from '@/components/tuile-sport';
+import { ImagesSports } from '@/donnees/images-sports';
 import { BarreNavigation, Durees, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { Pictos, type Sport } from '@/donnees/pictos';
 import { CENTRE_ZONE } from '@/donnees/sessions';
@@ -674,9 +675,7 @@ export default function Creer() {
                   accessibilityLabel={`Relancer : ${ficheM.nom}, ${m.lieu.nom}, ${m.joueurs} joueurs${creneau ? `, ${quandCreation(creneau, ouverture)}` : ''}`}
                   onPress={() => relancer(m)}
                   style={({ pressed }) => [styles.relance, pressed && styles.presse]}>
-                  <View style={styles.relancePicto}>
-                    <PictoSport sport={m.sport} taille={30} />
-                  </View>
+                  <Image source={ImagesSports[m.sport]} style={styles.relancePhoto} accessibilityIgnoresInvertColors />
                   <View style={styles.textes}>
                     <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={styles.fort}>
                       {ficheM.nom} · {m.lieu.nom}
@@ -865,14 +864,7 @@ const creerStyles = (c: Palette) =>
       borderWidth: 1,
       borderColor: c.trait,
     },
-    relancePicto: {
-      width: 44,
-      height: 44,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: c.beige,
-    },
+    relancePhoto: { width: 66, height: 44, borderRadius: 12, backgroundColor: c.beige },
     evenement: {
       minHeight: 56,
       paddingHorizontal: 16,

@@ -8,13 +8,13 @@ import { PictoSport } from '@/components/picto-sport';
 import { CartesFantomes } from '@/components/chargement';
 import { Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
-import { Terrains } from '@/donnees/terrains';
+import { BandeauxSports } from '@/donnees/images-sports';
 import { useCompte } from '@/lib/compte';
 import { quand, quandPhrase } from '@/lib/formats';
 import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
-/** Une session où je suis inscrit : le terrain du sport en bandeau, touche pour ouvrir son détail. */
+/** Une session où je suis inscrit : la photo du sport en bandeau, touche pour ouvrir son détail. */
 function LigneSession({ session, moi }: { session: Session; moi: string }) {
   const styles = useStyles(creerStyles);
   const c = useCouleurs();
@@ -26,7 +26,7 @@ function LigneSession({ session, moi }: { session: Session; moi: string }) {
       onPress={() => router.push({ pathname: '/session/[id]', params: { id: session.id } })}
       style={({ pressed }) => [styles.carte, pressed && { opacity: 0.85 }]}>
       <View>
-        <Image source={Terrains[session.sport]} style={styles.terrain} resizeMode="cover" accessibilityIgnoresInvertColors />
+        <Image source={BandeauxSports[session.sport]} style={styles.terrain} resizeMode="cover" accessibilityIgnoresInvertColors />
         {organise && (
           <View style={styles.badge}>
             <Text maxFontSizeMultiplier={1.3} style={styles.badgeTexte}>

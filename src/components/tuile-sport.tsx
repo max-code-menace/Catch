@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -24,15 +24,25 @@ const RESSORT_TASSE = { duration: 320, dampingRatio: 0.55 };
  */
 export function TuileSport({
   sport,
+  icone,
   nom,
   choisie,
   largeur,
+  nombre,
+  description,
   onPress,
 }: {
-  sport: Sport;
+  /** Le sport dont on montre la photo… */
+  sport?: Sport;
+  /** …ou une icône sur fond uni (« Tous » du menu de la carte) */
+  icone?: ReactNode;
   nom: string;
   choisie: boolean;
   largeur: number | `${number}%`;
+  /** Nombre de sessions, en pastille dans le coin (menu de la carte) */
+  nombre?: number;
+  /** Ce que lit VoiceOver, si ce n'est pas juste le nom */
+  description?: string;
   onPress: () => void;
 }) {
   const c = useCouleurs();
@@ -55,12 +65,23 @@ export function TuileSport({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={nom}
+      accessibilityLabel={description ?? nom}
       accessibilityState={{ selected: choisie }}
       onPress={onPress}
       style={({ pressed }) => [{ width: largeur }, pressed && { opacity: 0.85 }]}>
       <Animated.View style={[styles.cadre, choisie && styles.cadreChoisi, style]}>
-        <Image source={ImagesSports[sport]} style={styles.image} resizeMode="cover" />
+        {sport ? (
+          <Image source={ImagesSports[sport]} style={styles.image} resizeMode="cover" accessibilityIgnoresInvertColors />
+        ) : (
+          <View style={styles.uni}>{icone}</View>
+        )}
+        {!!nombre && !choisie && (
+          <View style={styles.nombre}>
+            <Text maxFontSizeMultiplier={1.2} style={styles.nombreTexte}>
+              {nombre}
+            </Text>
+          </View>
+        )}
         {choisie && (
           <View style={styles.coche}>
             <IconeCoche couleur={c.surRouge} taille={12} />
@@ -91,6 +112,20 @@ const creerStyles = (c: Palette) =>
     // Sur le fond orange des photos, le rouge ne se voit pas : contour couleur encre
     cadreChoisi: { borderWidth: 3, borderColor: c.encre },
     image: { width: '100%', height: '100%' },
+    uni: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: c.beige },
+    nombre: {
+      position: 'absolute',
+      top: 4,
+      right: 4,
+      minWidth: 18,
+      height: 18,
+      paddingHorizontal: 5,
+      borderRadius: Rayons.pilule,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.encre,
+    },
+    nombreTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.minuscule, color: c.surEncre },
     coche: {
       position: 'absolute',
       top: 5,

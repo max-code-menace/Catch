@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HAUTEUR_BARRE_HAUT } from '@/components/barre-haut';
 import { IconeEtoile } from '@/components/icones';
-import { PictoSport } from '@/components/picto-sport';
+import { TuileSport } from '@/components/tuile-sport';
 import { Durees, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Sport } from '@/donnees/pictos';
 import { vibrer } from '@/lib/haptics';
@@ -73,41 +73,27 @@ export function MenuFiltre({ onFermer, types, onTypes, comptes, zone }: Props) {
         style={[styles.menu, { top: top + HAUTEUR_BARRE_HAUT }]}>
         <ScrollView style={styles.defile} contentContainerStyle={styles.contenu} showsVerticalScrollIndicator={false}>
           <View style={styles.grille}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Tous les sports"
-              accessibilityState={{ selected: !filtre }}
+            <TuileSport
+              icone={<IconeEtoile couleur={!filtre ? c.rougeTexte : c.encre} taille={26} />}
+              nom="Tous"
+              description="Tous les sports"
+              choisie={!filtre}
+              largeur="23.5%"
               onPress={toucherTous}
-              style={({ pressed }) => [styles.tuile, !filtre && styles.tuileChoisie, pressed && { opacity: 0.8 }]}>
-              <IconeEtoile couleur={!filtre ? c.rougeTexte : c.encre} taille={28} />
-              <Text maxFontSizeMultiplier={1.2} numberOfLines={1} style={[styles.tuileTexte, !filtre && { color: c.rougeTexte }]}>
-                Tous
-              </Text>
-            </Pressable>
+            />
             {SPORTS_A_CHOISIR.map((fiche) => {
-              const choisi = filtre && sports.includes(fiche.cle);
               const nombre = comptes[fiche.cle] ?? 0;
               return (
-                <Pressable
+                <TuileSport
                   key={fiche.cle}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${fiche.nom}${nombre ? `, ${nombre} ${nombre > 1 ? 'sessions' : 'session'}` : ''}`}
-                  accessibilityState={{ selected: choisi }}
+                  sport={fiche.cle}
+                  nom={fiche.nomTuile ?? fiche.nom}
+                  description={`${fiche.nom}${nombre ? `, ${nombre} ${nombre > 1 ? 'sessions' : 'session'}` : ''}`}
+                  choisie={filtre && sports.includes(fiche.cle)}
+                  largeur="23.5%"
+                  nombre={nombre}
                   onPress={() => toucherSport(fiche.cle)}
-                  style={({ pressed }) => [styles.tuile, choisi && styles.tuileChoisie, pressed && { opacity: 0.8 }]}>
-                  {nombre > 0 && (
-                    <Text maxFontSizeMultiplier={1.2} style={styles.nombre}>
-                      {nombre}
-                    </Text>
-                  )}
-                  <PictoSport sport={fiche.cle} taille={30} />
-                  <Text
-                    maxFontSizeMultiplier={1.2}
-                    numberOfLines={1}
-                    style={[styles.tuileTexte, choisi && { color: c.rougeTexte }]}>
-                    {fiche.nomTuile ?? fiche.nom}
-                  </Text>
-                </Pressable>
+                />
               );
             })}
           </View>
@@ -155,29 +141,7 @@ const creerStyles = (c: Palette) =>
     },
     defile: { flexGrow: 0, flexShrink: 1 },
     contenu: { gap: 12 },
-    grille: { flexDirection: 'row', flexWrap: 'wrap', columnGap: '2%', rowGap: 8 },
-    tuile: {
-      // 4 par rangée ; la dernière reste alignée à gauche
-      width: '23.5%',
-      height: 68,
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 4,
-      borderRadius: 16,
-      borderWidth: 1.5,
-      borderColor: c.trait,
-      backgroundColor: c.fond,
-    },
-    tuileChoisie: { borderColor: c.rouge, backgroundColor: c.rougeDoux },
-    tuileTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille, color: c.encre },
-    nombre: {
-      position: 'absolute',
-      top: 5,
-      right: 8,
-      fontFamily: Polices.texteDemi,
-      fontSize: Tailles.minuscule,
-      color: c.texteSecondaire,
-    },
+    grille: { flexDirection: 'row', flexWrap: 'wrap', columnGap: '2%', rowGap: 10 },
     puces: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     puce: {
       minHeight: 40,

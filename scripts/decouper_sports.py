@@ -1,10 +1,10 @@
 """Découpe la planche des sports (design/sports/planche-sports.png) en une image par sport.
 
 La planche : 2 colonnes × 9 rangées de cartes orange sur fond foncé, dans l'ordre de PLANCHE ci-dessous.
-Chaque carte est coupée sans ses coins arrondis, puis recadrée en 3:2 autour de l'objet
-(le fond orange est prolongé en haut et en bas quand l'objet est trop large).
+Chaque carte est coupée sans ses coins arrondis, puis recadrée autour de l'objet, toujours entier
+(le fond orange est prolongé en haut et en bas si besoin).
 
-    python3 -I scripts/decouper_sports.py       # écrit assets/sports/<sport>.jpg
+    python3 -I scripts/decouper_sports.py       # écrit assets/sports/<sport>.jpg et assets/sports/bandeau/<sport>.jpg
 
 Modifier ce script ou la planche, pas les images générées.
 """
@@ -31,8 +31,11 @@ PLANCHE = [
     ('ultimate', 'autre'),
 ]
 
-RAPPORT = 3 / 2  # largeur / hauteur de l'image finale
-TAILLE = (360, 240)  # assez pour une tuile d'environ 110 px de large en ×3
+# (dossier, largeur / hauteur, taille en pixels)
+FORMATS = [
+    ('', 3 / 2, (360, 240)),  # tuiles (Créer, Mes sports, menu de la carte), vignettes de « Relancer »
+    ('bandeau', 5 / 2, (900, 360)),  # bandeau des cartes de « Mes sessions »
+]
 RETRAIT_COTES = 14  # on enlève les coins arrondis de chaque carte…
 RETRAIT_HAUT_BAS = 3  # …sans couper le haut des ballons
 MARGE_COTES = 0.12  # de l'air autour de l'objet, en part de sa taille
@@ -102,18 +105,19 @@ def prolonger(carte: Image.Image, ajout: int) -> Image.Image:
     return toile
 
 
-def recadrer(carte: Image.Image) -> Image.Image:
-    """Cadre 3:2 qui contient TOUT l'objet, avec de l'air autour (le fond est prolongé si besoin)"""
+def recadrer(carte: Image.Image, rapport: float) -> Image.Image:
+    """Cadre (largeur / hauteur = rapport) qui contient TOUT l'objet, avec de l'air autour (le fond est prolongé si besoin)"""
     l, h = carte.size
     x0, y0, x1, y1 = boite_objet(carte)
-    largeur = max((x1 - x0) * (1 + 2 * MARGE_COTES), (y1 - y0) * (1 + 2 * MARGE_HAUT_BAS) * RAPPORT)
-    largeur = int(min(largeur, l))
-    hauteur = int(largeur / RAPPORT)
-    ajout = h  # largement assez de fond en haut et en bas
-    grande = prolonger(carte, ajout)
-    cx, cy = (x0 + x1) // 2, (y0 + y1) // 2 + ajout
-    gauche = max(0, min(l - largeur, cx - largeur // 2))
-    haut = cy - hauteur // 2
+    largeur = max((x1 - x0) * (1 + 2 * MARGE_COTES), (y1 - y0) * (1 + 2 * MARGE_HAUT_BAS) * rapport)
+    largeur = int(largeur)
+    hauteur = int(largeur / rapport)
+    # Assez de fond tout autour (en haut et en bas, puis sur les côtés en tournant l'image) pour centrer l'objet
+    ajout_y, ajout_x = h, max(0, largeur - l) + 40
+    grande = prolonger(carte, ajout_y)
+    grande = prolonger(grande.transpose(Image.Transpose.ROTATE_90), ajout_x).transpose(Image.Transpose.ROTATE_270)
+    cx, cy = (x0 + x1) // 2 + ajout_x, (y0 + y1) // 2 + ajout_y
+    gauche, haut = cx - largeur // 2, cy - hauteur // 2
     return grande.crop((gauche, haut, gauche + largeur, haut + hauteur))
 
 
@@ -145,9 +149,11 @@ def main() -> None:
     for (ya, yb), noms in zip(rangees, PLANCHE):
         for (xa, xb), nom in zip(colonnes, noms):
             carte = planche.crop((xa + RETRAIT_COTES, ya + RETRAIT_HAUT_BAS, xb - RETRAIT_COTES, yb - RETRAIT_HAUT_BAS))
-            image = recadrer(carte).resize(TAILLE, Image.LANCZOS)
-            image.save(os.path.join(SORTIE, f'{nom}.jpg'), quality=86, optimize=True, progressive=True)
-            print(nom, image.size)
+            for dossier, rapport, taille in FORMATS:
+                image = recadrer(carte, rapport).resize(taille, Image.LANCZOS)
+                os.makedirs(os.path.join(SORTIE, dossier), exist_ok=True)
+                image.save(os.path.join(SORTIE, dossier, f'{nom}.jpg'), quality=84, optimize=True, progressive=True)
+            print(nom)
 
 
 if __name__ == '__main__':
