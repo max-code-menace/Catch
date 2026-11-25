@@ -15,10 +15,6 @@ type PropsMot = {
   marque?: boolean;
   /** Couleur du trait (par défaut `marqueur` ; `marqueurSurRouge` sur l'en-tête rouge) */
   couleur?: string;
-  /** Le trait se dessine de gauche à droite à l'arrivée, puis à chaque changement de texte */
-  anime?: boolean;
-  /** Attente avant de dessiner le trait, en millisecondes */
-  delai?: number;
   maxFontSizeMultiplier?: number;
 };
 
@@ -29,10 +25,6 @@ type PropsSurligne = {
   /** Faux : texte sans trait */
   marque?: boolean;
   maxFontSizeMultiplier?: number;
-  /** Gardés pour plus tard : le trait est fixe (animé, il restait invisible sur l'iPhone de Maxime) */
-  anime?: boolean;
-  delai?: number;
-  cle?: string | number;
 };
 
 /**
@@ -75,16 +67,9 @@ export function TexteSurligne({ children, style, couleur, marque = true, maxFont
 }
 
 /** Un mot, avec ou sans trait de surligneur (idée de Mathias). */
-export function Mot({ texte, style, marque = true, couleur, anime, delai = 0, maxFontSizeMultiplier = 1.3 }: PropsMot) {
+export function Mot({ texte, style, marque = true, couleur, maxFontSizeMultiplier = 1.3 }: PropsMot) {
   return (
-    <TexteSurligne
-      style={style}
-      marque={marque}
-      couleur={couleur}
-      anime={anime}
-      delai={delai}
-      cle={texte}
-      maxFontSizeMultiplier={maxFontSizeMultiplier}>
+    <TexteSurligne style={style} marque={marque} couleur={couleur} maxFontSizeMultiplier={maxFontSizeMultiplier}>
       {texte}
     </TexteSurligne>
   );
@@ -111,7 +96,7 @@ type Props = Omit<PropsMot, 'texte' | 'marque'> & {
  * Texte surligné au marqueur, qui peut passer à la ligne. À réserver à 2-3 moments forts
  * (« Tu l'as catchée ! », les places dans l'en-tête du détail, la phrase de Créer) : partout ailleurs il perdrait son effet.
  */
-export function Marqueur({ texte, penche, centre, titre, styleCadre, delai = 0, ...reste }: Props) {
+export function Marqueur({ texte, penche, centre, titre, styleCadre, ...reste }: Props) {
   return (
     <View
       accessible
@@ -124,8 +109,7 @@ export function Marqueur({ texte, penche, centre, titre, styleCadre, delai = 0, 
         styleCadre,
       ]}>
       {motsDe(texte).map((mot, i) => (
-        // Chaque mot arrive un peu après le précédent : le trait a l'air d'être tiré d'un seul geste
-        <Mot key={`${i}-${mot}`} texte={mot} delai={delai + i * 70} {...reste} />
+        <Mot key={`${i}-${mot}`} texte={mot} {...reste} />
       ))}
     </View>
   );
