@@ -39,13 +39,15 @@ type Props = {
   onEnvoi: () => Promise<boolean>;
   /** Appelé une fois la balle attrapée, donc seulement si le serveur a dit oui */
   onCatch: () => void;
+  /** Petit bouton blanc posé sur le bandeau rouge de la fiche de la carte */
+  surBandeau?: boolean;
 };
 
 /**
  * Le geste signature : on appuie, la balle arrive en cloche, le bouton l'attrape
  * (rebond, vibration) et devient « Catchée ! ».
  */
-export function BoutonCatch({ titre = 'Catch', complet = false, onDemande, onEnvoi, onCatch }: Props) {
+export function BoutonCatch({ titre = 'Catch', complet = false, onDemande, onEnvoi, onCatch, surBandeau = false }: Props) {
   const styles = useStyles(creerStyles);
   const reduit = useReducedMotion();
   const [etat, setEtat] = useState<'pret' | 'vol' | 'attrapee'>('pret');
@@ -119,7 +121,7 @@ export function BoutonCatch({ titre = 'Catch', complet = false, onDemande, onEnv
   }
 
   return (
-    <View style={[styles.tranche, etat === 'attrapee' && styles.sansTranche]}>
+    <View style={[styles.tranche, surBandeau && styles.trancheBandeau, etat === 'attrapee' && styles.sansTranche]}>
       <PressableAnime
         accessibilityRole="button"
         accessibilityLabel={etat === 'attrapee' ? 'Catchée !' : titre}
@@ -133,9 +135,11 @@ export function BoutonCatch({ titre = 'Catch', complet = false, onDemande, onEnv
           enfonce.set(withSpring(0, Ressorts.snappy));
         }}
         onPress={lancer}
-        style={[styles.bouton, styleBouton]}>
+        style={[styles.bouton, surBandeau && styles.boutonBandeau, styleBouton]}>
         <Animated.View style={[styles.fondAttrape, styleFondAttrape]} />
-        <Text maxFontSizeMultiplier={1.3} style={[styles.texte, etat === 'attrapee' && styles.texteAttrape]}>
+        <Text
+          maxFontSizeMultiplier={1.3}
+          style={[styles.texte, surBandeau && styles.texteBandeau, etat === 'attrapee' && styles.texteAttrape]}>
           {etat === 'attrapee' ? 'Catchée !' : titre}
         </Text>
       </PressableAnime>
@@ -160,10 +164,14 @@ const creerStyles = (c: Palette) =>
       backgroundColor: c.rouge,
       overflow: 'hidden',
     },
+    // Sur le bandeau rouge : plus petit, blanc, texte rouge
+    trancheBandeau: { alignSelf: 'flex-start', minWidth: 112 },
+    boutonBandeau: { minHeight: 44 - TRANCHE, paddingHorizontal: 18, backgroundColor: c.surRouge },
+    texteBandeau: { fontSize: Tailles.courant, color: c.rouge },
     fondAttrape: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: c.encre },
     texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.surRouge },
     // Décalé pour laisser la place de la balle à gauche du mot
-    texteAttrape: { paddingLeft: TAILLE_BALLE + 8 },
+    texteAttrape: { paddingLeft: TAILLE_BALLE + 8, color: c.surRouge },
     balle: {
       position: 'absolute',
       left: '50%',

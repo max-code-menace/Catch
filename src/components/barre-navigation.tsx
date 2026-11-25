@@ -1,5 +1,6 @@
-import { TabsStateContext, type TabTriggerSlotProps } from "expo-router/ui";
-import { useContext, useEffect } from "react";
+import { usePathname } from "expo-router";
+import type { TabTriggerSlotProps } from "expo-router/ui";
+import { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -120,10 +121,9 @@ export function BoutonCreer({
   }));
 
   // Visible seulement sur Carte, Mes sessions et Profil (pas sur Messages ni sur Créer)
-  const etat = useContext(TabsStateContext);
-  const ongletActif = etat?.routes[etat.index]?.name;
-  const surUnOngletAutorise =
-    ongletActif === "index" || ongletActif === "mes-sessions" || ongletActif === "profil";
+  // (Le contexte des onglets n'est pas fourni ici : il restait vide et cachait le bouton partout. On lit le chemin.)
+  const chemin = usePathname();
+  const surUnOngletAutorise = ["/", "/index", "/mes-sessions", "/profil"].includes(chemin);
   if (isFocused || !surUnOngletAutorise) return null;
 
   return (

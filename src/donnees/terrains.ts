@@ -1,4 +1,4 @@
-// Illustration du terrain de chaque sport (bandeau des cartes de « Mes sessions »).
+// Illustration du terrain de chaque sport (en-tête du détail d'une session, bandeau des cartes de « Mes sessions »).
 // Images fabriquées par scripts/generer_terrains.py (vraies dimensions des terrains) puis scripts/rendre_terrains.mjs.
 import type { ImageSourcePropType } from 'react-native';
 

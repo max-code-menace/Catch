@@ -5,6 +5,7 @@ import { test } from 'node:test';
 
 import {
   MARGE_PASTILLES,
+  PASTILLE,
   regrouperSessions,
   taillePastille,
   versEcran,
@@ -16,12 +17,14 @@ const BRUXELLES = { latitude: 50.8467, longitude: 4.3525 };
 const VUE = { longitudeDelta: 0.11, largeurEcran: 390 };
 const HAUTEUR = 844;
 
-// Taille calculée comme dans l'app : « Foot · ce soir 19h » pour une pastille, « 4 sessions » pour une bulle
+// Taille calculée comme dans l'app : « Demain 18h · 1 pl. » sous l'anneau d'une pastille, « dès 18h » sous une bulle
 const options = {
   position: (s) => s.position,
   cle: (s) => s.id,
   taille: (liste) =>
-    taillePastille({ texte: liste.length === 1 ? 'Foot · ce soir 19h' : `Foot ×${liste.length} · dès 18h` }, 14),
+    liste.length === 1
+      ? taillePastille({ texte: 'Demain 18h · 1 pl.' }, 12)
+      : taillePastille({ texte: 'dès demain 18h', groupe: true }, 12),
 };
 
 function session(id, latitude, longitude) {
@@ -118,15 +121,16 @@ test('pastille au bord de l’écran : se regroupe avec sa voisine cachée, et n
   assert.ok(Math.abs(x - VUE.largeurEcran) < 0.5);
 });
 
-test('largeur d’une pastille : suit son texte, jamais moins de 44 points', () => {
-  const court = taillePastille({ texte: 'Foot · 6 jouent' }, 14);
-  const long = taillePastille({ texte: 'Badminton · demain 18h30' }, 14);
+test('zone de toucher d’une pastille : l’anneau et son étiquette, jamais moins de 44 points', () => {
+  const court = taillePastille({ texte: '19h' }, 12);
+  const long = taillePastille({ texte: 'Demain 22h20 · 1 pl.' }, 12);
+  // Une étiquette courte tient sous l'anneau ; une longue l'élargit
+  assert.equal(court.largeur, PASTILLE.anneau);
   assert.ok(long.largeur > court.largeur);
-  assert.equal(court.hauteur, 44);
-  assert.ok(taillePastille({ texte: '' }, 14).largeur >= 44);
+  assert.equal(court.hauteur, PASTILLE.anneau + PASTILLE.etiquette - PASTILLE.recouvrement);
+  assert.ok(taillePastille({ texte: '' }, 12).largeur >= 44);
   // Texte grossi par l'iPhone : plus large
-  assert.ok(taillePastille({ texte: 'Foot · 6 jouent' }, 14, 1.3).largeur > court.largeur);
-  // En direct (point rouge) et plusieurs pictos : plus large aussi
-  assert.ok(taillePastille({ texte: 'Foot · 6 jouent', direct: true }, 14).largeur > court.largeur);
-  assert.ok(taillePastille({ texte: '4 sessions', pictos: 3 }, 14).largeur > taillePastille({ texte: '4 sessions' }, 14).largeur);
+  assert.ok(taillePastille({ texte: 'Demain 22h20 · 1 pl.' }, 12, 1.3).largeur > long.largeur);
+  // Le disque d'une bulle est plus petit que l'anneau
+  assert.ok(taillePastille({ texte: 'dès 18h', groupe: true }, 12).hauteur < court.hauteur);
 });

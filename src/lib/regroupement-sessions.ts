@@ -32,42 +32,39 @@ export const MARGE_PASTILLES = 4;
 /** Zoom le plus fort qu'on demande à la carte (≈ 140 m d'un bord à l'autre d'un iPhone) */
 export const DELTA_MIN = 0.002;
 
-/** Mesures d'une pastille de session (en points) : servent au dessin et au calcul de la largeur */
+/** Mesures d'une pastille de session (en points) : servent au dessin et au calcul de la zone de toucher */
 export const PASTILLE = {
-  hauteur: 40,
-  cible: 44,
+  /** Anneau d'une session : un trait par joueur, le picto au milieu */
+  anneau: 64,
+  traitAnneau: 6,
+  /** Disque d'une bulle de plusieurs sessions */
+  disque: 52,
+  /** Étiquette posée sur le bas de l'anneau : sa hauteur, et de combien elle remonte sur l'anneau */
+  etiquette: 22,
+  recouvrement: 13,
+  margeEtiquette: 8,
   bordure: 1,
-  margeGauche: 4,
-  margeDroite: 14,
-  rondPicto: 32,
-  /** Les pictos d'une bulle « 4 sessions » se recouvrent de ça */
-  recouvrementPictos: 12,
-  ecart: 7,
-  pointDirect: 8,
+  cible: 44,
   /** Largeur moyenne d'un caractère, en fraction de la taille du texte (un peu large exprès : mieux vaut regrouper trop tôt) */
   caractere: 0.6,
 } as const;
 
 /**
- * Largeur de la zone de toucher d'une pastille, d'après son texte.
- * `pictos` : nombre de ronds (1 pour une session, 2 ou 3 pour une bulle de sports différents).
+ * Zone de toucher d'une pastille : l'anneau (ou le disque d'une bulle) et son étiquette dessous.
+ * Plus large que l'anneau seulement si l'étiquette l'est.
  */
 export function taillePastille(
-  { texte, pictos = 1, direct = false }: { texte: string; pictos?: number; direct?: boolean },
+  { texte, groupe = false }: { texte: string; groupe?: boolean },
   taillePolice: number,
   echelleTexte = 1,
 ): Boite {
   const P = PASTILLE;
-  const ronds = P.rondPicto + (pictos - 1) * (P.rondPicto - P.recouvrementPictos);
-  const largeur =
-    2 * P.bordure +
-    P.margeGauche +
-    ronds +
-    P.ecart +
-    (direct ? P.pointDirect + P.ecart : 0) +
-    texte.length * taillePolice * P.caractere * echelleTexte +
-    P.margeDroite;
-  return { largeur: Math.max(P.cible, Math.ceil(largeur)), hauteur: P.cible };
+  const base = groupe ? P.disque : P.anneau;
+  const etiquette = 2 * P.bordure + 2 * P.margeEtiquette + texte.length * taillePolice * P.caractere * echelleTexte;
+  return {
+    largeur: Math.max(P.cible, base, Math.ceil(etiquette)),
+    hauteur: base + P.etiquette - P.recouvrement,
+  };
 }
 
 /** Taille du monde en points à ce zoom (projection de Mercator, celle des cartes Apple et Google) */

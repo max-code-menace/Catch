@@ -30,6 +30,8 @@ export const Palettes = {
     beige: '#F3EDE8',
     /** Rond blanc derrière les pictos : blanc dans les deux thèmes */
     rondPicto: '#FFFFFF',
+    /** Texte sur un rond blanc (pictos, anneaux), clair comme sombre */
+    surRond: '#1C1412',
     /** Texte des avatars, posés sur des teintes claires dans les deux thèmes */
     surAvatar: '#1C1412',
     /** Fonds des avatars (initiales des inscrits), utilisés à tour de rôle */
@@ -83,6 +85,8 @@ export const Palettes = {
     trait: '#3A312C',
     beige: '#2A2320',
     rondPicto: '#FFFFFF',
+    /** Texte sur un rond blanc (pictos, anneaux), clair comme sombre */
+    surRond: '#1C1412',
     surAvatar: '#1C1412',
     // Un peu moins lumineux qu'en clair pour ne pas éblouir sur fond sombre ; le texte foncé reste très lisible
     avatar1: '#E3AE9F',

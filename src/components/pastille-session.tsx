@@ -11,15 +11,19 @@ import Animated, {
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
+import Svg, { Path } from 'react-native-svg';
 
 import { PictoSport } from '@/components/picto-sport';
 import { Durees, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
 import { DUREE_APPARITION } from '@/lib/apparitions';
-import { estEnDirect, placesLibres, sportsDuGroupe, texteGroupe, textePastille } from '@/lib/formats';
+import { traitsAnneau } from '@/lib/anneau-places';
+import { estEnDirect, etiquetteGroupe, etiquettePastille, placesLibres } from '@/lib/formats';
 import { PASTILLE } from '@/lib/regroupement-sessions';
 import { DUREE_ECLAT } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
+
+const TAILLE_POINT = 8;
 
 /**
  * Point qui pulse sur les sessions en direct (pastille, badge, pilule du détail) : le seul « en direct » de l'app.
@@ -83,32 +87,55 @@ export function ApparitionSi({ delai, children }: { delai: number | undefined; c
   return delai === undefined ? children : <Apparition delai={delai}>{children}</Apparition>;
 }
 
-/** Pastille d'une session sur la carte. */
+/**
+ * Pastille d'une session sur la carte : un anneau d'un trait par joueur (rempli pour chaque inscrit)
+ * avec le picto au milieu, et l'heure sur son bas. Orange s'il reste 1 ou 2 places, rouge en direct.
+ */
 export function PastilleSession({ session, choisie }: { session: Session; choisie: boolean }) {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const enDirect = estEnDirect(session);
-  const manqueUn = !enDirect && placesLibres(session) === 1;
-
-  const fond = enDirect ? c.rouge : manqueUn ? c.orangeDoux : c.carte;
-  const texte = enDirect ? c.surRouge : manqueUn ? c.orangeTexte : c.encre;
-  const bordure = enDirect ? c.rouge : manqueUn ? c.orange : c.trait;
+  const urgent = !enDirect && placesLibres(session) <= 2;
+  const couleur = enDirect ? c.rouge : urgent ? c.orange : c.encre;
+  const { anneau, traitAnneau } = PASTILLE;
+  const traits = traitsAnneau(session.inscrits.length, session.joueurs, anneau, traitAnneau);
 
   return (
-    // Zone invisible d'au moins 44 px autour de la pastille (40 px de haut) : plus facile à toucher
+    // Zone de toucher : l'anneau et son étiquette, jamais moins de 44 points
     <View style={styles.zoneToucher}>
+      <View style={{ width: anneau, height: anneau }}>
+        <Svg width={anneau} height={anneau}>
+          {traits.map((t, i) => (
+            <Path
+              key={i}
+              d={t.d}
+              stroke={t.plein ? couleur : c.trait}
+              strokeWidth={traitAnneau}
+              strokeLinecap="round"
+              fill="none"
+            />
+          ))}
+        </Svg>
+        <View
+          style={[
+            styles.disque,
+            { top: traitAnneau + 1, left: traitAnneau + 1, right: traitAnneau + 1, bottom: traitAnneau + 1 },
+            choisie && { borderWidth: 3, borderColor: c.rouge },
+          ]}>
+          <PictoSport sport={session.sport} taille={26} />
+        </View>
+      </View>
       <View
         style={[
-          styles.pastille,
-          { backgroundColor: fond, borderColor: choisie ? c.encre : bordure },
-          choisie && styles.choisie,
+          styles.etiquette,
+          enDirect && { backgroundColor: c.rouge, borderColor: c.rouge },
+          urgent && { backgroundColor: c.orangeDoux, borderColor: c.orange },
         ]}>
-        <View style={styles.picto}>
-          <PictoSport sport={session.sport} taille={24} />
-        </View>
-        {enDirect && <PointEnDirect couleur={c.surRouge} />}
-        <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.texte, { color: texte }]}>
-          {textePastille(session)}
+        <Text
+          maxFontSizeMultiplier={1.3}
+          numberOfLines={1}
+          style={[styles.texte, { color: enDirect ? c.surRouge : urgent ? c.orangeTexte : c.encre }]}>
+          {etiquettePastille(session)}
         </Text>
       </View>
     </View>
@@ -116,40 +143,28 @@ export function PastilleSession({ session, choisie }: { session: Session; choisi
 }
 
 /**
- * Bulle de plusieurs sessions qui se toucheraient sur la carte.
- * Même sport : « Foot ×4 · dès 18h » ; sports différents : « 4 sessions » avec 2 ou 3 pictos.
- * Rouge si une des sessions est en direct.
+ * Bulle de plusieurs sessions qui se toucheraient sur la carte : un disque avec leur nombre, cerclé de pointillés
+ * (même famille que l'anneau), et « dès 18h » dessous. Rouge si une des sessions est en direct.
  */
 export function PastilleGroupeSessions({ sessions, choisie }: { sessions: Session[]; choisie: boolean }) {
   const c = useCouleurs();
   const styles = useStyles(creerStyles);
   const enDirect = sessions.some((s) => estEnDirect(s));
-  const sports = sportsDuGroupe(sessions).slice(0, 3);
-
-  const fond = enDirect ? c.rouge : c.carte;
-  const texte = enDirect ? c.surRouge : c.encre;
-  const bordure = enDirect ? c.rouge : c.trait;
+  const couleur = enDirect ? c.rouge : c.encre;
 
   return (
     <View style={styles.zoneToucher}>
-      <View
-        style={[
-          styles.pastille,
-          { backgroundColor: fond, borderColor: choisie ? c.encre : bordure },
-          choisie && styles.choisie,
-        ]}>
-        <View style={styles.pictos}>
-          {sports.map(({ sport }, i) => (
-            <View
-              key={sport}
-              style={[styles.picto, i > 0 && styles.pictoRecouvert, sports.length > 1 && [styles.lisere, { borderColor: fond }]]}>
-              <PictoSport sport={sport} taille={sports.length > 1 ? 22 : 24} />
-            </View>
-          ))}
-        </View>
-        {enDirect && <PointEnDirect couleur={c.surRouge} />}
-        <Text maxFontSizeMultiplier={1.3} numberOfLines={1} style={[styles.texte, { color: texte }]}>
-          {texteGroupe(sessions)}
+      <View style={[styles.groupe, { borderColor: choisie ? c.rouge : couleur }]}>
+        <Text maxFontSizeMultiplier={1.2} style={styles.nombreGroupe}>
+          {sessions.length}
+        </Text>
+      </View>
+      <View style={[styles.etiquette, enDirect && { backgroundColor: c.rouge, borderColor: c.rouge }]}>
+        <Text
+          maxFontSizeMultiplier={1.3}
+          numberOfLines={1}
+          style={[styles.texte, { color: enDirect ? c.surRouge : c.encre }]}>
+          {etiquetteGroupe(sessions)}
         </Text>
       </View>
     </View>
@@ -224,32 +239,42 @@ const creerStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    pastille: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: PASTILLE.ecart,
-      paddingLeft: PASTILLE.margeGauche,
-      paddingRight: PASTILLE.margeDroite,
-      height: PASTILLE.hauteur,
-      borderRadius: Rayons.pilule,
-      borderWidth: PASTILLE.bordure,
-      boxShadow: c.ombrePetite,
-    },
-    choisie: { borderWidth: 2 },
-    picto: {
-      width: PASTILLE.rondPicto,
-      height: PASTILLE.rondPicto,
-      borderRadius: PASTILLE.rondPicto / 2,
+    disque: {
+      position: 'absolute',
+      borderRadius: PASTILLE.anneau,
       backgroundColor: c.rondPicto,
       alignItems: 'center',
       justifyContent: 'center',
+      boxShadow: c.ombrePetite,
     },
-    pictos: { flexDirection: 'row' },
-    // Les pictos d'une bulle se recouvrent un peu, séparés par un liseré de la couleur du fond
-    pictoRecouvert: { marginLeft: -PASTILLE.recouvrementPictos },
-    lisere: { borderWidth: 2 },
-    texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit },
-    point: { width: PASTILLE.pointDirect, height: PASTILLE.pointDirect },
+    // Posée sur le bas de l'anneau
+    etiquette: {
+      marginTop: -PASTILLE.recouvrement,
+      height: PASTILLE.etiquette,
+      paddingHorizontal: PASTILLE.margeEtiquette,
+      borderRadius: Rayons.pilule,
+      borderWidth: PASTILLE.bordure,
+      borderColor: c.trait,
+      backgroundColor: c.carte,
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: c.ombrePetite,
+      zIndex: 2,
+    },
+    groupe: {
+      width: PASTILLE.disque,
+      height: PASTILLE.disque,
+      borderRadius: PASTILLE.disque / 2,
+      borderWidth: 3,
+      borderStyle: 'dashed',
+      backgroundColor: c.rondPicto,
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: c.ombrePetite,
+    },
+    nombreGroupe: { fontFamily: Polices.titre, fontSize: Tailles.sousTitre, color: c.surRond },
+    texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille },
+    point: { width: TAILLE_POINT, height: TAILLE_POINT },
     rond: { position: 'absolute', width: 8, height: 8, borderRadius: 4 },
     // Assez de place autour de la pastille pour que les morceaux ne soient pas coupés
     zoneEclat: { padding: PORTEE + 6, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },

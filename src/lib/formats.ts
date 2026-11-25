@@ -31,11 +31,17 @@ export function quand(date: Date, maintenant = new Date()) {
   return `${JOURS[date.getDay()]} ${heure(date)}`;
 }
 
-/** Texte d'une pastille de carte : « Foot · 6 jouent », « Volley · il manque 1 », « Escalade · sam. 14h » */
-export function textePastille(session: Session) {
-  if (estEnDirect(session)) return `${session.nomSport} · ${session.inscrits.length} jouent`;
-  if (placesLibres(session) === 1) return `${session.nomSport} · il manque 1`;
-  return `${session.nomSport} · ${quand(session.debut).toLowerCase()}`;
+/**
+ * Étiquette sous l'anneau d'une session sur la carte : « 19h », « Demain 18h », « 20h20 · 1 pl. » (1 ou 2 places
+ * libres), « 19h · complet », « En direct ».
+ */
+export function etiquettePastille(session: Session, maintenant = new Date()) {
+  if (estEnDirect(session, maintenant)) return 'En direct';
+  const moment = quandCourt(session.debut, maintenant);
+  const debut = moment.charAt(0).toUpperCase() + moment.slice(1);
+  const libres = placesLibres(session);
+  if (libres === 0) return `${debut} · complet`;
+  return libres <= 2 ? `${debut} · ${libres} pl.` : debut;
 }
 
 /** Ce que VoiceOver lit sur la pastille d'une session : « Foot, ce soir 19h, 3 places libres » */
@@ -155,14 +161,10 @@ function premierDebut(sessions: Session[]) {
   return new Date(Math.min(...sessions.map((s) => s.debut.getTime())));
 }
 
-/** Texte d'une bulle : « Foot ×4 · dès 18h », « Foot ×4 · en direct », « 4 sessions » (sports différents) */
-export function texteGroupe(sessions: Session[], maintenant = new Date()) {
-  const sports = sportsDuGroupe(sessions);
-  if (sports.length > 1) return `${sessions.length} sessions`;
-  const suite = sessions.some((s) => estEnDirect(s, maintenant))
-    ? 'en direct'
-    : `dès ${quandCourt(premierDebut(sessions), maintenant)}`;
-  return `${sports[0].nom} ×${sessions.length} · ${suite}`;
+/** Étiquette sous la bulle de sessions (le nombre est dans la bulle) : « dès 18h », « dès demain 19h », « En direct » */
+export function etiquetteGroupe(sessions: Session[], maintenant = new Date()) {
+  if (sessions.some((s) => estEnDirect(s, maintenant))) return 'En direct';
+  return `dès ${quandCourt(premierDebut(sessions), maintenant)}`;
 }
 
 /** « de foot », « d’escalade » */
@@ -234,6 +236,18 @@ export function pointsDesPlaces(session: Session, max = 12) {
     ...Array.from({ length: placesLibres(session) }, (): Point => 'libre'),
   ];
   return { points: points.slice(0, max), reste: Math.max(0, points.length - max) };
+}
+
+/**
+ * Le moment dans la phrase de la fiche d'une session sur la carte :
+ * « en direct », « dans 40 min », « dans 3 h », puis comme dans Créer (« ce soir à 19h », « demain à 18h », « jeudi à 19h »).
+ */
+export function quandFiche(session: Session, maintenant = new Date()) {
+  if (estEnDirect(session, maintenant)) return 'en direct';
+  const minutes = Math.round((session.debut.getTime() - maintenant.getTime()) / 60_000);
+  if (minutes < 60) return `dans ${Math.max(1, minutes)} min`;
+  if (joursEntre(maintenant, session.debut) === 0 && minutes < 4 * 60) return `dans ${Math.round(minutes / 60)} h`;
+  return quandCreation(session.debut, maintenant);
 }
 
 /** « Quand » dans la phrase de Créer : « ce soir à 19h », « demain à 18h », « jeudi à 19h », « samedi 6 décembre à 10h » */
