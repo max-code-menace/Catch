@@ -1,6 +1,5 @@
-import { usePathname } from "expo-router";
-import type { TabTriggerSlotProps } from "expo-router/ui";
-import { useEffect } from "react";
+import { TabsStateContext, type TabTriggerSlotProps } from "expo-router/ui";
+import { useContext, useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -121,8 +120,10 @@ export function BoutonCreer({
   }));
 
   // Visible seulement sur Carte, Mes sessions et Profil (pas sur Messages ni sur Créer)
-  const chemin = usePathname();
-  const surUnOngletAutorise = ["/", "/index", "/mes-sessions", "/profil"].includes(chemin);
+  const etat = useContext(TabsStateContext);
+  const ongletActif = etat?.routes[etat.index]?.name;
+  const surUnOngletAutorise =
+    ongletActif === "index" || ongletActif === "mes-sessions" || ongletActif === "profil";
   if (isFocused || !surUnOngletAutorise) return null;
 
   return (
