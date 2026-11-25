@@ -61,14 +61,6 @@ export default function Carte() {
   }, [etat]);
   const [vue, setVue] = useState<Vue>('carte');
 
-  // Premier chargement réussi : un petit bandeau dit combien de sessions attendent (la récompense de l'attente)
-  const [etatVu, setEtatVu] = useState(etat);
-  const [bandeauNombre, setBandeauNombre] = useState<number | null>(null);
-  if (etat !== etatVu) {
-    setEtatVu(etat);
-    if (etatVu === 'chargement' && etat === 'pretes') setBandeauNombre(1);
-  }
-
   // Filtre de la carte : « Mes sports » (étoile de la barre du haut), puis sessions, événements, salles et terrains
   const mesSports = useMesSports();
   // Seulement les données (pas les fonctions) pour les calculs de filtre
@@ -332,14 +324,6 @@ export default function Carte() {
           setPanneauFerme(false);
         }}
       />
-      {vue === 'carte' && bandeauNombre && dansLeRayon.length > 0 && !menuOuvert && !enLigne && !idQuiTombe && aucuneFiche && (
-        <BandeauCarte
-          cle={bandeauNombre}
-          titre={`${dansLeRayon.length} ${dansLeRayon.length === 1 ? 'session' : 'sessions'} ${position ? 'près de toi' : `à ${NOM_ZONE}`}`}
-          duree={2800}
-          onFini={() => setBandeauNombre(null)}
-        />
-      )}
       {sessionQuiTombe && (
         <SessionQuiTombe
           session={sessionQuiTombe}

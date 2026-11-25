@@ -76,12 +76,7 @@ export function PhraseCreation({ morceaux, onToucher }: Props) {
             accessibilityLabel={j === 0 ? `${morceau.texte}. Changer` : undefined}
             onPress={() => onToucher(morceau.champ)}
             style={({ pressed }) => [styles.mot, pressed && styles.presse]}>
-            <Mot
-              texte={mot}
-              anime
-              delai={j * 70}
-              style={styles.choix}
-            />
+            <Mot texte={mot} style={styles.choix} />
             {/* L'espace après le mot reste hors du trait, sauf entre deux mots du même choix */}
             {j === mots.length - 1 && (
               <Text maxFontSizeMultiplier={1.3} style={styles.texte}>{`${morceau.ponctuation ?? ''} `}</Text>

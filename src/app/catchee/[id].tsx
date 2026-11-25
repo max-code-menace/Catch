@@ -97,25 +97,23 @@ export default function Catchee() {
     <SafeAreaView style={styles.ecran}>
       <View style={styles.haut}>
         <BalleQuiRebondit />
-        {/* Un des rares titres au marqueur : le trait se tire juste après l'arrivée du titre */}
+        {/* Un des rares titres au marqueur (trait fixe) */}
         <Animated.View style={styleTitre}>
           <Marqueur
             titre
             penche
             centre
-            anime
-            delai={350}
             texte={surLeWeb ? 'Tu as rejoint la session' : 'Tu l’as catchée\u00a0!'}
             style={styles.titre}
           />
         </Animated.View>
 
         <Animated.View entering={FadeIn.delay(250).duration(Durees.standard)} style={styles.resume}>
-          {/* Finition M1 (24 novembre) : la balle, puis le trait sous le titre, puis ton rond qui rejoint l'équipe */}
+          {/* Finition M1 (24 novembre) : la balle, puis le titre, puis ton rond qui rejoint l'équipe */}
           <View style={styles.attente}>
             <View style={styles.equipe}>
               <Avatars initiales={session.inscrits.filter((nom) => nom !== 'Toi')} max={4} />
-              <RondToiQuiArrive delai={950} />
+              <RondToiQuiArrive delai={650} />
             </View>
             <Text style={styles.attenteTexte}>{texteAttente(session)}</Text>
           </View>

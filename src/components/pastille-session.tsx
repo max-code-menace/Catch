@@ -25,17 +25,22 @@ import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 const TAILLE_POINT = 8;
 
-/** Point rouge qui pulse sur les sessions en direct. */
+/**
+ * Point qui pulse sur les sessions en direct (pastille, badge, pilule du détail) : le seul « en direct » de l'app.
+ * Avec « Réduire les animations », il reste fixe.
+ */
 export function PointEnDirect({ couleur }: { couleur: string }) {
   const styles = useStyles(creerStyles);
+  const reduit = useReducedMotion();
   const pulsation = useSharedValue(0);
 
   useEffect(() => {
-    pulsation.set(withRepeat(withTiming(1, { duration: 1400 }), -1, false));
-  }, [pulsation]);
+    if (reduit) return;
+    pulsation.set(withRepeat(withTiming(1, { duration: 1400, easing: Easing.out(Easing.quad) }), -1, false));
+  }, [pulsation, reduit]);
 
   const styleHalo = useAnimatedStyle(() => ({
-    opacity: 0.5 * (1 - pulsation.get()),
+    opacity: pulsation.get() === 0 ? 0 : 0.5 * (1 - pulsation.get()),
     transform: [{ scale: 1 + pulsation.get() * 1.6 }],
   }));
 

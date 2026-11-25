@@ -99,13 +99,13 @@ Maquettes jouables : [Catch · Ambiance et animations](https://claude.ai/artifac
 | Attente d'un écran | `BalleRebond` (parabole, écrasée au sol, ombre) + phrases qui défilent (« On gonfle les ballons… ») | `components/chargement.tsx` (`Chargement`) : carte, détail, Profil |
 | Attente d'une liste | `CartesFantomes` : la forme des cartes avec les lignes d'un terrain, qui respire | Mes sessions, Messages |
 | Arrivée des sessions | Chaque pastille sort de terre, de haut en bas, 70 ms d'écart (`lib/apparitions.ts`, `Apparition`), une seule fois par session | Carte (téléphone et web) |
-| Premier chargement réussi | Bandeau « 7 sessions près de toi » sous la barre, 2,8 s (`components/bandeau-carte.tsx`) | Carte |
 | Bouton rouge | Tranche foncée dessous (`rougeTranche`), le bouton s'y enfonce de 3 px | `Bouton` principal, `BoutonCatch` |
 | Envoi au serveur | Une balle blanche roule dans le bouton (`attente` de `Bouton`) | Publier |
 | Session publiée | Retour à la carte : la session tombe au centre, s'écrase un peu, deux ondes, puis « C'est en ligne ! » avec « Inviter » (`components/session-qui-tombe.tsx`) | Carte |
 | Catch | La balle arrive et le bouton l'attrape (existant), puis sur « Tu l'as catchée ! » ton rond « Toi » rejoint l'équipe avec une onde et des éclats (`components/rond-toi.tsx`) | Détail, fiche, « Tu l'as catchée ! » |
 | Tuile choisie | Le picto se tasse et reprend sa taille (`PictoQuiSaute`) | Créer, Mes sports |
-| Phrase de Créer | Chaque choix devient un mot surligné ; le trait se tire de gauche à droite (350 ms, 70 ms d'écart par mot) quand il change. Ce qui manque est un trou en pointillés orange avec trois points qui respirent (`components/phrase-creation.tsx`) | Créer |
+| Phrase de Créer | Chaque choix devient un mot surligné (trait **fixe** depuis le 25 novembre : animé, il restait invisible sur iPhone). La phrase s'arrête à la question en cours, suivie d'un curseur rouge qui clignote (`components/phrase-creation.tsx`) | Créer |
+| En direct | Un seul point qui pulse (halo qui s'élargit, 1,4 s), le même partout (`PointEnDirect`) ; fixe avec « Réduire les animations » | Pastille, badge, pilule du détail |
 | Places qui changent | Le nombre de places défile comme un compteur (550 ms) quand quelqu'un catche ou se désiste pendant qu'on regarde ; jamais en boucle (`components/chiffre-qui-defile.tsx`) | En-tête du détail |
 
 | Jeton | Réglage (Reanimated) | Usage |
@@ -117,6 +117,8 @@ Maquettes jouables : [Catch · Ambiance et animations](https://claude.ai/artifac
 | `duration.instant / fast / standard / emphasized` | 100 / 150 / 250 / 350 ms | Couleurs, toggles, fondus, entrées de feuilles |
 | Bouton rouge pressé | descend de 3 px dans sa tranche | `Bouton` principal, `BoutonCatch` |
 | Autre bouton pressé | scale 0,96 (0,98 pour les cartes) | Boutons secondaires |
+
+**Tri du 25 novembre** (demande de Maxime : « vérifie toutes les animations, garde les utiles »). Retiré : le bandeau « 7 sessions près de toi » à chaque ouverture (il fêtait l'ouverture de l'app, contre la règle 3, et doublait les pastilles qui sortent de terre ; il cachait le haut de la carte 2,8 s). Harmonisé : le point « en direct » du détail battait autrement que celui des pastilles, c'est maintenant le même. Resserré : « Tu l'as catchée ! », ton rond rejoint l'équipe à 650 ms au lieu de 950 (juste après la balle). Nettoyé : les réglages d'animation du surligneur, plus utilisés. `BandeauCarte` ne sert plus qu'à « C'est en ligne ! ».
 
 - Onglets : fondu 250 ms. Carte ↔ Liste : fondu croisé.
 - Balle d'attente après 400 ms (la carte), cartes fantômes tout de suite.
