@@ -59,3 +59,27 @@ test('le prénom n’est rappelé que quand quelqu’un d’autre parlait juste 
   const places = placesDansLeFil([de('1', 'lucas', 0), de('2', 'lucas', 7), de('3', 'sarah', 8), de('4', 'lucas', 9)]);
   assert.deepEqual(places.map((p) => p.avecPrenom), [true, false, true, true]);
 });
+
+test('le fil d’un groupe raconte les arrivées et les places', async () => {
+  const { elementsDuFil } = await import('../src/lib/fil-messages.ts');
+  const a = (id, prenom, minute) => ({ joueurId: id, prenom, date: new Date(2026, 10, 20, 19, minute) });
+  const fil = elementsDuFil([m('x', 30)], {
+    arrivees: [a('orga', 'Lucas', 0), a('s', 'Sarah', 10), a('n', 'Nico', 20), a('i', 'Inès', 40)],
+    organisateurId: 'orga',
+    joueurs: 5,
+    debut: new Date(2026, 10, 20, 20, 0),
+  }, new Date(2026, 10, 20, 20, 30));
+  assert.deepEqual(
+    fil.map((e) => (e.type === 'message' ? e.message.id : e.type === 'arrivee' ? `${e.prenom} ${e.nombre}/${e.total}` : e.texte)),
+    ['Sarah 2/5', 'Nico 3/5', 'Plus que 2 places', 'x', 'Inès 4/5', 'Plus que 1 place', 'C’est parti'],
+  );
+});
+
+test('un message en cours d’envoi reste à la fin du fil', async () => {
+  const { elementsDuFil } = await import('../src/lib/fil-messages.ts');
+  const fil = elementsDuFil([m('a', 1), m('b', 2, true)], {
+    arrivees: [{ joueurId: 's', prenom: 'Sarah', date: new Date(2026, 10, 20, 19, 5) }],
+    organisateurId: 'orga', joueurs: 10, debut: new Date(2026, 10, 21, 19, 0),
+  }, new Date(2026, 10, 20, 19, 10));
+  assert.deepEqual(fil.map((e) => e.type === 'message' ? e.message.id : e.type), ['a', 'arrivee', 'b']);
+});

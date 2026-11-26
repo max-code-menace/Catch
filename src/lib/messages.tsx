@@ -5,6 +5,7 @@ import { AppState, Platform } from 'react-native';
 import type { Sport } from '@/donnees/pictos';
 import type { Coordonnees } from '@/donnees/sessions';
 import { useCompte } from '@/lib/compte';
+import type { Arrivee } from '@/lib/fil-messages';
 import { supabase } from '@/lib/supabase';
 
 export type Conversation = {
@@ -352,4 +353,27 @@ export function quandMessage(date: Date, maintenant = new Date()) {
   if (ecart === 1) return 'Hier';
   if (ecart < 7) return JOURS[date.getDay()];
   return `${date.getDate()}/${date.getMonth() + 1}`;
+}
+
+/**
+ * Qui a rejoint une session et quand (le fil du groupe le raconte). La base ne laisse lire que les inscrits
+ * des sessions où l'on est soi-même. `null` si la lecture échoue : le fil montre alors seulement les messages.
+ */
+export async function lireArrivees(sessionId: string): Promise<Arrivee[] | null> {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from('participations')
+      .select('joueur_id, cree_le, joueur:profils(prenom)')
+      .eq('session_id', sessionId)
+      .order('cree_le');
+    if (error) return null;
+    return (data as unknown as { joueur_id: string; cree_le: string; joueur: { prenom: string } | null }[]).map((l) => ({
+      joueurId: l.joueur_id,
+      prenom: l.joueur?.prenom ?? '',
+      date: new Date(l.cree_le),
+    }));
+  } catch {
+    return null;
+  }
 }

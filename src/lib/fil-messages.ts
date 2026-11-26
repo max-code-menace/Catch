@@ -76,3 +76,59 @@ export function teinte(auteurId: string) {
   for (const lettre of auteurId) somme += lettre.charCodeAt(0);
   return somme % 4;
 }
+
+/** Quelqu'un a rejoint la session (une ligne de `participations`). */
+export type Arrivee = { joueurId: string; prenom: string; date: Date };
+
+/**
+ * Ce qui s'affiche dans le fil d'un groupe : les messages, et entre eux ce qui arrive à la session
+ * (finition 1 de Messages, piste H, choisie par Maxime le 26 novembre) :
+ * « Sarah a catché · 6/10 », « Plus que 2 places », « Complet », « C’est parti ».
+ */
+export type ElementDuFil =
+  | { type: 'message'; message: Message; place: PlaceDansLeFil }
+  | { type: 'arrivee'; id: string; joueurId: string; prenom: string; nombre: number; total: number; date: Date }
+  | { type: 'repere'; id: string; texte: string; date: Date };
+
+export function elementsDuFil(
+  messages: Message[],
+  session?: { arrivees: Arrivee[]; organisateurId: string; joueurs: number; debut: Date },
+  maintenant = new Date(),
+): ElementDuFil[] {
+  const places = placesDansLeFil(messages);
+  const enAttente: ElementDuFil[] = [];
+  const elements: ElementDuFil[] = [];
+  messages.forEach((message, i) => {
+    const element: ElementDuFil = { type: 'message', message, place: places[i] };
+    (message.enAttente ? enAttente : elements).push(element);
+  });
+  if (!session) return elements;
+
+  const evenements: ElementDuFil[] = [];
+  const arrivees = [...session.arrivees].sort((a, b) => a.date.getTime() - b.date.getTime());
+  arrivees.forEach((arrivee, i) => {
+    const nombre = i + 1;
+    // L'organisateur est inscrit en créant la session : ce n'est pas une arrivée
+    if (arrivee.joueurId === session.organisateurId) return;
+    evenements.push({
+      type: 'arrivee',
+      id: `arrivee-${arrivee.joueurId}`,
+      joueurId: arrivee.joueurId,
+      prenom: arrivee.prenom,
+      nombre,
+      total: session.joueurs,
+      date: arrivee.date,
+    });
+    const libres = session.joueurs - nombre;
+    if (libres <= 2 && libres >= 0) {
+      const texte = libres === 0 ? 'Complet' : libres === 1 ? 'Plus que 1 place' : 'Plus que 2 places';
+      evenements.push({ type: 'repere', id: `places-${nombre}`, texte, date: arrivee.date });
+    }
+  });
+  if (maintenant >= session.debut) {
+    evenements.push({ type: 'repere', id: 'cest-parti', texte: 'C’est parti', date: session.debut });
+  }
+  const date = (e: ElementDuFil) => (e.type === 'message' ? e.message.date : e.date).getTime();
+  // Tri stable : à la même date, l'arrivée passe avant son repère
+  return [...elements, ...evenements].sort((a, b) => date(a) - date(b)).concat(enAttente);
+}

@@ -1,16 +1,20 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Bouton } from '@/components/bouton';
 import { FilConversation } from '@/components/fil-conversation';
 import { IconeRetour } from '@/components/icones';
-import { PictoSport } from '@/components/picto-sport';
+import { BarrePlaces } from '@/components/barre-places';
+import { PointEnDirect } from '@/components/pastille-session';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { useCompte } from '@/lib/compte';
-import { heure, quand } from '@/lib/formats';
+import { ImagesSports } from '@/donnees/images-sports';
+import { distance, heure, tempsConversation, texteDistance } from '@/lib/formats';
+import { ouvrirItineraire } from '@/lib/itineraire';
 import { useMessages } from '@/lib/messages';
+import { useSessions } from '@/lib/sessions';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
 /** La conversation d'une session. */
@@ -22,6 +26,13 @@ export default function ConversationSession() {
   const { compte, pret } = useCompte();
   const { conversations, recharger, marquerLue } = useMessages();
   const conversation = conversations.find((x) => x.id === id);
+  // La session elle-même (places, organisateur), si elle est chargée ; sinon on va la chercher une fois
+  const { sessions, chercher, position } = useSessions();
+  const session = sessions.find((s) => s.id === id);
+  const aSession = !!session;
+  useEffect(() => {
+    if (!aSession && id) chercher(id);
+  }, [aSession, id, chercher]);
 
   // Ouverte par une notification, ou après avoir quitté la session : la liste gardée en mémoire n'est
   // peut-être plus à jour. On la relit à chaque ouverture avant de dire quoi que ce soit.
@@ -107,14 +118,17 @@ export default function ConversationSession() {
     );
   }
 
-  const enDirect = conversation.debut <= new Date() && new Date() < conversation.fin;
-  const titre = conversation.commune ? `${conversation.titre} · ${conversation.commune}` : conversation.titre;
-  const inscrits = `${conversation.inscrits} ${conversation.inscrits > 1 ? 'inscrits' : 'inscrit'}`;
+  const temps = tempsConversation(conversation.debut, conversation.fin);
+  const ouvrirSession = () => router.push({ pathname: '/session/[id]', params: { id } });
+  const loin = position ? texteDistance(distance(position, conversation.position)) : null;
+  const detailLieu = [loin, `jusqu’à ${heure(conversation.fin)}`].filter(Boolean).join(' · ');
+  const lieu = conversation.commune ? `${conversation.lieu} · ${conversation.commune}` : conversation.lieu;
 
   return (
     <KeyboardAvoidingView
       style={styles.ecran}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {/* En-tête court : la session, et dans une pastille le temps qui reste (finition 1 de Maxime, 26 novembre) */}
       <View style={[styles.entete, { paddingTop: top + 8 }]}>
         <Pressable
           accessibilityRole="button"
@@ -126,21 +140,63 @@ export default function ConversationSession() {
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`${titre}, voir la session`}
-          onPress={() => router.push({ pathname: '/session/[id]', params: { id } })}
+          accessibilityLabel={`${conversation.titre}, ${temps.long}. Voir la session`}
+          onPress={ouvrirSession}
           style={({ pressed }) => [styles.enteteTextes, pressed && { opacity: 0.6 }]}>
-          <View style={styles.rondEntete}>
-            <PictoSport sport={conversation.sport} taille={24} />
-          </View>
+          <Image source={ImagesSports[conversation.sport]} style={styles.rondEntete} resizeMode="cover" />
           <View style={styles.enteteColonne}>
             <Text accessibilityRole="header" style={styles.titre} numberOfLines={1}>
               {conversation.titre}
             </Text>
-            <Text style={[styles.aide, enDirect && styles.enDirect]} numberOfLines={1}>
-              {enDirect ? `En direct · jusqu’à ${heure(conversation.fin)}` : quand(conversation.debut)}
+            <Text style={styles.lien} numberOfLines={1}>
+              Voir la session
             </Text>
           </View>
         </Pressable>
+        {temps.ton !== 'fini' ? (
+          <View style={[styles.pastille, temps.ton === 'direct' ? styles.pastilleDirect : temps.ton === 'bientot' ? styles.pastilleBientot : styles.pastilleNeutre]}>
+            {temps.ton === 'direct' && <PointEnDirect couleur={c.surRouge} />}
+            <Text
+              maxFontSizeMultiplier={1.3}
+              numberOfLines={1}
+              style={[styles.pastilleTexte, temps.ton === 'direct' ? styles.surRouge : temps.ton === 'bientot' ? styles.rougeTexte : styles.secondaire]}>
+              {temps.long}
+            </Text>
+          </View>
+        ) : (
+          <Text style={styles.aide}>Terminée</Text>
+        )}
+      </View>
+
+      {/* Épinglée : où, jusqu'à quand, Itinéraire, et les places. Reste visible pendant qu'on lit le fil. */}
+      <View style={styles.epingle}>
+        <View style={styles.epingleLigne}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${lieu}, ${detailLieu}. Voir la session`}
+            onPress={ouvrirSession}
+            style={({ pressed }) => [styles.epingleLieu, pressed && { opacity: 0.6 }]}>
+            <Image source={ImagesSports[conversation.sport]} style={styles.vignette} resizeMode="cover" />
+            <View style={styles.enteteColonne}>
+              <Text style={styles.epingleTitre} numberOfLines={1}>
+                {lieu}
+              </Text>
+              <Text style={styles.aide} numberOfLines={1}>
+                {detailLieu}
+              </Text>
+            </View>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Itinéraire vers ${conversation.lieu}`}
+            onPress={() => ouvrirItineraire(conversation.position)}
+            style={({ pressed }) => [styles.itineraire, pressed && styles.presse]}>
+            <Text maxFontSizeMultiplier={1.3} style={styles.itineraireTexte}>
+              Itinéraire
+            </Text>
+          </Pressable>
+        </View>
+        {session && <BarrePlaces session={session} />}
       </View>
 
       <FilConversation
@@ -148,23 +204,7 @@ export default function ConversationSession() {
         vide="Personne n’a encore écrit. Dis bonjour au groupe."
         onLu={() => marquerLue(id)}
         relireConversations={recharger}
-        // En haut du fil, comme au début d'une conversation Messenger : de quoi il s'agit, une seule fois
-        intro={
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`${titre}, ${conversation.lieu}, ${inscrits}. Voir la session`}
-            onPress={() => router.push({ pathname: '/session/[id]', params: { id } })}
-            style={styles.intro}>
-            <View style={styles.rondIntro}>
-              <PictoSport sport={conversation.sport} taille={44} />
-            </View>
-            <Text style={styles.introTitre}>{titre}</Text>
-            <Text style={styles.aideCentree} numberOfLines={2}>
-              {conversation.lieu} · {inscrits}
-            </Text>
-            <Text style={styles.introLien}>Voir la session</Text>
-          </Pressable>
-        }
+        groupe={session ? { organisateurId: session.organisateurId, joueurs: session.joueurs, debut: session.debut } : undefined}
       />
     </KeyboardAvoidingView>
   );
@@ -178,7 +218,7 @@ const creerStyles = (c: Palette) =>
     entete: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
+      gap: 6,
       paddingHorizontal: 12,
       paddingBottom: 8,
       borderBottomWidth: 1,
@@ -199,29 +239,51 @@ const creerStyles = (c: Palette) =>
       alignItems: 'center',
       gap: 10,
     },
-    rondEntete: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: c.beige,
-    },
+    rondEntete: { width: 36, height: 36, borderRadius: 18, backgroundColor: c.fondPhoto },
     enteteColonne: { flex: 1 },
     titre: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
+    lien: { fontFamily: Polices.texteMoyen, fontSize: Tailles.pastille, color: c.rougeTexte },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
-    enDirect: { color: c.rougeTexte },
     aideCentree: { fontFamily: Polices.texte, fontSize: Tailles.courant, color: c.texteSecondaire, textAlign: 'center' },
-    intro: { alignItems: 'center', gap: 4, paddingTop: 28, paddingBottom: 20, paddingHorizontal: Espaces.marge },
-    rondIntro: {
-      width: 72,
-      height: 72,
-      borderRadius: 36,
+    pastille: {
+      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: c.beige,
-      marginBottom: 6,
+      gap: 6,
+      flexShrink: 1,
+      paddingVertical: 5,
+      paddingHorizontal: 10,
+      borderRadius: Rayons.pilule,
     },
-    introTitre: { fontFamily: Polices.titreDemi, fontSize: Tailles.sousTitre, color: c.encre, textAlign: 'center' },
-    introLien: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.rougeTexte, paddingTop: 6 },
+    pastilleDirect: { backgroundColor: c.rouge },
+    pastilleBientot: { backgroundColor: c.rougeDoux },
+    pastilleNeutre: { backgroundColor: c.beige },
+    pastilleTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille },
+    surRouge: { color: c.surRouge },
+    rougeTexte: { color: c.rougeTexte },
+    secondaire: { color: c.texteSecondaire },
+    epingle: {
+      marginHorizontal: 12,
+      marginTop: 8,
+      padding: 10,
+      gap: 8,
+      borderRadius: Rayons.carte,
+      borderWidth: 1,
+      borderColor: c.trait,
+      backgroundColor: c.carte,
+      boxShadow: c.ombrePetite,
+    },
+    epingleLigne: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    epingleLieu: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: Espaces.cibleTactile },
+    vignette: { width: 36, height: 36, borderRadius: 10, backgroundColor: c.fondPhoto },
+    epingleTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.encre },
+    itineraire: {
+      minHeight: Espaces.cibleTactile - 8,
+      justifyContent: 'center',
+      paddingHorizontal: 12,
+      borderRadius: Rayons.pilule,
+      borderWidth: 1,
+      borderColor: c.trait,
+      backgroundColor: c.fond,
+    },
+    itineraireTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
   });

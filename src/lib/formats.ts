@@ -282,3 +282,42 @@ export function quandCreation(date: Date, maintenant = new Date()) {
   if (ecart < 7) return `${JOURS_LONGS[date.getDay()]} ${a}`;
   return `${JOURS_LONGS[date.getDay()]} ${date.getDate()} ${MOIS[date.getMonth()]} ${a}`;
 }
+
+/** Le moment d'une conversation de groupe : pastille de la liste (`court`) et de l'en-tête (`long`). */
+export type TempsConversation = {
+  court: string;
+  long: string;
+  /** `direct` rouge plein, `bientot` rouge doux (aujourd'hui), `neutre` beige, `fini` rien */
+  ton: 'direct' | 'bientot' | 'neutre' | 'fini';
+};
+
+/**
+ * « Dans 3 h » / « Dans 3 h · 19h » aujourd'hui, « En direct » / « En direct · jusqu’à 20h30 »,
+ * « Demain 18h », « Sam. 14h », « Terminée ». Finition 1 de Messages choisie par Maxime le 26 novembre.
+ */
+export function tempsConversation(debut: Date, fin: Date, maintenant = new Date()): TempsConversation {
+  if (maintenant >= fin) return { court: 'Terminée', long: 'Terminée', ton: 'fini' };
+  if (debut <= maintenant) return { court: 'En direct', long: `En direct · jusqu’à ${heure(fin)}`, ton: 'direct' };
+  if (joursEntre(maintenant, debut) === 0) {
+    const minutes = Math.round((debut.getTime() - maintenant.getTime()) / 60_000);
+    if (minutes < 60) {
+      const compte = `Dans ${Math.max(1, minutes)} min`;
+      return { court: compte, long: `${compte} · ${heure(debut)}`, ton: 'bientot' };
+    }
+    if (minutes < 4 * 60) {
+      const compte = `Dans ${Math.round(minutes / 60)} h`;
+      return { court: compte, long: `${compte} · ${heure(debut)}`, ton: 'bientot' };
+    }
+  }
+  const texte = quand(debut, maintenant);
+  return { court: texte, long: texte, ton: joursEntre(maintenant, debut) === 0 ? 'bientot' : 'neutre' };
+}
+
+/** Rubrique de la liste des groupes : aujourd'hui (ou en direct), dans les 7 jours, plus tard, terminée. */
+export function rubriqueConversation(debut: Date, fin: Date, maintenant = new Date()) {
+  if (maintenant >= fin) return 'terminee' as const;
+  const ecart = joursEntre(maintenant, debut);
+  if (ecart <= 0) return 'aujourdhui' as const;
+  if (ecart < 7) return 'semaine' as const;
+  return 'plusTard' as const;
+}

@@ -6,19 +6,21 @@ import { ActionSheetIOS, Alert, FlatList, Platform, Pressable, StyleSheet, Text,
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconeEnvoyer } from '@/components/icones';
-import { Espaces, Polices, Tailles } from '@/constants/theme';
+import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import { prevenir } from '@/lib/alerte';
 import { useCompte } from '@/lib/compte';
 import {
+  elementsDuFil,
   fusionnerMessages,
   initiale,
-  placesDansLeFil,
   teinte,
   texteSeparateur,
+  type Arrivee,
+  type ElementDuFil,
   type PlaceDansLeFil,
 } from '@/lib/fil-messages';
 import { vibrer } from '@/lib/haptics';
-import { ecouterFil, envoyerDansFil, lireFil, type Fil, type Message } from '@/lib/messages';
+import { ecouterFil, envoyerDansFil, lireArrivees, lireFil, type Fil, type Message } from '@/lib/messages';
 import { bloquer, demander } from '@/lib/moderation';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
@@ -32,11 +34,14 @@ function Bulle({
   deMoi,
   place,
   avecPrenoms,
+  organise,
   onOptions,
 }: {
   message: Message;
   deMoi: boolean;
   place: PlaceDansLeFil;
+  /** L'auteur organise la session : une petite étiquette à côté de son prénom */
+  organise?: boolean;
   /** À deux, on sait qui parle : pas de prénom au-dessus des bulles */
   avecPrenoms: boolean;
   /** Appui long sur le message d'un autre : signaler ou bloquer */
@@ -54,7 +59,14 @@ function Bulle({
     <View style={finGroupe && styles.finGroupe}>
       {place.separateur && <Text style={styles.separateur}>{texteSeparateur(place.separateur)}</Text>}
       {!deMoi && avecPrenoms && place.avecPrenom && (
-        <Text style={styles.prenom}>{message.prenom || 'Quelqu’un'}</Text>
+        <View style={styles.ligneP}>
+          <Text style={styles.prenom}>{message.prenom || 'Quelqu’un'}</Text>
+          {organise && (
+            <Text maxFontSizeMultiplier={1.3} style={styles.orga}>
+              organise
+            </Text>
+          )}
+        </View>
       )}
       <View style={[styles.rangee, deMoi && styles.rangeeMoi]}>
         {!deMoi &&
@@ -84,6 +96,59 @@ function Bulle({
   );
 }
 
+/** Une petite barre des places, dans une ligne du fil : « 6/10 » */
+function MiniBarre({ nombre, total }: { nombre: number; total: number }) {
+  const styles = useStyles(creerStyles);
+  const cases = Math.min(total, 12);
+  const pleines = Math.round((Math.min(nombre, total) / total) * cases);
+  return (
+    <View style={styles.mini} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+      {Array.from({ length: cases }, (_, i) => (
+        <View key={i} style={[styles.miniCase, i < pleines && styles.miniPleine]} />
+      ))}
+    </View>
+  );
+}
+
+/** Ce qui arrive à la session, au milieu du fil : « Sarah a catché · 6/10 », « Plus que 2 places », « C’est parti » */
+function LigneEvenement({ element, moi }: { element: Exclude<ElementDuFil, { type: 'message' }>; moi?: string }) {
+  const c = useCouleurs();
+  const styles = useStyles(creerStyles);
+  const teintes = [c.avatar1, c.avatar2, c.avatar3, c.avatar4];
+  if (element.type === 'repere') {
+    return (
+      <View style={styles.repere} accessibilityRole="text">
+        <View style={styles.trait} />
+        <Text maxFontSizeMultiplier={1.3} style={styles.repereTexte}>
+          {element.texte}
+        </Text>
+        <View style={styles.trait} />
+      </View>
+    );
+  }
+  const cEstMoi = element.joueurId === moi;
+  const texte = cEstMoi ? 'Tu as catché' : `${element.prenom || 'Quelqu’un'} a catché`;
+  return (
+    <View
+      style={styles.arrivee}
+      accessible
+      accessibilityLabel={`${texte}, ${element.nombre} sur ${element.total}`}>
+      <View style={[styles.avatarPetit, { backgroundColor: cEstMoi ? c.rouge : teintes[teinte(element.joueurId)] }]}>
+        <Text maxFontSizeMultiplier={1.3} style={[styles.avatarPetitTexte, cEstMoi && styles.surRouge]}>
+          {cEstMoi ? 'T' : initiale(element.prenom)}
+        </Text>
+      </View>
+      <Text maxFontSizeMultiplier={1.3} style={styles.arriveeTexte}>
+        {texte} ·
+      </Text>
+      <MiniBarre nombre={element.nombre} total={element.total} />
+      <Text maxFontSizeMultiplier={1.3} style={styles.arriveeTexte}>
+        {element.nombre}/{element.total}
+      </Text>
+    </View>
+  );
+}
+
 /**
  * Les messages d'un fil et le champ pour écrire. À placer sous l'en-tête de l'écran,
  * dans un `KeyboardAvoidingView`.
@@ -93,12 +158,15 @@ export function FilConversation({
   intro,
   vide,
   avecPrenoms = true,
+  groupe,
   onLu,
   relireConversations,
 }: {
   fil: Fil;
   /** En haut du fil, une seule fois : de quoi parle la conversation */
-  intro: React.ReactElement;
+  intro?: React.ReactElement;
+  /** Le groupe d'une session : le fil raconte aussi les arrivées et marque l'organisateur */
+  groupe?: { organisateurId: string; joueurs: number; debut: Date };
   /** Texte quand personne n'a encore écrit */
   vide: string;
   avecPrenoms?: boolean;
@@ -115,7 +183,7 @@ export function FilConversation({
   const [echecLecture, setEchecLecture] = useState(false);
   const [texte, setTexte] = useState('');
   const [echecEnvoi, setEchecEnvoi] = useState(false);
-  const liste = useRef<FlatList<Message>>(null);
+  const liste = useRef<FlatList<ElementDuFil>>(null);
   const { type, id } = fil;
 
   const relire = useCallback(async () => {
@@ -140,6 +208,21 @@ export function FilConversation({
     const nouveaux = await lireFil({ type, id }, depuis);
     if (nouveaux?.length) setMessages((avant) => fusionnerMessages(avant ?? [], nouveaux));
   }, [type, id, relire]);
+
+  // Le groupe d'une session : qui a rejoint et quand, relu à chaque nouveau message (quelqu'un a pu catcher)
+  const [arrivees, setArrivees] = useState<Arrivee[] | null>(null);
+  const nombreMessages = messages?.length ?? 0;
+  const avecArrivees = type === 'session' && !!groupe;
+  useEffect(() => {
+    if (!avecArrivees) return;
+    let actif = true;
+    lireArrivees(id).then((lues) => {
+      if (actif && lues) setArrivees(lues);
+    });
+    return () => {
+      actif = false;
+    };
+  }, [avecArrivees, id, nombreMessages]);
 
   // Lecture à l'ouverture, puis en direct à chaque nouveau message
   useEffect(() => {
@@ -249,14 +332,17 @@ export function FilConversation({
   }
 
   const peutEnvoyer = texte.trim().length > 0;
-  const places = placesDansLeFil(messages ?? []);
+  const elements = elementsDuFil(
+    messages ?? [],
+    groupe && arrivees ? { ...groupe, arrivees } : undefined,
+  );
 
   return (
     <>
       <FlatList
         ref={liste}
-        data={messages ?? []}
-        keyExtractor={(m) => m.id}
+        data={elements}
+        keyExtractor={(e) => (e.type === 'message' ? e.message.id : e.id)}
         style={styles.fil}
         contentContainerStyle={styles.filContenu}
         keyboardShouldPersistTaps="handled"
@@ -267,15 +353,20 @@ export function FilConversation({
             {echecLecture ? 'Impossible de charger les messages. Vérifie ta connexion.' : messages ? vide : ''}
           </Text>
         }
-        renderItem={({ item, index }) => (
-          <Bulle
-            message={item}
-            deMoi={item.auteurId === compte?.id}
-            place={places[index]}
-            avecPrenoms={avecPrenoms}
-            onOptions={options}
-          />
-        )}
+        renderItem={({ item }) =>
+          item.type === 'message' ? (
+            <Bulle
+              message={item.message}
+              deMoi={item.message.auteurId === compte?.id}
+              place={item.place}
+              avecPrenoms={avecPrenoms}
+              organise={!!groupe && item.message.auteurId === groupe.organisateurId}
+              onOptions={options}
+            />
+          ) : (
+            <LigneEvenement element={item} moi={compte?.id} />
+          )
+        }
       />
 
       {echecEnvoi && (
@@ -329,13 +420,28 @@ const creerStyles = (c: Palette) =>
     avatar: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
     avatarVide: { width: 28 },
     avatarTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille, color: c.surAvatar },
-    prenom: {
-      fontFamily: Polices.texte,
-      fontSize: Tailles.pastille,
-      color: c.texteSecondaire,
-      paddingLeft: 48,
-      paddingBottom: 2,
+    ligneP: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 48, paddingBottom: 2 },
+    prenom: { fontFamily: Polices.texte, fontSize: Tailles.pastille, color: c.texteSecondaire },
+    orga: {
+      fontFamily: Polices.texteDemi,
+      fontSize: Tailles.minuscule,
+      color: c.orangeTexte,
+      backgroundColor: c.orangeDoux,
+      borderRadius: Rayons.pilule,
+      paddingHorizontal: 6,
+      overflow: 'hidden',
     },
+    arrivee: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8 },
+    arriveeTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.pastille, color: c.texteSecondaire },
+    avatarPetit: { width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+    avatarPetitTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.minuscule, color: c.surAvatar },
+    surRouge: { color: c.surRouge },
+    mini: { flexDirection: 'row', gap: 2, width: 90 },
+    miniCase: { flex: 1, height: 7, borderRadius: 3, backgroundColor: c.trait },
+    miniPleine: { backgroundColor: c.encre },
+    repere: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, paddingHorizontal: 8 },
+    trait: { flex: 1, height: 1, backgroundColor: c.trait },
+    repereTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille, color: c.rougeTexte },
     bulle: { maxWidth: '75%', paddingVertical: 9, paddingHorizontal: 13, borderRadius: 18 },
     bulleAutre: { backgroundColor: c.beige },
     bulleMoi: { backgroundColor: c.rouge },

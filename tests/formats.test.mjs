@@ -173,3 +173,21 @@ test('Mes sessions : titre des rangées et texte sur le terrain', () => {
   assert.deepEqual(textesBandeau(session(new Date(2026, 10, 16, 19, 0)), maintenant), { petit: 'Ce soir', grand: '19h' });
   assert.deepEqual(textesBandeau(session(new Date(2026, 10, 18, 20, 0)), maintenant), { petit: 'Jusqu’à 21h30', grand: '20h' });
 });
+
+test('le moment d’une conversation de groupe', async () => {
+  const { tempsConversation, rubriqueConversation } = await import('../src/lib/formats.ts');
+  const maintenant = new Date(2026, 10, 26, 16, 0);
+  const t = (h, jour = 26, duree = 1.5) => {
+    const debut = new Date(2026, 10, jour, h, 0);
+    return [debut, new Date(debut.getTime() + duree * 3_600_000), maintenant];
+  };
+  assert.deepEqual(tempsConversation(...t(19)), { court: 'Dans 3 h', long: 'Dans 3 h · 19h', ton: 'bientot' });
+  assert.equal(tempsConversation(...t(15)).long, 'En direct · jusqu’à 16h30');
+  assert.equal(tempsConversation(...t(21)).court, 'Ce soir 21h');
+  assert.equal(tempsConversation(...t(18, 27)).court, 'Demain 18h');
+  assert.equal(tempsConversation(...t(10, 25)).ton, 'fini');
+  assert.equal(rubriqueConversation(...t(15)), 'aujourdhui');
+  assert.equal(rubriqueConversation(...t(18, 28)), 'semaine');
+  assert.equal(rubriqueConversation(...t(18, 4 + 30)), 'plusTard');
+  assert.equal(rubriqueConversation(...t(10, 25)), 'terminee');
+});
