@@ -145,7 +145,7 @@ Ordre et avancement :
 1. [x] La carte (25 novembre, voir « La carte revue »)
 2. [x] Mes sessions (26 novembre, voir « Mes sessions revu »)
 3. [x] Messages (26 novembre, voir « Messages revu »). Publié sur Expo et fusionné dans `main` le 26 novembre
-4. [~] Profil — **en cours** (26 novembre : maquettes https://claude.ai/artifact/KuP4A6wkqgnEMSgTUvr82D, A à D, on attend le choix de Maxime)
+4. [~] Profil — **en cours** (26 novembre : maquettes https://claude.ai/artifact/KuP4A6wkqgnEMSgTUvr82D, choix de Maxime : A « Carte de joueur » ; finitions https://claude.ai/artifact/EKi9mpqNJWqrBcJmPZTAQD, on attend son choix)
 5. [ ] Connexion (e-mail et Google)
 6. [ ] Fiche d'un lieu et fiche d'un événement
 7. [ ] Modifier une session
