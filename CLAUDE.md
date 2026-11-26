@@ -128,6 +128,27 @@ Noté le 15 novembre à sa demande, pour ne pas oublier. Claude ne peut pas le f
 
 **C'est tout.** Le reste a été tranché le 24 novembre avec Maxime (taux de présence abandonné, sports gardés, plus de lieux à cocher, `sessions_ancienne` laissée, etc. : voir « Tranché le 24 novembre » dans `docs/produit.md`). Ne pas lui reposer ces questions ni lui en ajouter de superflues : quand un choix a une réponse raisonnable par défaut, la prendre et le dire en une ligne.
 
+## Refonte écran par écran (en cours depuis le 25 novembre)
+
+Demande de Maxime : rendre chaque écran plus soigné et moins générique, **un écran à la fois**, avec cette méthode :
+1. Captures de l'écran actuel (web, clair et sombre, données simulées avec Playwright `page.route`, compte simulé en posant une fausse session dans `localStorage` clé `sb-fwhewavlrbujnwfbgcdf-auth-token`) + 2-3 phrases sur ce qui ne va pas.
+2. Page de maquettes jouables (artifact) : l'actuelle (contour rouge, « Actuelle ») + 3-4 autres façons, boutons qui font réagir, vote « J'aime / Bof / Non » sur chaque carte et « Copier mes votes ». Donner son avis.
+3. Maxime choisit (parfois un mélange). 3 finitions de son choix en écrans de téléphone complets + onglet « Tout ensemble ».
+4. Il choisit la finition. Construire, vérifier (types, lint, tests, captures clair et sombre), pousser, publier sur Expo (et le site si l'écran y est), envoyer les captures (son téléphone n'est pas toujours chargé).
+5. Fusionner dans `main` seulement quand il le dit. Avant : regarder si `main` a bougé, ne jamais publier depuis une branche en retard. **Une autre conversation peut publier en même temps** : si Maxime ne voit pas les changements, vérifier `eas update:list --branch main` (une publication plus récente sans nos changements les efface).
+
+Règles : garder le style choisi (Chaleur, marqueur et titres penchés seulement sur quelques moments forts, phrase qui s'écrit avec curseur, chiffre géant, barre segmentée, photos des sports sur fond orange), ne pas retoucher un écran déjà fait sans qu'il le demande, respecter les « Décisions à ne pas rediscuter », réponses courtes sans jargon.
+
+Ordre et avancement :
+1. [x] La carte (25 novembre, voir « La carte revue »)
+2. [x] Mes sessions (26 novembre, voir « Mes sessions revu »)
+3. [ ] Messages (liste Groupes / Privés) et une conversation — **le prochain**
+4. [ ] Profil
+5. [ ] Connexion (e-mail et Google)
+6. [ ] Fiche d'un lieu et fiche d'un événement
+7. [ ] Modifier une session
+8. [ ] Réglages, notifications, signaler, personnes bloquées
+
 ## Prochaines tâches pour Claude (notées le 24 novembre, à reprendre dans une nouvelle conversation)
 
 Proposées à Maxime le 24 novembre, à faire dans cet ordre sauf s'il dit autre chose (une à la fois, tester, pousser, publier) :
