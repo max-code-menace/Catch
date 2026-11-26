@@ -85,6 +85,8 @@ Les fichiers `design/canvas/*.dc.html` sont générés par `design/canvas/genere
 
 - **Mes sessions revu (26 novembre, mélange D2 + D3 choisi par Maxime après maquettes : https://claude.ai/artifact/5jNbwwcSSScH95w9UP5GFq)** : sessions rangées par jour (« Aujourd’hui », « Demain », « Samedi 28 » + nombre, `jourSection`), une carte basse par session avec la photo du sport calée à droite sur fond orange (`BandeauxSports`, couleurs `fondPhoto`, `voilePhoto`, `surPhoto`…), tout écrit dessus : aujourd'hui le compte à rebours en grand (« Dans 3 h », « En direct », sinon « Ce soir » + l'heure), les autres jours l'heure en grand (`textesBandeau`, testé) ; en haut à droite « En direct » / « Tu organises » / « Il manque 1 joueur » / « Presque plein » ou « 7/10 » ; titre et lieu en bas ; bulle blanche qui ouvre la conversation du groupe ; barre des places collée en bas de la carte (sa place en clair). La toute prochaine est un peu plus haute. Vide : balle qui rebondit, « Rien de prévu pour l’instant », « Voir la carte ». Sans compte : photo du foot, « Tes sessions arrivent ici », « Me connecter ». Vu sur le web en clair et en sombre, **pas sur un vrai iPhone**.
 
+- **Messages revu (26 novembre, finition 1 « Calme » choisie par Maxime : maquettes https://claude.ai/artifact/75zrm5zuVJB33TWTnY52tr, finitions https://claude.ai/artifact/6zYv5ew15S9UFqTBk84Q8q)** : liste = onglets calmes « Groupes » / « Privés » (trait encre sous l'actif, nombre de conversations non lues en rouge ; remplace la grande pilule rouge), groupes rangés « Aujourd’hui » / « Cette semaine » / « Plus tard », puis « Terminées · N » replié en bas (`rubriqueConversation`) ; chaque ligne : photo du sport en rond (anneau rouge en direct), titre + pastille du moment (« En direct » rouge, « Dans 3 h » rouge doux, « Demain 18h » beige, `tempsConversation`, testé), aperçu · heure, non lu = gras + point. Vide : balle, « Pas encore de groupe », « Voir la carte ». Conversation de groupe : en-tête court (photo, titre, « Voir la session », pastille « Dans 3 h · 19h » / « En direct · jusqu’à 20h30 ») et une carte épinglée qui reste (lieu · commune, distance si la position est connue, « jusqu’à … », Itinéraire, barre des places) ; plus de présentation en haut du fil. Le fil raconte la session (piste H) : « Sarah a catché · 6/10 » (lu dans `participations`, `lireArrivees`), « Plus que 2 places », « Complet », « C’est parti » (`elementsDuFil` dans `lib/fil-messages.ts`, testé), étiquette « organise » à côté du prénom de l'organisateur. Les nombres des arrivées sont recomptés avec les inscrits actuels (quelqu'un qui est parti n'est plus compté). Conversation privée inchangée. Vu sur le web en clair et en sombre, **pas sur un vrai iPhone**.
+
 Plan complet dans `docs/produit.md`.
 
 - [x] 0. Projet Expo
@@ -142,8 +144,8 @@ Règles : garder le style choisi (Chaleur, marqueur et titres penchés seulement
 Ordre et avancement :
 1. [x] La carte (25 novembre, voir « La carte revue »)
 2. [x] Mes sessions (26 novembre, voir « Mes sessions revu »)
-3. [~] Messages (liste Groupes / Privés) et une conversation — **en cours** (26 novembre : maquettes https://claude.ai/artifact/75zrm5zuVJB33TWTnY52tr, liste A à D et conversation E à H, choix de Maxime : liste A, conversation E + G + H ; finitions https://claude.ai/artifact/6zYv5ew15S9UFqTBk84Q8q, on attend son choix)
-4. [ ] Profil
+3. [x] Messages (26 novembre, voir « Messages revu »). **Sur la branche `claude/sleepy-archimedes-gcgmzg`, publié sur Expo, pas encore fusionné dans `main`** (attendre l'accord de Maxime)
+4. [ ] Profil — **le prochain**
 5. [ ] Connexion (e-mail et Google)
 6. [ ] Fiche d'un lieu et fiche d'un événement
 7. [ ] Modifier une session
@@ -153,7 +155,7 @@ Ordre et avancement :
 
 Proposées à Maxime le 24 novembre, à faire dans cet ordre sauf s'il dit autre chose (une à la fois, tester, pousser, publier) :
 1. **Retirer un pote** : aujourd'hui seul « Bloquer » le permet. Probablement une option dans l'appui long sur un pote (Profil > Potes), à côté de « Signaler ».
-2. **« Terminées » dans Messages** : les conversations des sessions passées rangées en bas, repliées.
+2. ~~« Terminées » dans Messages~~ : fait le 26 novembre avec Messages revu.
 3. **Remettre les docs à jour** : `docs/produit.md` décrit encore l'ancienne barre (« Créer · Carte · Messages · Profil »), les événements « 7 jours avant » (c'est 2 semaines), des « amis » à accepter (ce sont des potes réciproques), les espaces « Sessions / Amis » (c'est « Groupes / Privés ») ; `docs/repartition.md` liste le nettoyage des jetons push comme à faire (déjà fait).
 4. Plus tard, avec Maxime et son téléphone : premier build TestFlight (connexion Apple), clé Google Maps Android (voir sa liste ci-dessus).
 
