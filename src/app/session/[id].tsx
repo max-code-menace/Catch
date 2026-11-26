@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Image, Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   interpolate,
   useAnimatedScrollHandler,
@@ -29,7 +29,6 @@ import { Chargement } from '@/components/chargement';
 import { ChiffreQuiDefile } from '@/components/chiffre-qui-defile';
 import { INCLINAISON, TexteSurligne } from '@/components/marqueur';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
-import { Terrains } from '@/donnees/terrains';
 import {
   annulationLibre,
   distance,
@@ -176,13 +175,6 @@ export default function DetailSession() {
         onScroll={surDefilement}
         scrollEventThrottle={16}>
         <View style={[styles.enteteSport, { height: top + HAUTEUR_ENTETE, paddingTop: top }]}>
-          {/* L'illustration du terrain du sport (vraies dimensions), comme dans Mes sessions */}
-          <Image
-            source={Terrains[session.sport]}
-            style={StyleSheet.absoluteFill}
-            resizeMode="cover"
-            accessibilityIgnoresInvertColors
-          />
           {/* Page d'invitation (web) : le logo défile avec l'en-tête rouge */}
           {invitation && (
             <Text accessibilityLabel="Catch" style={[styles.logo, { top: top + 16 }]}>
@@ -234,7 +226,7 @@ export default function DetailSession() {
               <PictoSport sport={session.sport} taille={30} />
             </View>
           </View>
-          {/* Session de test (créée pour essayer l'app) : gros tampon par-dessus le terrain */}
+          {/* Session de test (créée pour essayer l'app) : gros tampon par-dessus l'en-tête */}
           {estSessionTest && (
             <View pointerEvents="none" style={styles.tampon}>
               <Text maxFontSizeMultiplier={1} style={styles.tamponTexte}>
@@ -485,7 +477,9 @@ const creerStyles = (c: Palette) =>
       justifyContent: 'center',
       gap: 10,
       overflow: 'hidden',
-      backgroundColor: c.rouge,
+      // Le modèle Catch : le même orange que « + Créer », rien d'autre que le texte (demande de Maxime, 26 novembre)
+      backgroundColor: c.creerDebut,
+      experimental_backgroundImage: `linear-gradient(160deg, ${c.creerDebut}, ${c.creerFin})`,
     },
     // Le picto passe dans le coin, en petit : le chiffre prend la place
     rondPicto: {
