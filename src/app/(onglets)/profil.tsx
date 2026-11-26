@@ -1,8 +1,9 @@
-// Profil (maquette K choisie par Maxime le 22 novembre) : un en-tête blanc qui flotte en haut,
-// avec son rond, son prénom et 4 compteurs qui servent de navigation : Semaine, Catchs, Potes, Sports.
-// En défilant, l'en-tête se replie (petit rond + compteurs). Code de la semaine : case pleine avec
-// un drapeau = j'organise, case avec un contour = j'y vais, pointillés = libre.
-import { router, useLocalSearchParams } from 'expo-router';
+// Profil : la carte de joueur (finition 3 choisie par Maxime le 26 novembre, maquettes
+// https://claude.ai/artifact/EKi9mpqNJWqrBcJmPZTAQD). En haut, une carte orange comme l'en-tête d'une session :
+// son rond, son prénom, « Joue au foot, au padel… » et l'interrupteur « Dispo ce soir ? ». Elle reste en haut et
+// se replie en une ligne en défilant. Dessous, une seule page : la question du moment, les potes, les Catchs en
+// photos, les sports. Plus d'« À venir » : c'est l'onglet Mes sessions.
+import { router } from 'expo-router';
 import { useState } from 'react';
 import {
   Image,
@@ -21,42 +22,27 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Bouton } from '@/components/bouton';
 import { Chargement } from '@/components/chargement';
 import { Aide, Ecran } from '@/components/ecran';
-import { IconeChevron, IconeCreer, IconeDrapeau, IconeMenu, IconePhoto, IconeProfil, IconeVerifie } from '@/components/icones';
-import { PictoSport } from '@/components/picto-sport';
+import { IconeChevron, IconeMenu, IconePhoto, IconeProfil, IconeVerifie } from '@/components/icones';
 import { SITE } from '@/constants/liens';
 import { BarreNavigation, Espaces, Polices, RESERVE_BAS, Rayons, Tailles } from '@/constants/theme';
+import { ImagesSports } from '@/donnees/images-sports';
 import type { Sport } from '@/donnees/pictos';
 import { NOM_ZONE } from '@/donnees/sessions';
 import { ficheSport } from '@/donnees/sports';
 import { choisir, prevenir } from '@/lib/alerte';
 import { useCompte, type Compte } from '@/lib/compte';
 import { ecrireA } from '@/lib/ecrire-prive';
-import { distance, heure, quand, texteDistance } from '@/lib/formats';
+import { quand } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { useHistorique } from '@/lib/historique';
 import { useMesSports } from '@/lib/mes-sports';
 import { usePhoto } from '@/lib/photo';
-import { usePotes, type Pote, type SessionPote } from '@/lib/potes';
-import {
-  accorder,
-  dateCourte,
-  initiale,
-  joursDeLaSemaine,
-  indexDuJour,
-  semaine,
-  separerTraces,
-  sportsDuProfil,
-  type EtatJour,
-  type Trace,
-} from '@/lib/profil';
-import { useSessions } from '@/lib/sessions';
+import { repondre, usePotes, type Pote } from '@/lib/potes';
+import { accorder, dateCourte, initiale, separerTraces, sportsDuProfil, type Trace } from '@/lib/profil';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
 
-type Onglet = 'semaine' | 'catchs' | 'potes' | 'sports';
-const ONGLETS: Onglet[] = ['semaine', 'catchs', 'potes', 'sports'];
-
-/** Au-delà de ce défilement, l'en-tête se replie */
-const SEUIL_REPLI = 40;
+/** Au-delà de ce défilement, la carte de joueur se replie */
+const SEUIL_REPLI = 60;
 
 function inviterDesAmis() {
   const texte = 'Viens faire du sport avec moi sur Catch :';
@@ -162,516 +148,334 @@ function RondAvecPhoto({ prenom }: { prenom: string | null }) {
   );
 }
 
-/** Rond d'un pote : ses deux premières lettres, sur une des 4 couleurs d'avatar */
-function RondPote({
-  prenom,
-  index,
-  dispo = false,
-  photo,
-}: {
-  prenom: string;
-  index: number;
-  dispo?: boolean;
-  photo?: string | null;
-}) {
+/** Rond d'un pote : sa photo ou ses deux premières lettres, entouré de rouge s'il est dispo ce soir */
+function RondPote({ prenom, index, dispo = false, photo }: { prenom: string; index: number; dispo?: boolean; photo?: string | null }) {
   const styles = useStyles(creerStyles);
   const c = useCouleurs();
   const fond = [c.avatar1, c.avatar2, c.avatar3, c.avatar4][index % 4];
   return (
-    <View style={[styles.rondPote, { backgroundColor: fond }, dispo && styles.rondDispo]}>
-      {photo ? (
-        <Image source={{ uri: photo }} style={styles.photo} accessibilityIgnoresInvertColors />
-      ) : (
-        <Text style={styles.rondPoteTexte} maxFontSizeMultiplier={1}>
-          {deuxLettres(prenom)}
-        </Text>
-      )}
+    <View style={[styles.anneauPote, dispo && styles.anneauDispo]}>
+      <View style={[styles.rondPote, { backgroundColor: fond }]}>
+        {photo ? (
+          <Image source={{ uri: photo }} style={styles.photo} accessibilityIgnoresInvertColors />
+        ) : (
+          <Text style={styles.rondPoteTexte} maxFontSizeMultiplier={1}>
+            {deuxLettres(prenom)}
+          </Text>
+        )}
+      </View>
     </View>
   );
 }
 
-/** Une case de semaine : pleine + drapeau (j'organise), contour (j'y vais), pointillés (libre) */
-function CaseJour({
-  etat,
-  sport,
-  texte,
-  choisie,
-  petite = false,
-  onPress,
-  label,
-}: {
-  etat: EtatJour;
-  sport?: Sport;
-  texte?: string;
-  choisie: boolean;
-  petite?: boolean;
-  onPress: () => void;
-  label: string;
-}) {
-  const styles = useStyles(creerStyles);
-  const c = useCouleurs();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ selected: choisie }}
-      onPress={() => {
-        vibrer.selection();
-        onPress();
-      }}
-      style={[
-        styles.case,
-        petite && styles.casePetite,
-        etat === 'organise' && styles.caseOrganise,
-        etat === 'inscrit' && styles.caseInscrit,
-        etat === 'libre' && styles.caseLibre,
-        choisie && styles.caseChoisie,
-      ]}>
-      {etat === 'organise' && !petite && (
-        <View style={styles.drapeau}>
-          <IconeDrapeau couleur={c.surRouge} taille={12} />
-        </View>
-      )}
-      {sport && (
-        <View style={[styles.casePicto, petite && styles.casePictoPetit]}>
-          <PictoSport sport={sport} taille={petite ? 18 : 20} />
-        </View>
-      )}
-      {texte && !petite ? (
-        <Text
-          style={[styles.caseTexte, etat === 'organise' ? styles.caseTexteOrganise : styles.caseTexteInscrit]}
-          maxFontSizeMultiplier={1.2}
-          numberOfLines={1}>
-          {texte}
-        </Text>
-      ) : null}
-    </Pressable>
-  );
+/** « Joue au foot, au padel et au basket » */
+function phraseSports(sports: Sport[]) {
+  if (sports.length === 0) return 'Choisis tes sports pour commencer';
+  const noms = sports.slice(0, 3).map((s) => `au ${(ficheSport(s).nomTuile ?? ficheSport(s).nom).toLowerCase()}`);
+  const liste = noms.length > 1 ? `${noms.slice(0, -1).join(', ')} et ${noms.at(-1)}` : noms[0];
+  return `Joue ${liste}${sports.length > 3 ? '…' : ''}`;
 }
 
-/** L'en-tête qui flotte : son identité, puis les 4 compteurs qui servent de navigation */
-function EnteteFlottant({
+/**
+ * La carte de joueur (finition 3 choisie par Maxime le 26 novembre) : orange comme l'en-tête d'une session,
+ * son rond, son prénom, les sports qu'il joue et l'interrupteur « Dispo ce soir ? ». Elle reste en haut et
+ * se replie en une ligne quand on fait défiler.
+ */
+function CarteJoueur({
   compte,
-  compact,
-  onglet,
-  nombres,
-  onChoisir,
+  sports,
+  dispo,
+  onDispo,
+  replie,
   onMesure,
 }: {
   compte: Compte;
-  compact: boolean;
-  onglet: Onglet;
-  nombres: Record<Onglet, number>;
-  onChoisir: (o: Onglet) => void;
+  sports: Sport[];
+  dispo: boolean;
+  onDispo: () => void;
+  replie: boolean;
   onMesure: (hauteur: number) => void;
 }) {
   const styles = useStyles(creerStyles);
   const c = useCouleurs();
   const { top } = useSafeAreaInsets();
-  const noms: Record<Onglet, string> = { semaine: 'À venir', catchs: 'Catchs', potes: 'Potes', sports: 'Sports' };
-  const lus: Record<Onglet, string> = {
-    semaine: accorder(nombres.semaine, 'session à venir cette semaine', 'sessions à venir cette semaine'),
-    catchs: accorder(nombres.catchs, 'Catch', 'Catchs'),
-    potes: accorder(nombres.potes, 'pote', 'potes'),
-    sports: accorder(nombres.sports, 'sport', 'sports'),
-  };
   return (
     <View
-      style={[styles.entete, { top: top + 8 }]}
-      onLayout={(e) => !compact && onMesure(e.nativeEvent.layout.height)}>
-      {!compact && (
-        <View style={styles.identite}>
-          <RondAvecPhoto prenom={compte.prenom} />
-          <View style={styles.identiteTextes}>
-            <Text accessibilityRole="header" style={styles.prenom} numberOfLines={1}>
-              {compte.prenom ?? 'Profil'}
-            </Text>
+      style={[styles.carteJoueur, { paddingTop: top + (replie ? 8 : 14) }, replie && styles.carteJoueurRepliee]}
+      onLayout={(e) => !replie && onMesure(e.nativeEvent.layout.height)}>
+      <View style={styles.identite}>
+        {replie ? <MonRond prenom={compte.prenom} petit /> : <RondAvecPhoto prenom={compte.prenom} />}
+        <View style={styles.identiteTextes}>
+          <Text accessibilityRole="header" style={[styles.prenom, replie && styles.prenomReplie]} numberOfLines={1}>
+            {compte.prenom ?? 'Profil'}
+          </Text>
+          {!replie && (
             <View style={styles.verifie}>
-              {compte.verifiePar && <IconeVerifie couleur={c.rougeTexte} taille={15} />}
+              {compte.verifiePar && <IconeVerifie couleur={c.surCreer} taille={15} />}
               <Text style={styles.verifieTexte} numberOfLines={1}>
                 {compte.verifiePar ? `Vérifié · ${NOM_ZONE}` : NOM_ZONE}
               </Text>
             </View>
-          </View>
-          <BoutonMenu />
+          )}
         </View>
-      )}
-      <View style={styles.navigation} accessibilityRole="tablist">
-        {compact && <MonRond prenom={compte.prenom} petit />}
-        <View style={styles.compteurs}>
-          {ONGLETS.map((o) => {
-            const actif = o === onglet;
-            return (
-              <Pressable
-                key={o}
-                accessibilityRole="tab"
-                accessibilityLabel={lus[o]}
-                accessibilityState={{ selected: actif }}
-                onPress={() => {
-                  if (actif) return;
-                  vibrer.selection();
-                  onChoisir(o);
-                }}
-                style={[styles.compteur, compact && styles.compteurCompact, actif && styles.compteurActif]}>
-                <Text
-                  style={[styles.compteurNombre, compact && styles.compteurNombreCompact, actif && styles.compteurNombreActif]}
-                  maxFontSizeMultiplier={1.2}>
-                  {nombres[o]}
-                </Text>
-                <Text style={[styles.compteurNom, actif && styles.compteurNomActif]} maxFontSizeMultiplier={1.2} numberOfLines={1}>
-                  {noms[o]}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-    </View>
-  );
-}
-
-/** Onglet Semaine : l'action du moment, ma semaine en 7 cases, des sessions près de moi */
-function SectionSemaine({ traces, potes, semainePotes }: { traces: Trace[]; potes: ReturnType<typeof usePotes>; semainePotes: SessionPote[] }) {
-  const styles = useStyles(creerStyles);
-  const c = useCouleurs();
-  const [jour, setJour] = useState(-1);
-  const { compte } = useCompte();
-  const { sessions, origine } = useSessions();
-  const { sports: mesSports } = useMesSports();
-  const jours = semaine(traces);
-  const choisi = jour >= 0 ? jours[jour] : null;
-
-  // Les potes qui n'ont rien de prévu ce jour-là
-  const potesSansRien = choisi
-    ? potes.potes.filter((p) => !semainePotes.some((s) => s.poteId === p.id && indexDuJour(s.debut) === jour))
-    : [];
-
-  const [maintenant] = useState(() => Date.now());
-  const moi = compte?.id ?? '';
-  const proches = sessions
-    .filter((s) => s.debut.getTime() > maintenant && !s.idsInscrits.includes(moi))
-    .filter((s) => mesSports.length === 0 || mesSports.includes(s.sport))
-    .sort((a, b) => a.debut.getTime() - b.debut.getTime())
-    .slice(0, 3);
-
-  async function dispo() {
-    vibrer.selection();
-    const ok = await potes.basculerDispo();
-    if (!ok) prevenir('Pas de réseau', 'Impossible de changer ta dispo. Vérifie ta connexion et réessaie.');
-  }
-
-  return (
-    <View style={styles.section}>
-      {potes.question ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.push('/rejouer')}
-          style={({ pressed }) => [styles.question, pressed && styles.presse]}>
-          <PictoSport sport={potes.question.sport} taille={30} />
-          <View style={styles.flex}>
-            <Text style={styles.questionTitre}>Tu rejouerais avec qui ?</Text>
-            <Text style={styles.questionDetail} numberOfLines={1}>
-              {potes.question.titre} · {potes.question.lieu}
+        {replie && dispo && (
+          <View style={styles.dispoMini}>
+            <Text style={styles.dispoMiniTexte} maxFontSizeMultiplier={1.3}>
+              Dispo ce soir
             </Text>
           </View>
-          <IconeChevron couleur={c.orangeTexte} taille={20} />
-        </Pressable>
-      ) : (
-        <Pressable
-          accessibilityRole="switch"
-          accessibilityState={{ checked: potes.dispo }}
-          onPress={dispo}
-          style={({ pressed }) => [styles.dispo, potes.dispo && styles.dispoActif, pressed && styles.presse]}>
-          <Text style={[styles.dispoTexte, potes.dispo && styles.dispoTexteActif]}>
-            {potes.dispo ? 'Dispo ce soir · tes potes le voient' : 'Je suis dispo ce soir'}
-          </Text>
-        </Pressable>
-      )}
-
-      <View style={styles.bloc}>
-        <Text style={styles.titreBloc}>Ma semaine</Text>
-        <View style={styles.semaine}>
-          {jours.map((j, i) => {
-            const premiere = j.sessions[0];
-            return (
-              <View key={j.nom + i} style={styles.colonne}>
-                <Text style={[styles.nomJour, i === 0 && styles.nomJourAujourdhui]} maxFontSizeMultiplier={1.2}>
-                  {j.nom}
-                </Text>
-                <CaseJour
-                  etat={j.etat}
-                  sport={premiere?.sport}
-                  texte={premiere ? (j.sessions.length > 1 ? `+${j.sessions.length - 1}` : heure(premiere.debut)) : undefined}
-                  choisie={jour === i}
-                  onPress={() => setJour(jour === i ? -1 : i)}
-                  label={
-                    premiere
-                      ? `${j.nom}, ${j.sessions.map((s) => `${s.titre} à ${heure(s.debut)}`).join(', ')}`
-                      : `${j.nom}, libre`
-                  }
-                />
-              </View>
-            );
-          })}
-        </View>
-        {!choisi ? (
-          <Text style={styles.aide}>Plein avec drapeau : tu organises · contour : tu y vas. Touche un jour.</Text>
-        ) : choisi.sessions.length > 0 ? (
-          <View style={styles.carte}>
-            {choisi.sessions.map((s) => (
-              <Pressable
-                key={s.id}
-                accessibilityRole="button"
-                onPress={() => router.push({ pathname: '/session/[id]', params: { id: s.id } })}
-                style={({ pressed }) => [styles.ligne, pressed && styles.presse]}>
-                <PictoSport sport={s.sport} taille={30} />
-                <View style={styles.flex}>
-                  <Text style={styles.ligneTitre} numberOfLines={1}>
-                    {s.titre} · {heure(s.debut)}
-                  </Text>
-                  <Text style={styles.aide} numberOfLines={1}>
-                    {s.lieu}
-                    {s.organise ? ' · tu organises' : ''}
-                  </Text>
-                </View>
-                <IconeChevron couleur={c.texteSecondaire} taille={20} />
-              </Pressable>
-            ))}
-          </View>
-        ) : (
-          <View style={styles.carte}>
-            <Text style={styles.ligneTitre}>{choisi.nom === 'Auj.' ? 'Rien de prévu aujourd’hui' : 'Rien de prévu ce jour-là'}</Text>
-            {potesSansRien.length > 0 && (
-              <Text style={styles.aide}>
-                {potesSansRien
-                  .slice(0, 3)
-                  .map((p) => p.prenom)
-                  .join(', ')}{' '}
-                {potesSansRien.length > 1 ? 'n’ont rien de prévu non plus.' : 'n’a rien de prévu non plus.'}
-              </Text>
-            )}
-            <Bouton titre="Proposer une session" onPress={() => router.navigate('/creer')} />
-          </View>
         )}
+        <BoutonMenu />
       </View>
-
-      {proches.length > 0 && (
-        <View style={styles.bloc}>
-          <Text style={styles.titreBloc}>{mesSports.length ? 'Près de toi, dans tes sports' : 'Près de toi'}</Text>
-          {proches.map((s) => (
-            <Pressable
-              key={s.id}
-              accessibilityRole="button"
-              onPress={() => router.push({ pathname: '/session/[id]', params: { id: s.id } })}
-              style={({ pressed }) => [styles.carte, styles.ligne, pressed && styles.presse]}>
-              <View style={styles.carrePicto}>
-                <PictoSport sport={s.sport} taille={32} />
-              </View>
-              <View style={styles.flex}>
-                <Text style={styles.ligneTitre} numberOfLines={1}>
-                  {s.titre} · {quand(s.debut)}
-                </Text>
-                <Text style={styles.aide} numberOfLines={1}>
-                  {s.lieu} · {texteDistance(distance(origine, s.position))}
-                </Text>
-              </View>
-              <IconeChevron couleur={c.texteSecondaire} taille={20} />
-            </Pressable>
-          ))}
-        </View>
+      {!replie && (
+        <>
+          <Pressable onPress={() => router.push('/mes-sports')} accessibilityRole="button" accessibilityHint="Choisir mes sports">
+            <Text style={styles.joue}>{phraseSports(sports)}</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="switch"
+            accessibilityLabel="Dispo ce soir"
+            accessibilityHint="Tes potes le voient jusqu’à minuit"
+            accessibilityState={{ checked: dispo }}
+            onPress={onDispo}
+            style={({ pressed }) => [styles.interrupteur, dispo && styles.interrupteurActif, pressed && styles.presse]}>
+            <Text style={[styles.interrupteurTexte, dispo && styles.interrupteurTexteActif]} maxFontSizeMultiplier={1.3}>
+              {dispo ? 'Dispo ce soir' : 'Dispo ce soir ?'}
+            </Text>
+            <View style={[styles.glissiere, dispo && styles.glissiereActive]}>
+              <View style={[styles.bouleGlissiere, dispo && styles.bouleGlissiereActive]} />
+            </View>
+          </Pressable>
+        </>
       )}
     </View>
   );
 }
 
-/** Onglet Catchs : les sessions jouées, la plus récente d'abord */
-function SectionCatchs({ jouees, etat }: { jouees: Trace[]; etat: string }) {
+/** « Tu rejouerais avec qui ? » : on coche les joueurs ici même, sans changer d'écran */
+function QuestionRejouer({ donnees }: { donnees: ReturnType<typeof usePotes> }) {
   const styles = useStyles(creerStyles);
-  if (jouees.length === 0) {
-    if (etat === 'chargement') return <Chargement phrases={['On retrouve tes Catchs…']} />;
+  const c = useCouleurs();
+  const [coches, setCoches] = useState<string[]>([]);
+  const [envoi, setEnvoi] = useState(false);
+  const [merci, setMerci] = useState<string | null>(null);
+  const q = donnees.question;
+  if (merci !== null) {
     return (
-      <View style={styles.section}>
-        <Aide>
-          {etat === 'erreur'
-            ? 'Pas de réseau : tes Catchs s’afficheront dès que ça revient.'
-            : 'Pas encore de Catch joué. Ta première session t’attend sur la carte.'}
-        </Aide>
-        <View>
-          <Bouton titre="Trouver une session" variante="secondaire" onPress={() => router.navigate('/')} />
-        </View>
+      <View style={styles.carte}>
+        <Text style={styles.titreQuestion}>Merci !</Text>
+        <Text style={styles.aide}>{merci}</Text>
       </View>
     );
   }
+  if (!q) return null;
+  const teintes = [c.avatar1, c.avatar2, c.avatar3, c.avatar4];
+
+  async function valider() {
+    if (!q) return;
+    setEnvoi(true);
+    const nouveaux = await repondre(q.sessionId, coches);
+    setEnvoi(false);
+    if (nouveaux === null) {
+      vibrer.erreur();
+      prevenir('Pas de réseau', 'Ta réponse n’est pas partie. Réessaie.');
+      return;
+    }
+    vibrer.succes();
+    setMerci(
+      nouveaux.length
+        ? `Toi et ${nouveaux.map((p) => p.prenom).join(', ')}, vous êtes potes maintenant.`
+        : 'Si c’est réciproque, vous devenez potes. Personne ne voit qui tu as choisi.',
+    );
+    donnees.recharger();
+  }
+
   return (
-    <View style={styles.section}>
-      <Text style={styles.titreBloc}>Mes Catchs</Text>
-      {jouees.map((t) => {
-        const [jour, mois] = dateCourte(t.debut).split(' ');
-        return (
-          <View key={t.id} style={[styles.carte, styles.ligne]} accessible accessibilityLabel={`${t.titre}, ${dateCourte(t.debut)}, ${t.lieu}`}>
-            <View style={styles.date}>
-              <Text style={styles.dateJour}>{jour}</Text>
-              <Text style={styles.dateMois}>{mois}</Text>
-            </View>
-            <PictoSport sport={t.sport} taille={30} />
-            <View style={styles.flex}>
-              <Text style={styles.ligneTitre} numberOfLines={1}>
-                {t.titre}
+    <View style={styles.carte}>
+      <View>
+        <Text style={styles.titreQuestion}>Tu rejouerais avec qui ?</Text>
+        <Text style={styles.aide} numberOfLines={1}>
+          {q.titre} · {q.lieu}
+        </Text>
+      </View>
+      <View style={styles.choixJoueurs}>
+        {q.joueurs.map((j, i) => {
+          const coche = coches.includes(j.id);
+          return (
+            <Pressable
+              key={j.id}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: coche }}
+              accessibilityLabel={j.prenom}
+              onPress={() => {
+                vibrer.selection();
+                setCoches((avant) => (coche ? avant.filter((x) => x !== j.id) : [...avant, j.id]));
+              }}
+              style={[styles.choixJoueur, coche && styles.choixJoueurCoche]}>
+              <View style={[styles.miniRond, { backgroundColor: teintes[i % 4] }]}>
+                <Text style={styles.miniRondTexte} maxFontSizeMultiplier={1}>
+                  {initiale(j.prenom)}
+                </Text>
+              </View>
+              <Text style={[styles.choixJoueurTexte, coche && styles.choixJoueurTexteCoche]} maxFontSizeMultiplier={1.3}>
+                {j.prenom}
               </Text>
-              <Text style={styles.aide} numberOfLines={1}>
-                {t.lieu}
-                {t.organise ? ' · tu organisais' : ''}
-              </Text>
-            </View>
-          </View>
-        );
-      })}
-      <Text style={styles.aide}>Les sessions s’effacent 30 jours après la fin.</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <View style={styles.boutonGauche}>
+        <Bouton titre={coches.length ? 'C’est bon' : 'Personne cette fois'} variante={coches.length ? undefined : 'secondaire'} attente={envoi} onPress={valider} />
+      </View>
     </View>
   );
 }
 
-/** Onglet Potes : dispo ce soir, leur semaine, la liste */
-function SectionPotes({ donnees }: { donnees: ReturnType<typeof usePotes> }) {
+/** Mes potes : un rond chacun, entouré de rouge s'il est dispo ce soir ; puis ce qu'ils jouent cette semaine */
+function BlocPotes({ donnees }: { donnees: ReturnType<typeof usePotes> }) {
   const styles = useStyles(creerStyles);
-  const { compte } = useCompte();
-  const [choisie, setChoisie] = useState<string | null>(null);
-  const { potes, semaine: sessions, dispo } = donnees;
-  const index = new Map(potes.map((p, i) => [p.id, i]));
-
+  const { potes, semaine: sessions } = donnees;
   if (potes.length === 0) {
     return (
-      <View style={styles.section}>
-        <View style={[styles.carte, styles.carteVide]}>
-          <Text style={styles.titreBloc}>Pas encore de potes</Text>
-          <Text style={styles.aide}>
-            Après chaque session, tu choisis avec qui tu rejouerais. Si c’est réciproque, vous devenez potes et vous
-            voyez la semaine l’un de l’autre.
-          </Text>
-          <Bouton titre="Inviter des amis" onPress={inviterDesAmis} />
+      <View style={styles.bloc}>
+        <Text style={styles.titreBloc}>Mes potes</Text>
+        <View style={styles.vide}>
+          <Text style={styles.titreVide}>Pas encore de potes</Text>
+          <Text style={styles.aideCentree}>Après une session, dis avec qui tu rejouerais. Si c’est réciproque, vous devenez potes.</Text>
+          <Bouton titre="Inviter des amis" variante="secondaire" onPress={inviterDesAmis} />
         </View>
       </View>
     );
   }
-
-  const dispos = potes.filter((p) => p.dispo);
-  const jours = joursDeLaSemaine();
-  // Ceux qui jouent cette semaine d'abord
-  const lignes = [...potes]
-    .sort((a, b) => Number(sessions.some((s) => s.poteId === b.id)) - Number(sessions.some((s) => s.poteId === a.id)))
-    .slice(0, 8);
-  const sessionChoisie = sessions.find((s) => `${s.poteId}:${s.sessionId}` === choisie) ?? null;
-  const poteChoisi = sessionChoisie ? potes.find((p) => p.id === sessionChoisie.poteId) : null;
-
+  const aVenir = [...sessions].sort((a, b) => a.debut.getTime() - b.debut.getTime()).slice(0, 3);
   return (
-    <View style={styles.section}>
-      <View style={styles.bloc}>
-        <Text style={styles.titreBloc}>Dispo ce soir</Text>
-        {dispo || dispos.length > 0 ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.ronds}>
-            {dispo && (
-              <View style={styles.rondAvecNom}>
-                <MonRond prenom={compte?.prenom ?? null} />
-                <Text style={styles.nomRond}>Toi</Text>
-              </View>
-            )}
-            {dispos.map((p) => (
-              <View key={p.id} style={styles.rondAvecNom}>
-                <RondPote prenom={p.prenom} index={index.get(p.id) ?? 0} dispo photo={p.photo} />
-                <Text style={styles.nomRond} numberOfLines={1}>
-                  {p.prenom}
-                </Text>
+    <View style={styles.bloc}>
+      <Text style={styles.titreBloc}>Mes potes · {potes.length}</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.ronds}>
+        {potes.map((p, i) => (
+          <Pressable
+            key={p.id}
+            accessibilityRole="button"
+            accessibilityLabel={`${p.prenom}${p.dispo ? ', dispo ce soir' : ''}. Lui écrire`}
+            accessibilityHint="Appui long pour signaler"
+            accessibilityActions={[{ name: 'longpress', label: 'Plus d’options' }]}
+            onAccessibilityAction={() => optionsPote(p)}
+            onPress={() => ecrireA({ autreId: p.id, prenom: p.prenom, connecte: true })}
+            onLongPress={() => optionsPote(p)}
+            style={styles.rondAvecNom}>
+            <RondPote prenom={p.prenom} index={i} dispo={p.dispo} photo={p.photo} />
+            <Text style={styles.nomRond} numberOfLines={1}>
+              {p.prenom}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+      <Text style={styles.aide}>Entourés : dispo ce soir. Touche pour écrire, appui long pour signaler.</Text>
+      {aVenir.map((s) => {
+        const pote = potes.find((p) => p.id === s.poteId);
+        return (
+          <Pressable
+            key={`${s.poteId}:${s.sessionId}`}
+            accessibilityRole="button"
+            onPress={() => router.push({ pathname: '/session/[id]', params: { id: s.sessionId } })}
+            style={({ pressed }) => [styles.ligneSession, pressed && styles.presse]}>
+            <Image source={ImagesSports[s.sport]} style={styles.vignette} resizeMode="cover" />
+            <View style={styles.flex}>
+              <Text style={styles.quandPote} numberOfLines={1}>
+                {quand(s.debut)}
+              </Text>
+              <Text style={styles.ligneTitre} numberOfLines={1}>
+                {s.titre} · {s.lieu}
+              </Text>
+              <Text style={styles.aide} numberOfLines={1}>
+                {pote?.prenom ?? 'Un pote'} {s.organise ? 'organise' : 'y va'}
+                {s.jYSuis ? ' · tu y vas aussi' : s.inscrits >= s.joueurs ? ' · complet' : ` · ${accorder(s.joueurs - s.inscrits, 'place', 'places')}`}
+              </Text>
+            </View>
+            <IconeChevronSecondaire />
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function IconeChevronSecondaire() {
+  const c = useCouleurs();
+  return <IconeChevron couleur={c.texteSecondaire} taille={20} />;
+}
+
+/** Mes Catchs : les sessions jouées, en cartes photo qui défilent de côté */
+function BlocCatchs({ jouees, etat }: { jouees: Trace[]; etat: string }) {
+  const styles = useStyles(creerStyles);
+  return (
+    <View style={styles.bloc}>
+      <Text style={styles.titreBloc}>Mes Catchs{jouees.length ? ` · ${jouees.length}` : ''}</Text>
+      {jouees.length === 0 ? (
+        etat === 'chargement' ? (
+          <Chargement phrases={['On retrouve tes Catchs…']} />
+        ) : (
+          <View style={styles.vide}>
+            <Text style={styles.titreVide}>{etat === 'erreur' ? 'Pas de réseau' : 'Ton premier Catch t’attend'}</Text>
+            <Text style={styles.aideCentree}>
+              {etat === 'erreur' ? 'Tes Catchs s’afficheront dès que ça revient.' : 'Les sessions que tu joues s’afficheront ici.'}
+            </Text>
+            {etat !== 'erreur' && <Bouton titre="Voir la carte" onPress={() => router.navigate('/')} />}
+          </View>
+        )
+      ) : (
+        <>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carrousel}>
+            {jouees.map((t) => (
+              <View key={t.id} style={styles.carteCatch} accessible accessibilityLabel={`${t.titre}, ${dateCourte(t.debut)}, ${t.lieu}`}>
+                <Image source={ImagesSports[t.sport]} style={styles.photoCatch} resizeMode="cover" />
+                <View style={styles.texteCatch}>
+                  <Text style={styles.ligneTitre} numberOfLines={1}>
+                    {t.titre}
+                  </Text>
+                  <Text style={styles.aide} numberOfLines={1}>
+                    {dateCourte(t.debut)}
+                    {t.organise ? ' · tu organisais' : ''}
+                  </Text>
+                </View>
               </View>
             ))}
           </ScrollView>
-        ) : (
-          <Text style={styles.aide}>Personne pour l’instant. Mets-toi dispo depuis « À venir ».</Text>
-        )}
-      </View>
+          <Text style={styles.aide}>Les sessions s’effacent 30 jours après la fin.</Text>
+        </>
+      )}
+    </View>
+  );
+}
 
-      <View style={styles.bloc}>
-        <Text style={styles.titreBloc}>La semaine des potes</Text>
-        <View style={styles.grille}>
-          <View style={styles.grilleLigne}>
-            <View style={styles.grilleNom} />
-            {jours.map((j, i) => (
-              <Text key={j.nom + i} style={[styles.grilleJour, i === 0 && styles.nomJourAujourdhui]} maxFontSizeMultiplier={1.2}>
-                {j.nom}
-              </Text>
-            ))}
-          </View>
-          {lignes.map((p) => (
-            <View key={p.id} style={styles.grilleLigne}>
-              <Text style={styles.grilleNom} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-                {p.prenom}
-              </Text>
-              {jours.map((j, i) => {
-                const s = sessions.find((x) => x.poteId === p.id && indexDuJour(x.debut) === i);
-                if (!s) return <View key={i} style={styles.grilleVide} />;
-                const cle = `${p.id}:${s.sessionId}`;
-                return (
-                  <View key={i} style={styles.flex}>
-                    <CaseJour
-                      etat={s.organise ? 'organise' : 'inscrit'}
-                      sport={s.sport}
-                      choisie={choisie === cle}
-                      petite
-                      onPress={() => setChoisie(choisie === cle ? null : cle)}
-                      label={`${p.prenom}, ${s.titre} ${j.nom} à ${heure(s.debut)}`}
-                    />
-                  </View>
-                );
-              })}
-            </View>
-          ))}
-        </View>
-        {sessionChoisie && poteChoisi ? (
-          <View style={styles.carte}>
-            <Text style={styles.ligneTitre}>
-              {sessionChoisie.titre} · {quand(sessionChoisie.debut)}
+/** Mes sports : une pastille photo par sport, et « Ajouter » */
+function BlocSports({ sports }: { sports: Sport[] }) {
+  const styles = useStyles(creerStyles);
+  return (
+    <View style={styles.bloc}>
+      <Text style={styles.titreBloc}>Mes sports</Text>
+      <View style={styles.pastillesSports}>
+        {sports.map((s) => (
+          <Pressable
+            key={s}
+            accessibilityRole="button"
+            accessibilityHint="Modifier mes sports"
+            onPress={() => router.push('/mes-sports')}
+            style={({ pressed }) => [styles.pastilleSport, pressed && styles.presse]}>
+            <Image source={ImagesSports[s]} style={styles.rondSport} resizeMode="cover" />
+            <Text style={styles.pastilleSportTexte} maxFontSizeMultiplier={1.3}>
+              {ficheSport(s).nomTuile ?? ficheSport(s).nom}
             </Text>
-            <Text style={styles.aide}>
-              {poteChoisi.prenom} {sessionChoisie.organise ? 'organise' : 'y va'} · {sessionChoisie.lieu} ·{' '}
-              {sessionChoisie.jYSuis
-                ? 'tu y vas aussi'
-                : sessionChoisie.inscrits >= sessionChoisie.joueurs
-                  ? 'complet'
-                  : accorder(sessionChoisie.joueurs - sessionChoisie.inscrits, 'place', 'places')}
-            </Text>
-            <Bouton
-              titre="Voir la session"
-              onPress={() => router.push({ pathname: '/session/[id]', params: { id: sessionChoisie.sessionId } })}
-            />
-          </View>
-        ) : (
-          <Text style={styles.aide}>
-            {sessions.length ? 'Touche une session pour la voir et la rejoindre.' : 'Tes potes n’ont rien de prévu cette semaine.'}
+          </Pressable>
+        ))}
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/mes-sports')}
+          style={({ pressed }) => [styles.pastilleSport, styles.pastilleAjout, pressed && styles.presse]}>
+          <Text style={styles.pastilleAjoutTexte} maxFontSizeMultiplier={1.3}>
+            {sports.length ? '+ Ajouter' : '+ Choisir mes sports'}
           </Text>
-        )}
-      </View>
-
-      <View style={styles.bloc}>
-        <Text style={styles.titreBloc}>Mes potes · {potes.length}</Text>
-        <View style={styles.listePotes}>
-          {potes.map((p: Pote, i) => (
-            <Pressable
-              key={p.id}
-              accessibilityRole="button"
-              accessibilityLabel={`Écrire à ${p.prenom}`}
-              accessibilityHint="Appui long pour signaler"
-              accessibilityActions={[{ name: 'longpress', label: 'Plus d’options' }]}
-              onAccessibilityAction={() => optionsPote(p)}
-              onPress={() => ecrireA({ autreId: p.id, prenom: p.prenom, connecte: true })}
-              onLongPress={() => optionsPote(p)}
-              style={styles.rondAvecNom}>
-              <RondPote prenom={p.prenom} index={i} photo={p.photo} />
-              <Text style={styles.nomRond} numberOfLines={1}>
-                {p.prenom}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-        <Text style={styles.aide}>Touche un pote pour lui écrire. Appui long pour signaler.</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -701,85 +505,25 @@ function optionsPote(p: Pote) {
   });
 }
 
-/** Onglet Sports : une tuile par sport, et « Ajouter un sport » */
-function SectionSports({ traces, sports }: { traces: Trace[]; sports: Sport[] }) {
-  const styles = useStyles(creerStyles);
-  const c = useCouleurs();
-  const [maintenant] = useState(() => Date.now());
-  return (
-    <View style={styles.section}>
-      <Text style={styles.titreBloc}>Mes sports</Text>
-      <View style={styles.tuiles}>
-        {sports.map((sport) => {
-          const joues = traces.filter((t) => t.sport === sport && t.fin.getTime() <= maintenant).length;
-          const prochain = traces
-            .filter((t) => t.sport === sport && t.debut.getTime() > maintenant)
-            .sort((a, b) => a.debut.getTime() - b.debut.getTime())[0];
-          const detail = [joues ? accorder(joues, 'Catch', 'Catchs') : 'Pas encore joué', prochain ? `prochain ${quand(prochain.debut).toLowerCase()}` : null]
-            .filter(Boolean)
-            .join(' · ');
-          return (
-            <Pressable
-              key={sport}
-              accessibilityRole="button"
-              accessibilityLabel={`${ficheSport(sport).nom}, ${detail}`}
-              onPress={() => router.push('/mes-sports')}
-              style={({ pressed }) => [styles.carte, styles.tuile, pressed && styles.presse]}>
-              <View style={styles.carrePicto}>
-                <PictoSport sport={sport} taille={36} />
-              </View>
-              <Text style={styles.tuileNom} numberOfLines={1}>
-                {ficheSport(sport).nomTuile ?? ficheSport(sport).nom}
-              </Text>
-              <Text style={styles.aide} numberOfLines={2}>
-                {detail}
-              </Text>
-            </Pressable>
-          );
-        })}
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.push('/mes-sports')}
-          style={({ pressed }) => [styles.tuile, styles.tuileAjout, pressed && styles.presse]}>
-          <IconeCreer couleur={c.texteSecondaire} taille={26} />
-          <Text style={styles.ajoutTexte}>{sports.length ? 'Ajouter un sport' : 'Choisir mes sports'}</Text>
-        </Pressable>
-      </View>
-      <Text style={styles.aide}>La carte peut ne montrer que tes sports : c’est l’étoile, en haut de la carte.</Text>
-    </View>
-  );
-}
-
 function ProfilConnecte({ compte }: { compte: Compte }) {
   const styles = useStyles(creerStyles);
-  const { top } = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ onglet?: string }>();
-  const [onglet, setOnglet] = useState<Onglet>('semaine');
-  const [ongletDemande, setOngletDemande] = useState<string | undefined>(undefined);
-  const [compact, setCompact] = useState(false);
-  const [hauteurEntete, setHauteurEntete] = useState(150);
+  const [replie, setReplie] = useState(false);
+  const [hauteurCarte, setHauteurCarte] = useState(220);
   const { traces, etat } = useHistorique();
   const potes = usePotes();
   const { sports: mesSports } = useMesSports();
-
-  // « Voir mes potes » (après « Tu rejouerais avec qui ? ») ouvre directement l'onglet Potes
-  if (params.onglet !== ongletDemande) {
-    setOngletDemande(params.onglet);
-    if (params.onglet && (ONGLETS as string[]).includes(params.onglet)) setOnglet(params.onglet as Onglet);
-  }
-
-  const { aVenir, jouees } = separerTraces(traces);
+  const { jouees } = separerTraces(traces);
   const sports = sportsDuProfil(traces, mesSports);
-  const nombres: Record<Onglet, number> = {
-    semaine: aVenir.filter((t) => indexDuJour(t.debut) >= 0).length,
-    catchs: jouees.length,
-    potes: potes.potes.length,
-    sports: sports.length,
-  };
 
   function defiler(e: NativeSyntheticEvent<NativeScrollEvent>) {
-    const replie = e.nativeEvent.contentOffset.y > SEUIL_REPLI;
-    if (replie !== compact) setCompact(replie);
+    const voulu = e.nativeEvent.contentOffset.y > SEUIL_REPLI;
+    if (voulu !== replie) setReplie(voulu);
+  }
+
+  async function dispo() {
+    vibrer.selection();
+    const ok = await potes.basculerDispo();
+    if (!ok) prevenir('Pas de réseau', 'Impossible de changer ta dispo. Vérifie ta connexion et réessaie.');
   }
 
   return (
@@ -788,19 +532,19 @@ function ProfilConnecte({ compte }: { compte: Compte }) {
         onScroll={defiler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.contenu, { paddingTop: top + 8 + hauteurEntete + 18 }]}>
-        {onglet === 'semaine' && <SectionSemaine traces={traces} potes={potes} semainePotes={potes.semaine} />}
-        {onglet === 'catchs' && <SectionCatchs jouees={jouees} etat={etat} />}
-        {onglet === 'potes' && <SectionPotes donnees={potes} />}
-        {onglet === 'sports' && <SectionSports traces={traces} sports={sports} />}
+        contentContainerStyle={[styles.contenu, { paddingTop: hauteurCarte + 16 }]}>
+        <QuestionRejouer key={potes.question?.sessionId ?? 'aucune'} donnees={potes} />
+        <BlocPotes donnees={potes} />
+        <BlocCatchs jouees={jouees} etat={etat} />
+        <BlocSports sports={sports} />
       </ScrollView>
-      <EnteteFlottant
+      <CarteJoueur
         compte={compte}
-        compact={compact}
-        onglet={onglet}
-        nombres={nombres}
-        onChoisir={setOnglet}
-        onMesure={setHauteurEntete}
+        sports={sports}
+        dispo={potes.dispo}
+        onDispo={dispo}
+        replie={replie}
+        onMesure={setHauteurCarte}
       />
     </View>
   );
@@ -818,7 +562,7 @@ function ProfilInvite() {
         </View>
         <View style={styles.flex}>
           <Text style={styles.ligneTitre}>Ton profil</Text>
-          <Text style={styles.aide}>Ta semaine, tes Catchs, tes potes et tes sports.</Text>
+          <Text style={styles.aide}>Tes potes, tes Catchs et tes sports.</Text>
         </View>
       </View>
       <Aide>Connecte-toi pour catcher des sessions et retrouver celles qui t’attendent.</Aide>
@@ -844,33 +588,41 @@ const creerStyles = (c: Palette) =>
     contenu: {
       paddingHorizontal: Espaces.marge,
       paddingBottom: RESERVE_BAS + BarreNavigation.margeBas + 24,
-      gap: 18,
+      gap: 22,
     },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, lineHeight: 18, color: c.texteSecondaire },
+    aideCentree: { fontFamily: Polices.texte, fontSize: Tailles.aide, lineHeight: 18, color: c.texteSecondaire, textAlign: 'center' },
 
-    // L'en-tête flottant
-    entete: {
+    // La carte de joueur, orange comme l'en-tête d'une session
+    carteJoueur: {
       position: 'absolute',
-      left: 12,
-      right: 12,
-      padding: 12,
+      top: 0,
+      left: 0,
+      right: 0,
+      paddingHorizontal: Espaces.marge,
+      paddingBottom: 16,
       gap: 12,
-      borderRadius: 26,
-      backgroundColor: c.carte,
+      borderBottomLeftRadius: 26,
+      borderBottomRightRadius: 26,
+      backgroundColor: c.creerDebut,
+      experimental_backgroundImage: `linear-gradient(160deg, ${c.creerDebut}, ${c.creerFin})`,
       boxShadow: c.ombreFlottante,
     },
+    carteJoueurRepliee: { paddingBottom: 10 },
     identite: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     identiteTextes: { flex: 1, gap: 2 },
-    prenom: { fontFamily: Polices.titre, fontSize: Tailles.titreSession, color: c.encre },
+    prenom: { fontFamily: Polices.titre, fontSize: Tailles.titreSession, color: c.surCreer },
+    prenomReplie: { fontSize: Tailles.accent },
     verifie: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-    verifieTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTexte },
+    verifieTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.surCreer },
+    joue: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.surCreer },
     menu: {
       width: Espaces.cibleTactile,
       height: Espaces.cibleTactile,
       alignItems: 'center',
       justifyContent: 'center',
       borderRadius: Rayons.pilule,
-      backgroundColor: c.beige,
+      backgroundColor: c.voileSurCreer,
     },
     monRond: {
       width: 58,
@@ -878,10 +630,10 @@ const creerStyles = (c: Palette) =>
       borderRadius: 19,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: c.creerFin,
+      backgroundColor: c.surCreer,
       transform: [{ rotate: '-6deg' }],
     },
-    monRondPetit: { width: 38, height: 38, borderRadius: 12, transform: [] },
+    monRondPetit: { width: 36, height: 36, borderRadius: 12, transform: [] },
     monRondPhoto: { overflow: 'hidden', backgroundColor: c.beige },
     photo: { width: '100%', height: '100%' },
     rondAvecPhoto: { position: 'relative' },
@@ -896,149 +648,137 @@ const creerStyles = (c: Palette) =>
       justifyContent: 'center',
       backgroundColor: c.encre,
       borderWidth: 2,
-      borderColor: c.carte,
+      borderColor: c.surCreer,
     },
-    monRondLettre: { fontFamily: Polices.titre, fontSize: Tailles.titreEcran, color: c.surCreer, transform: [{ rotate: '6deg' }] },
+    monRondLettre: { fontFamily: Polices.titre, fontSize: Tailles.titreEcran, color: c.creerFin, transform: [{ rotate: '6deg' }] },
     monRondLettrePetite: { fontSize: Tailles.accent, transform: [] },
-    navigation: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    compteurs: { flex: 1, flexDirection: 'row', gap: 4 },
-    compteur: {
-      flex: 1,
-      minHeight: Espaces.cibleTactile,
-      paddingVertical: 6,
+    interrupteur: {
+      alignSelf: 'flex-start',
+      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 14,
+      gap: 10,
+      minHeight: Espaces.cibleTactile,
+      paddingLeft: 16,
+      paddingRight: 8,
+      borderRadius: Rayons.pilule,
+      backgroundColor: c.voileSurCreer,
     },
-    compteurCompact: { paddingVertical: 3 },
-    compteurActif: { backgroundColor: c.rougeDoux },
-    compteurNombre: { fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, color: c.encre },
-    compteurNombreCompact: { fontSize: Tailles.accent },
-    compteurNombreActif: { color: c.rouge },
-    compteurNom: { fontFamily: Polices.texteMoyen, fontSize: Tailles.pastille, color: c.texteSecondaire },
-    compteurNomActif: { fontFamily: Polices.texteDemi, color: c.rougeTexte },
+    interrupteurActif: { backgroundColor: c.surCreer },
+    interrupteurTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.surCreer },
+    interrupteurTexteActif: { color: c.creerFin },
+    glissiere: { width: 46, height: 28, borderRadius: Rayons.pilule, padding: 3, backgroundColor: c.voileSurCreer },
+    glissiereActive: { backgroundColor: c.rouge },
+    bouleGlissiere: { width: 22, height: 22, borderRadius: 11, backgroundColor: c.surCreer, boxShadow: c.ombrePetite },
+    bouleGlissiereActive: { transform: [{ translateX: 18 }] },
+    dispoMini: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Rayons.pilule, backgroundColor: c.surCreer },
+    dispoMiniTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille, color: c.creerFin },
 
-    // Les sections
-    section: { gap: 18 },
+    // Les blocs
     bloc: { gap: 10 },
     titreBloc: { fontFamily: Polices.titreDemi, fontSize: Tailles.sousTitre, color: c.encre },
     carte: {
       padding: 14,
-      gap: 10,
+      gap: 12,
       borderRadius: 18,
       backgroundColor: c.carte,
       borderWidth: 1,
       borderColor: c.trait,
+      boxShadow: c.ombrePetite,
     },
-    carteVide: { gap: 12 },
-    ligne: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    ligneTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
-    carrePicto: {
-      width: 48,
-      height: 48,
-      borderRadius: 14,
+    vide: {
       alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: c.beige,
+      gap: 8,
+      padding: 16,
+      borderRadius: 18,
+      borderWidth: 1.5,
+      borderStyle: 'dashed',
+      borderColor: c.trait,
     },
+    titreVide: { fontFamily: Polices.titre, fontSize: Tailles.texte, color: c.encre, textAlign: 'center' },
+    ligneTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
 
-    // Action du moment
-    question: {
+    // Tu rejouerais avec qui ?
+    titreQuestion: { fontFamily: Polices.titre, fontSize: Tailles.texte, color: c.encre },
+    choixJoueurs: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    choixJoueur: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12,
-      padding: 14,
-      borderRadius: 18,
-      backgroundColor: c.orangeDoux,
-    },
-    questionTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
-    questionDetail: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.orangeTexte },
-    dispo: {
-      minHeight: 48,
-      paddingHorizontal: 16,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: Rayons.bouton,
-      borderWidth: 1,
-      borderColor: c.trait,
-      backgroundColor: c.carte,
-    },
-    dispoActif: { backgroundColor: c.orangeDoux, borderColor: c.orangeDoux },
-    dispoTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
-    dispoTexteActif: { color: c.orangeTexte },
-
-    // La semaine
-    semaine: { flexDirection: 'row', gap: 5 },
-    colonne: { flex: 1, alignItems: 'center', gap: 5 },
-    nomJour: { fontFamily: Polices.texte, fontSize: Tailles.pastille, color: c.texteSecondaire },
-    nomJourAujourdhui: { fontFamily: Polices.texteDemi, color: c.rouge },
-    case: {
-      width: '100%',
-      height: 84,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 5,
-    },
-    casePetite: { height: 40, borderRadius: 10 },
-    caseOrganise: { backgroundColor: c.rouge },
-    caseInscrit: { backgroundColor: c.carte, borderWidth: 2, borderColor: c.rouge },
-    caseLibre: { borderWidth: 2, borderStyle: 'dashed', borderColor: c.trait },
-    caseChoisie: { outlineWidth: 3, outlineColor: c.encre, outlineOffset: 2, outlineStyle: 'solid' },
-    drapeau: { position: 'absolute', top: 4, right: 4 },
-    casePicto: {
-      width: 30,
-      height: 30,
+      gap: 6,
+      minHeight: Espaces.cibleTactile - 6,
+      paddingLeft: 4,
+      paddingRight: 12,
       borderRadius: Rayons.pilule,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: c.rondPicto,
+      borderWidth: 1.5,
+      borderColor: c.trait,
+      backgroundColor: c.fond,
     },
-    casePictoPetit: { width: 26, height: 26 },
-    caseTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille },
-    caseTexteOrganise: { color: c.surRouge },
-    caseTexteInscrit: { color: c.rougeTexte },
-
-    // Catchs
-    date: { width: 40, alignItems: 'center' },
-    dateJour: { fontFamily: Polices.titre, fontSize: Tailles.sousTitre, color: c.encre },
-    dateMois: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille, color: c.texteSecondaire },
+    choixJoueurCoche: { backgroundColor: c.encre, borderColor: c.encre },
+    choixJoueurTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
+    choixJoueurTexteCoche: { color: c.surEncre },
+    miniRond: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+    miniRondTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille, color: c.surAvatar },
+    boutonGauche: { alignSelf: 'flex-start' },
 
     // Potes
-    ronds: { gap: 14, paddingVertical: 4 },
+    ronds: { gap: 14, paddingVertical: 6, paddingHorizontal: 2 },
     rondAvecNom: { width: 64, alignItems: 'center', gap: 4 },
     nomRond: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille, color: c.encre },
+    anneauPote: { padding: 3, borderRadius: Rayons.pilule, borderWidth: 2.5, borderColor: 'transparent' },
+    anneauDispo: { borderColor: c.rouge },
     rondPote: {
-      width: 56,
-      height: 56,
-      borderRadius: 18,
+      width: 52,
+      height: 52,
+      borderRadius: Rayons.pilule,
       overflow: 'hidden',
       alignItems: 'center',
       justifyContent: 'center',
     },
-    rondDispo: { outlineWidth: 3, outlineColor: c.orange, outlineOffset: 2, outlineStyle: 'solid' },
-    rondPoteTexte: { fontFamily: Polices.titre, fontSize: Tailles.sousTitre, color: c.surAvatar },
-    grille: { gap: 5 },
-    grilleLigne: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    grilleNom: { width: 58, fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
-    grilleJour: { flex: 1, textAlign: 'center', fontFamily: Polices.texte, fontSize: Tailles.micro, color: c.texteSecondaire },
-    grilleVide: { flex: 1, height: 40, borderRadius: 10, backgroundColor: c.beige },
-    listePotes: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+    rondPoteTexte: { fontFamily: Polices.titre, fontSize: Tailles.accent, color: c.surAvatar },
+    ligneSession: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingRight: 12,
+      borderRadius: 16,
+      overflow: 'hidden',
+      backgroundColor: c.carte,
+      borderWidth: 1,
+      borderColor: c.trait,
+    },
+    vignette: { width: 72, height: 72, backgroundColor: c.fondPhoto },
+    quandPote: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTexte },
+
+    // Catchs
+    carrousel: { gap: 10, paddingRight: 4 },
+    carteCatch: {
+      width: 150,
+      borderRadius: 16,
+      overflow: 'hidden',
+      backgroundColor: c.carte,
+      borderWidth: 1,
+      borderColor: c.trait,
+    },
+    photoCatch: { width: '100%', height: 90, backgroundColor: c.fondPhoto },
+    texteCatch: { padding: 10, gap: 2 },
 
     // Sports
-    tuiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-    tuile: { width: '48%', flexGrow: 1, minHeight: 150, gap: 8 },
-    tuileNom: { fontFamily: Polices.titre, fontSize: Tailles.titreCarte, color: c.encre },
-    tuileAjout: {
+    pastillesSports: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    pastilleSport: {
+      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 18,
-      borderWidth: 2,
-      borderStyle: 'dashed',
+      gap: 8,
+      minHeight: Espaces.cibleTactile,
+      paddingLeft: 4,
+      paddingRight: 14,
+      borderRadius: Rayons.pilule,
+      borderWidth: 1,
       borderColor: c.trait,
-      padding: 14,
+      backgroundColor: c.carte,
     },
-    ajoutTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.texteSecondaire },
+    rondSport: { width: 34, height: 34, borderRadius: 17, backgroundColor: c.fondPhoto },
+    pastilleSportTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
+    pastilleAjout: { paddingLeft: 14, borderStyle: 'dashed' },
+    pastilleAjoutTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.texteSecondaire },
 
     // Sans compte
     invite: { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 4 },

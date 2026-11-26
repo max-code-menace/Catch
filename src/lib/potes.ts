@@ -150,23 +150,29 @@ export function usePotes() {
   const [dispo, setDispo] = useState(false);
   const [question, setQuestion] = useState<QuestionRejouer | null>(null);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!moi) return;
-      let actif = true;
+  const relire = useCallback(
+    (encoreActif: () => boolean = () => true) =>
       lirePotes()
         .then((lu) => {
-          if (!actif || !lu) return;
+          if (!encoreActif() || !lu) return;
           setPotes(lu.potes);
           setSemaine(lu.semaine);
           setDispo(lu.dispo);
           setQuestion(lu.question);
         })
-        .catch(() => {});
+        .catch(() => {}),
+    [],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!moi) return;
+      let actif = true;
+      relire(() => actif);
       return () => {
         actif = false;
       };
-    }, [moi]),
+    }, [moi, relire]),
   );
 
   return {
@@ -174,6 +180,8 @@ export function usePotes() {
     semaine: moi ? semaine : [],
     dispo: moi ? dispo : false,
     question: moi ? question : null,
+    /** Relit tout (après avoir répondu à « Tu rejouerais avec qui ? ») */
+    recharger: () => relire(),
     /** Change tout de suite à l'écran, puis demande à la base ; revient en arrière si ça échoue */
     basculerDispo: async () => {
       const voulu = !dispo;

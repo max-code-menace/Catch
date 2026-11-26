@@ -19,6 +19,8 @@ export const Palettes = {
     creerDebut: '#F26A1B',
     creerFin: '#D9361A',
     surCreer: '#FFFFFF',
+    /** Fond translucide sur l'orange de la carte de joueur (menu, interrupteur éteint) */
+    voileSurCreer: 'rgba(255,255,255,0.22)',
     encre: '#1C1412',
     /** Texte posé sur un fond couleur encre (filtre actif, toast) */
     surEncre: '#FFFFFF',
@@ -84,6 +86,8 @@ export const Palettes = {
     creerDebut: '#FF7A33',
     creerFin: '#E8432A',
     surCreer: '#FFFFFF',
+    /** Fond translucide sur l'orange de la carte de joueur (menu, interrupteur éteint) */
+    voileSurCreer: 'rgba(255,255,255,0.22)',
     encre: '#F5EEE9',
     surEncre: '#1C1412',
     surEncreDoux: 'rgba(28, 20, 18, 0.10)',
