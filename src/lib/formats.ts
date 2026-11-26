@@ -250,6 +250,29 @@ export function quandFiche(session: Session, maintenant = new Date()) {
   return quandCreation(session.debut, maintenant);
 }
 
+/** Titre d'une rangée de Mes sessions : « Aujourd’hui », « Demain », « Samedi 28 » */
+export function jourSection(date: Date, maintenant = new Date()) {
+  const ecart = joursEntre(maintenant, date);
+  if (ecart <= 0) return 'Aujourd’hui';
+  if (ecart === 1) return 'Demain';
+  return `${majuscule(JOURS_LONGS[date.getDay()])} ${date.getDate()}`;
+}
+
+/**
+ * Ce qui est écrit sur le terrain d'une session dans Mes sessions : aujourd'hui, le compte à rebours en grand
+ * (« Dans 3 h », « En direct ») et l'heure au-dessus ; les autres jours (déjà rangés par jour), l'heure en grand.
+ */
+export function textesBandeau(session: Session, maintenant = new Date()) {
+  if (estEnDirect(session, maintenant)) return { petit: `Jusqu’à ${heure(session.fin)}`, grand: 'En direct' };
+  if (joursEntre(maintenant, session.debut) <= 0) {
+    const compte = compteARebours(session, maintenant);
+    // Plus de 4 h avant : « Ce soir » au-dessus, l'heure en grand ; sinon le compte à rebours en grand
+    if (compte === 'Ce soir' || compte === "Aujourd'hui") return { petit: compte, grand: heure(session.debut) };
+    return { petit: heure(session.debut), grand: compte };
+  }
+  return { petit: `Jusqu’à ${heure(session.fin)}`, grand: heure(session.debut) };
+}
+
 /** « Quand » dans la phrase de Créer : « ce soir à 19h », « demain à 18h », « jeudi à 19h », « samedi 6 décembre à 10h » */
 export function quandCreation(date: Date, maintenant = new Date()) {
   const ecart = joursEntre(maintenant, date);

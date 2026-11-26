@@ -32,6 +32,14 @@ export const Palettes = {
     rondPicto: '#FFFFFF',
     /** Texte sur un rond blanc (pictos, anneaux), clair comme sombre */
     surRond: '#1C1412',
+    /** Sur les photos des sports (fond orange dans les deux thèmes) : fond, texte, voile, places libres, sa propre place */
+    fondPhoto: '#FC6A26',
+    surPhoto: '#FFFFFF',
+    voilePhoto: '#3A0E02',
+    traitPhoto: 'rgba(255, 255, 255, 0.32)',
+    moiPhoto: '#FFD9B0',
+    /** Texte orange sur une pastille blanche posée sur une photo */
+    orangeSurBlanc: '#863404',
     /** Texte des avatars, posés sur des teintes claires dans les deux thèmes */
     surAvatar: '#1C1412',
     /** Fonds des avatars (initiales des inscrits), utilisés à tour de rôle */
@@ -87,6 +95,14 @@ export const Palettes = {
     rondPicto: '#FFFFFF',
     /** Texte sur un rond blanc (pictos, anneaux), clair comme sombre */
     surRond: '#1C1412',
+    /** Sur les photos des sports (fond orange dans les deux thèmes) : fond, texte, voile, places libres, sa propre place */
+    fondPhoto: '#FC6A26',
+    surPhoto: '#FFFFFF',
+    voilePhoto: '#3A0E02',
+    traitPhoto: 'rgba(255, 255, 255, 0.32)',
+    moiPhoto: '#FFD9B0',
+    /** Texte orange sur une pastille blanche posée sur une photo */
+    orangeSurBlanc: '#863404',
     surAvatar: '#1C1412',
     // Un peu moins lumineux qu'en clair pour ne pas éblouir sur fond sombre ; le texte foncé reste très lisible
     avatar1: '#E3AE9F',

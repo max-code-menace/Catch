@@ -16,6 +16,8 @@ import {
   texteDistance,
   texteDuree,
   etiquettePastille,
+  jourSection,
+  textesBandeau,
   quandFiche,
   textePlaces,
   etiquetteGroupe,
@@ -159,4 +161,15 @@ test('fiche de la carte : le moment dans la phrase', () => {
   assert.equal(quandFiche(session(new Date(2026, 10, 16, 19, 0)), maintenant), 'ce soir à 19h');
   assert.equal(quandFiche(session(new Date(2026, 10, 17, 18, 0)), maintenant), 'demain à 18h');
   assert.equal(quandFiche(session(new Date(2026, 10, 19, 19, 0)), maintenant), 'jeudi à 19h');
+});
+
+test('Mes sessions : titre des rangées et texte sur le terrain', () => {
+  // maintenant : lundi 16 novembre à midi
+  assert.equal(jourSection(new Date(2026, 10, 16, 19, 0), maintenant), 'Aujourd’hui');
+  assert.equal(jourSection(new Date(2026, 10, 17, 9, 0), maintenant), 'Demain');
+  assert.equal(jourSection(new Date(2026, 10, 21, 10, 0), maintenant), 'Samedi 21');
+  assert.deepEqual(textesBandeau(session(new Date(2026, 10, 16, 15, 0)), maintenant), { petit: '15h', grand: 'Dans 3 h' });
+  assert.deepEqual(textesBandeau(session(new Date(2026, 10, 16, 11, 30)), maintenant), { petit: 'Jusqu’à 13h', grand: 'En direct' });
+  assert.deepEqual(textesBandeau(session(new Date(2026, 10, 16, 19, 0)), maintenant), { petit: 'Ce soir', grand: '19h' });
+  assert.deepEqual(textesBandeau(session(new Date(2026, 10, 18, 20, 0)), maintenant), { petit: 'Jusqu’à 21h30', grand: '20h' });
 });
