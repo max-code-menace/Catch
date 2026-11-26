@@ -144,7 +144,7 @@ Règles : garder le style choisi (Chaleur, marqueur et titres penchés seulement
 Ordre et avancement :
 1. [x] La carte (25 novembre, voir « La carte revue »)
 2. [x] Mes sessions (26 novembre, voir « Mes sessions revu »)
-3. [x] Messages (26 novembre, voir « Messages revu »). **Sur la branche `claude/sleepy-archimedes-gcgmzg`, publié sur Expo, pas encore fusionné dans `main`** (attendre l'accord de Maxime)
+3. [x] Messages (26 novembre, voir « Messages revu »). Publié sur Expo et fusionné dans `main` le 26 novembre
 4. [ ] Profil — **le prochain**
 5. [ ] Connexion (e-mail et Google)
 6. [ ] Fiche d'un lieu et fiche d'un événement
