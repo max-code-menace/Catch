@@ -142,7 +142,7 @@ Règles : garder le style choisi (Chaleur, marqueur et titres penchés seulement
 Ordre et avancement :
 1. [x] La carte (25 novembre, voir « La carte revue »)
 2. [x] Mes sessions (26 novembre, voir « Mes sessions revu »)
-3. [~] Messages (liste Groupes / Privés) et une conversation — **en cours** (26 novembre : maquettes https://claude.ai/artifact/75zrm5zuVJB33TWTnY52tr, liste A à D et conversation E à H, on attend le choix de Maxime)
+3. [~] Messages (liste Groupes / Privés) et une conversation — **en cours** (26 novembre : maquettes https://claude.ai/artifact/75zrm5zuVJB33TWTnY52tr, liste A à D et conversation E à H, choix de Maxime : liste A, conversation E + G + H ; finitions https://claude.ai/artifact/6zYv5ew15S9UFqTBk84Q8q, on attend son choix)
 4. [ ] Profil
 5. [ ] Connexion (e-mail et Google)
 6. [ ] Fiche d'un lieu et fiche d'un événement
