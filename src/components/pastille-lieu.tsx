@@ -6,25 +6,18 @@ import type { LieuSport } from '@/lib/lieux-sport';
 import { useStyles, type Palette } from '@/lib/theme';
 
 /**
- * Pastille d'un lieu sur la carte : petite et discrète, toujours sous les sessions.
- * Un « € » marque les lieux payants. Rien ne laisse croire que quelqu'un y joue.
+ * Pastille d'un lieu sur la carte : un petit rond discret, toujours sous les sessions.
+ * Pas de « € » sur la carte (la fiche dit gratuit ou payant). Rien ne laisse croire que quelqu'un y joue.
  */
 export function PastilleLieu({ lieu, choisi }: { lieu: LieuSport; choisi: boolean }) {
   const styles = useStyles(creerStyles);
   return (
-    // Zone invisible de 44 px autour du rond (34 px) : plus facile à toucher
+    // Zone invisible de 44 px autour du rond (26 px) : plus facile à toucher
     <View style={styles.zoneToucher}>
       <View style={styles.zone}>
         <View style={[styles.rond, choisi && styles.choisi]}>
-          <PictoSport sport={lieu.sports[0]} taille={choisi ? 26 : 21} />
+          <PictoSport sport={lieu.sports[0]} taille={choisi ? 26 : 15} />
         </View>
-        {lieu.type === 'payant' && (
-          <View style={styles.euro}>
-            <Text maxFontSizeMultiplier={1} style={styles.euroTexte}>
-              €
-            </Text>
-          </View>
-        )}
       </View>
     </View>
   );
@@ -52,34 +45,19 @@ const creerStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    // Un peu de marge pour que le « € » ne soit pas coupé
     zone: { padding: 4 },
     rond: {
-      width: 34,
-      height: 34,
-      borderRadius: 17,
+      width: 26,
+      height: 26,
+      borderRadius: 13,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: c.rondPicto,
       borderWidth: 1,
       borderColor: c.trait,
-      opacity: 0.92,
-      boxShadow: c.ombrePetite,
+      opacity: 0.8,
     },
     choisi: { width: 42, height: 42, borderRadius: 21, borderWidth: 2, borderColor: c.encre, opacity: 1 },
-    euro: {
-      position: 'absolute',
-      right: 0,
-      bottom: 0,
-      minWidth: 17,
-      height: 17,
-      borderRadius: 9,
-      paddingHorizontal: 3,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: c.encre,
-    },
-    euroTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.micro, color: c.surEncre },
     groupe: {
       paddingHorizontal: 12,
       height: 32,

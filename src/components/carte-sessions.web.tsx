@@ -15,6 +15,7 @@ import { descriptionGroupe, descriptionPastille } from '@/lib/formats';
 import { texteType } from '@/lib/lieux-sport';
 import { eclatsVisibles, groupesDeSessions, zoomDuGroupe } from '@/lib/pastilles-carte';
 import { versEcran } from '@/lib/regroupement-sessions';
+import { lieuxAMontrer } from '@/lib/regroupement';
 import { useStyles, type Palette } from '@/lib/theme';
 
 /** Même ouverture que l'app au démarrage */
@@ -28,6 +29,7 @@ export function CarteSessions({
   onOuvrirGroupe,
   cible,
   lieux,
+  lieuxDeLoin,
   idLieuChoisi,
   onChoisirLieu,
   evenements,
@@ -67,7 +69,7 @@ export function CarteSessions({
       style={[StyleSheet.absoluteFill, styles.fond]}
       onLayout={(e) => setTaille({ largeur: e.nativeEvent.layout.width, hauteur: e.nativeEvent.layout.height })}
       onPress={() => onChoisir(null)}>
-      {lieux.map((lieu) => (
+      {lieuxAMontrer(lieux, longitudeDelta, idLieuChoisi, lieuxDeLoin).map((lieu) => (
         <View key={lieu.id} style={[styles.marqueur, placer(lieu)]}>
           <Pressable
             accessibilityRole="button"

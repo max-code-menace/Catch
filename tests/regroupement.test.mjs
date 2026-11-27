@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { OUVERTURE_REGROUPEMENT, regrouper } from '../src/lib/regroupement.ts';
+import { lieuxAMontrer, OUVERTURE_REGROUPEMENT, regrouper } from '../src/lib/regroupement.ts';
 
 const lieux = [
   { id: 'a', position: { latitude: 50.8467, longitude: 4.3525 } },
@@ -28,4 +28,14 @@ test('dézoomé, les lieux voisins se regroupent, les lointains non', () => {
 
 test('aucun lieu, aucun groupe', () => {
   assert.deepEqual(regrouper([], position, 0.5, cle), []);
+});
+
+test('de loin, aucun lieu sauf celui choisi', () => {
+  assert.deepEqual(lieuxAMontrer(lieux, 0.11, null, false), []);
+  assert.deepEqual(lieuxAMontrer(lieux, 0.11, 'c', false).map((l) => l.id), ['c']);
+});
+
+test('en zoomant, ou avec seulement les lieux affichés, tous les lieux', () => {
+  assert.equal(lieuxAMontrer(lieux, OUVERTURE_REGROUPEMENT, null, false).length, 3);
+  assert.equal(lieuxAMontrer(lieux, 0.11, null, true).length, 3);
 });

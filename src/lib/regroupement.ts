@@ -49,3 +49,18 @@ export function regrouper<T>(
     };
   });
 }
+
+/**
+ * Lieux montrés sur la carte (audit du 27 novembre : les sessions d'abord).
+ * De loin, aucun lieu : ils ne noient plus les sessions. On les voit en zoomant, ou quand
+ * on a choisi de ne montrer que les lieux. Le lieu choisi reste toujours visible.
+ */
+export function lieuxAMontrer<T extends { id: string }>(
+  lieux: T[],
+  ouverture: number,
+  idChoisi: string | null,
+  deLoin: boolean,
+): T[] {
+  if (deLoin || ouverture <= OUVERTURE_REGROUPEMENT) return lieux;
+  return lieux.filter((l) => l.id === idChoisi);
+}

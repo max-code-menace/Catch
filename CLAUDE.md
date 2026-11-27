@@ -140,6 +140,8 @@ Demande de Maxime : repérer ce qui fait « app générée par IA ». Note globa
 
 **1. Textes, fait le 27 novembre** (branche `claude/catch-app-audit-47e4b5`, qui contient aussi la Connexion revue ; publié sur Expo canal `main` et sur le site) : chargement = la balle seule (plus de « On gonfle les ballons… »), « Session publiée » au lieu de « C’est en ligne ! », erreurs = « Pas de réseau » + ce qui n’est pas parti (plus de « Ça n’a pas marché. Vérifie ta connexion et réessaie. »), textes qui expliquent les gestes retirés (Profil, Réglages, Notifications, « Tu l’as catchée ! », privés), Jouer en sécurité en 3 parties courtes. **Règle** : pas de petite phrase rigolote, pas de texte qui explique un geste, une erreur = « Pas de réseau » + ce qui n’a pas marché. Connexion pas retouchée (refaite le même jour). Pas vu sur un vrai iPhone.
 
+**2. Carte, fait le 27 novembre** : les sessions d’abord. De loin (ouverture de départ), plus aucune pastille de lieu ; elles apparaissent en zoomant (même seuil que l’ancien regroupement « 12 lieux », `OUVERTURE_REGROUPEMENT`), ou de loin quand on a décoché « Sessions » dans le menu (alors regroupées comme avant). Le lieu choisi reste toujours visible. Pastille de lieu plus petite (rond de 26 px, picto 15, zone de toucher 44 px gardée), plus pâle, sans ombre et **sans « € »** (la fiche dit gratuit ou payant). Calcul `lieuxAMontrer` dans `lib/regroupement.ts` (testé), aussi sur la version web. Vu sur le web (une seule session en direct au lieu d’une quarantaine de pastilles), pas sur un vrai iPhone.
+
 ## Refonte écran par écran (en cours depuis le 25 novembre)
 
 Demande de Maxime : rendre chaque écran plus soigné et moins générique, **un écran à la fois**, avec cette méthode :

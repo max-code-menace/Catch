@@ -12,7 +12,7 @@ import { useApparitions } from '@/lib/apparitions';
 import { descriptionGroupe, descriptionPastille, etiquetteGroupe, etiquettePastille } from '@/lib/formats';
 import { texteType, type LieuSport } from '@/lib/lieux-sport';
 import { eclatsVisibles, groupesDeSessions, zoomDuGroupe } from '@/lib/pastilles-carte';
-import { OUVERTURE_REGROUPEMENT, regrouper } from '@/lib/regroupement';
+import { lieuxAMontrer, OUVERTURE_REGROUPEMENT, regrouper } from '@/lib/regroupement';
 import type { Eclat } from '@/lib/sessions';
 import { useTheme } from '@/lib/theme';
 
@@ -27,8 +27,10 @@ export type PropsCarte = {
   /** Change pour recentrer la carte sur un point */
   cible: (Coordonnees & { cle: number; rayonKm?: number }) | null;
   montrerPosition: boolean;
-  /** Terrains et salles : toujours sous les sessions, regroupés quand on dézoome */
+  /** Terrains et salles : sous les sessions, cachés de loin (sauf `lieuxDeLoin`) */
   lieux: LieuSport[];
+  /** Seuls les lieux sont affichés : on les montre aussi de loin, regroupés */
+  lieuxDeLoin: boolean;
   idLieuChoisi: string | null;
   onChoisirLieu: (id: string) => void;
   /** Événements, au départ : au-dessus des lieux et des sessions qui y vont ensemble */
@@ -51,6 +53,7 @@ export function CarteSessions({
   cible,
   montrerPosition,
   lieux,
+  lieuxDeLoin,
   idLieuChoisi,
   onChoisirLieu,
   evenements,
@@ -62,7 +65,12 @@ export function CarteSessions({
   const { theme } = useTheme();
   // Ouverture de la carte (latitudeDelta) : décide si les lieux se regroupent
   const [ouverture, setOuverture] = useState(ZOOM.latitudeDelta);
-  const groupes = regrouper(lieux, (l) => l.position, ouverture, (l) => l.id);
+  const groupes = regrouper(
+    lieuxAMontrer(lieux, ouverture, idLieuChoisi, lieuxDeLoin),
+    (l) => l.position,
+    ouverture,
+    (l) => l.id,
+  );
   // Zoom et largeur de la carte : décident quelles sessions se regroupent (relu seulement à la fin du geste)
   const { width } = useWindowDimensions();
   const [longitudeDelta, setLongitudeDelta] = useState(ZOOM.longitudeDelta);

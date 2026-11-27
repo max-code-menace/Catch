@@ -245,6 +245,7 @@ export default function Carte() {
         cible={cible}
         montrerPosition={position !== null}
         lieux={lieuxCarte}
+        lieuxDeLoin={types.lieux && !types.sessions}
         idLieuChoisi={lieuChoisi?.id ?? null}
         onChoisirLieu={choisirLieu}
         evenements={evenementsCarte}
