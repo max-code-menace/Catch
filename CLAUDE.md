@@ -134,6 +134,12 @@ Noté le 15 novembre à sa demande, pour ne pas oublier. Claude ne peut pas le f
 
 **C'est tout.** Le reste a été tranché le 24 novembre avec Maxime (taux de présence abandonné, sports gardés, plus de lieux à cocher, `sessions_ancienne` laissée, etc. : voir « Tranché le 24 novembre » dans `docs/produit.md`). Ne pas lui reposer ces questions ni lui en ajouter de superflues : quand un choix a une réponse raisonnable par défaut, la prendre et le dire en une ligne.
 
+## Audit « ça fait IA » (27 novembre)
+
+Demande de Maxime : repérer ce qui fait « app générée par IA ». Note globale environ 5,5/10. Causes : trop d’effets différents (un par écran, choisis par vote), Inter + dégradé orange, petites phrases rigolotes, l’app qui explique tout, erreurs toutes pareilles, carte pleine de pictos sans visages. Plan dans l’ordre : 1. textes, 2. carte (lieux discrets, sessions d’abord), 3. police du système à la place d’Inter, 4. plus de dégradés, 5. garder 2 effets de marque (barre segmentée, phrase de Créer) et retirer le reste (titre penché, surligneur, chiffre géant, curseur, pastilles qui sortent de terre, session qui tombe), 6. « Tu l’as catchée ! » avec un bouton principal et un secondaire, 7. photos dans l’équipe.
+
+**1. Textes, fait le 27 novembre** (branche `claude/catch-app-audit-47e4b5`, qui contient aussi la Connexion revue ; publié sur Expo canal `main` et sur le site) : chargement = la balle seule (plus de « On gonfle les ballons… »), « Session publiée » au lieu de « C’est en ligne ! », erreurs = « Pas de réseau » + ce qui n’est pas parti (plus de « Ça n’a pas marché. Vérifie ta connexion et réessaie. »), textes qui expliquent les gestes retirés (Profil, Réglages, Notifications, « Tu l’as catchée ! », privés), Jouer en sécurité en 3 parties courtes. **Règle** : pas de petite phrase rigolote, pas de texte qui explique un geste, une erreur = « Pas de réseau » + ce qui n’a pas marché. Connexion pas retouchée (refaite le même jour). Pas vu sur un vrai iPhone.
+
 ## Refonte écran par écran (en cours depuis le 25 novembre)
 
 Demande de Maxime : rendre chaque écran plus soigné et moins générique, **un écran à la fois**, avec cette méthode :
