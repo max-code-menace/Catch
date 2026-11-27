@@ -2,7 +2,6 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { SessionQuiTombe } from '@/components/session-qui-tombe';
 import { BandeauCarte } from '@/components/bandeau-carte';
 import { BarreHaut, type Vue } from '@/components/barre-haut';
 import { Bouton } from '@/components/bouton';
@@ -77,20 +76,18 @@ export default function Carte() {
     : [];
   const evenementsCarte = types.evenements ? evenements : [];
 
-  // Retour de Créer : la session qu'on vient de publier tombe sur la carte, puis « C'est en ligne ! »
+  // Retour de Créer : la carte se centre sur la session publiée, avec « Session publiée » et « Inviter »
   const { publiee } = useLocalSearchParams<{ publiee?: string }>();
   const [publieeVue, setPublieeVue] = useState<string | undefined>(undefined);
-  const [idQuiTombe, setIdQuiTombe] = useState<string | null>(null);
   const [enLigne, setEnLigne] = useState<{ cle: number; id: string } | null>(null);
   const sessionPubliee =
     publiee && publiee !== publieeVue ? toutesLesSessions.find((s) => s.id === publiee) : undefined;
   if (sessionPubliee) {
     setPublieeVue(sessionPubliee.id);
-    setIdQuiTombe(sessionPubliee.id);
+    setEnLigne({ cle: (enLigne?.cle ?? 0) + 1, id: sessionPubliee.id });
     setVue('carte');
     setCible({ ...sessionPubliee.position, cle: (cible?.cle ?? 0) + 1 });
   }
-  const sessionQuiTombe = idQuiTombe ? toutesLesSessions.find((s) => s.id === idQuiTombe) : undefined;
   const sessionEnLigne = enLigne ? toutesLesSessions.find((s) => s.id === enLigne.id) : undefined;
 
   const [idChoisie, setIdChoisie] = useState<string | null>(null);
@@ -232,8 +229,7 @@ export default function Carte() {
   return (
     <View style={styles.ecran}>
       <CarteSessions
-        // Celle qui tombe n'a pas encore de marqueur : il prend le relais quand elle a touché la carte
-        sessions={voirSessions ? sessions.filter((s) => s.id !== idQuiTombe) : []}
+        sessions={voirSessions ? sessions : []}
         eclats={voirSessions ? eclats : []}
         idChoisie={idChoisie}
         onChoisir={choisir}
@@ -311,15 +307,6 @@ export default function Carte() {
           setPanneauFerme(false);
         }}
       />
-      {sessionQuiTombe && (
-        <SessionQuiTombe
-          session={sessionQuiTombe}
-          onFini={() => {
-            setIdQuiTombe(null);
-            setEnLigne((avant) => ({ cle: (avant?.cle ?? 0) + 1, id: sessionQuiTombe.id }));
-          }}
-        />
-      )}
       {sessionEnLigne && enLigne && (
         <BandeauCarte
           cle={enLigne.cle}

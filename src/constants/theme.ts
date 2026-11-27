@@ -53,9 +53,7 @@ export const Palettes = {
     avatar4: '#E9D5C6',
     /** Reflet clair sur la balle orange */
     refletBalle: 'rgba(255, 255, 255, 0.4)',
-    /** Trait de surligneur sous quelques mots forts (idée de Mathias) : bas du texte seulement */
-    marqueur: '#FFC58F',
-    /** Le même trait, posé sur l'en-tête rouge */
+    /** Blanc transparent posé sur le rouge (rond « + » de Créer) */
     marqueurSurRouge: 'rgba(255, 255, 255, 0.32)',
     /** Place libre dans une ligne de points (joueur déjà là : encre, toi : rouge) */
     pointVide: '#B9A89B',
@@ -116,8 +114,6 @@ export const Palettes = {
     avatar3: '#D9B48F',
     avatar4: '#CFBCAD',
     refletBalle: 'rgba(255, 255, 255, 0.4)',
-    // Surligneur foncé : le texte clair reste lisible dessus
-    marqueur: '#8A3A14',
     marqueurSurRouge: 'rgba(255, 255, 255, 0.32)',
     pointVide: '#5E504A',
     googleBleu: '#4285F4',
@@ -172,8 +168,6 @@ export const Tailles = {
   grandNombre: 30,
   titreDetail: 32,
   celebration: 36,
-  /** Nombre de places, en énorme, dans l'en-tête rouge du détail */
-  chiffreGeant: 120,
   /** Tampon « TEST » sur l'en-tête d'une session de test */
   tampon: 64,
 } as const;

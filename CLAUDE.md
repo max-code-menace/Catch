@@ -146,6 +146,8 @@ Demande de Maxime : repérer ce qui fait « app générée par IA ». Note globa
 
 **4. Dégradés, fait le 27 novembre** : « + Créer », l’en-tête du détail d’une session et la carte de joueur du Profil sont en couleur unie `creerFin` (orange-rouge, texte blanc lisible). Le voile sur les photos de Mes sessions reste (il sert à lire le texte). L’icône de l’app garde son dégradé (pas touchée). **Règle** : pas de dégradé dans l’app.
 
+**5. Effets, fait le 27 novembre** : on ne garde que **deux effets de marque**, la barre segmentée et la phrase de Créer. Retirés : surligneur et titres penchés (`components/marqueur.tsx` supprimé, couleur `marqueur` aussi), chiffre géant qui défile (`chiffre-qui-defile.tsx` et `Tailles.chiffreGeant` supprimés), curseur qui clignote, pastilles qui sortent de terre (`lib/apparitions.ts` supprimé), session qui tombe (`session-qui-tombe.tsx` supprimé : après publication, la carte se centre sur la session et le bandeau « Session publiée » + « Inviter » arrive tout de suite). En-tête du détail : « 3 places libres » droit en Bricolage 36, pilule du temps dessous, picto à droite. Phrase de Créer : choix écrits en rouge. « Tu l’as catchée ! » : titre droit, sans surligneur. Rond du Profil : vrai rond, plus penché. Aussi retiré : le repère « Version surligneur B » oublié en haut de Créer depuis le 25 novembre. Vu sur le web (détail et Créer), pas sur un vrai iPhone. Restent dans le plan : 6. « Tu l’as catchée ! » avec un bouton principal et un secondaire, 7. photos dans l’équipe. Repéré : le détail dit trois fois la même chose (« Il manque 1 joueur », « 1 place libre », « 1 place à remplir »).
+
 ## Refonte écran par écran (en cours depuis le 25 novembre)
 
 Demande de Maxime : rendre chaque écran plus soigné et moins générique, **un écran à la fois**, avec cette méthode :
@@ -155,7 +157,7 @@ Demande de Maxime : rendre chaque écran plus soigné et moins générique, **un
 4. Il choisit la finition. Construire, vérifier (types, lint, tests, captures clair et sombre), pousser, publier sur Expo (et le site si l'écran y est), envoyer les captures (son téléphone n'est pas toujours chargé).
 5. Fusionner dans `main` seulement quand il le dit. Avant : regarder si `main` a bougé, ne jamais publier depuis une branche en retard. **Une autre conversation peut publier en même temps** : si Maxime ne voit pas les changements, vérifier `eas update:list --branch main` (une publication plus récente sans nos changements les efface).
 
-Règles : garder le style choisi (Chaleur, marqueur et titres penchés seulement sur quelques moments forts, phrase qui s'écrit avec curseur, chiffre géant, barre segmentée, photos des sports sur fond orange), ne pas retoucher un écran déjà fait sans qu'il le demande, respecter les « Décisions à ne pas rediscuter », réponses courtes sans jargon.
+Règles : garder le style choisi (Chaleur, deux effets de marque seulement : barre segmentée et phrase de Créer ; photos des sports sur fond orange ; plus de surligneur, de penché, de curseur ni de chiffre géant depuis le 27 novembre), ne pas retoucher un écran déjà fait sans qu'il le demande, respecter les « Décisions à ne pas rediscuter », réponses courtes sans jargon.
 
 Ordre et avancement :
 1. [x] La carte (25 novembre, voir « La carte revue »)

@@ -7,7 +7,6 @@ import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
 import { BoutonCatch } from '@/components/bouton-catch';
 import { IconeInviter } from '@/components/icones';
-import { Mot } from '@/components/marqueur';
 import { TerrainSport } from '@/components/terrain-sport';
 import { BarreNavigation, RESERVE_BAS, Durees, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
@@ -64,7 +63,9 @@ export function FicheSession({ session, distance, catchee, organisee, onOuvrir, 
           </Text>
           {/* La virgule reste collée au moment : la phrase ne passe jamais à la ligne juste avant elle */}
           <View style={styles.colle}>
-            <Mot texte={quand} couleur={c.marqueurSurRouge} style={styles.mots} />
+            <Text maxFontSizeMultiplier={1.3} style={styles.mots}>
+              {quand}
+            </Text>
             <Text maxFontSizeMultiplier={1.3} style={styles.mots}>
               ,{' '}
             </Text>

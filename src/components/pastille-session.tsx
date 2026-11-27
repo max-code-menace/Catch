@@ -7,16 +7,14 @@ import Animated, {
   useSharedValue,
   withDelay,
   withRepeat,
-  withSpring,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 
 import { PictoSport } from '@/components/picto-sport';
-import { Durees, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
+import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import type { Session } from '@/donnees/sessions';
-import { DUREE_APPARITION } from '@/lib/apparitions';
 import { traitsAnneau } from '@/lib/anneau-places';
 import { estEnDirect, etiquetteGroupe, etiquettePastille, placesLibres } from '@/lib/formats';
 import { PASTILLE } from '@/lib/regroupement-sessions';
@@ -50,41 +48,6 @@ export function PointEnDirect({ couleur }: { couleur: string }) {
       <View style={[styles.rond, { backgroundColor: couleur }]} />
     </View>
   );
-}
-
-/**
- * Une pastille qui vient d'arriver sur la carte sort de terre : elle grandit depuis son pied,
- * dépasse à peine et se pose. Avec « Réduire les animations », un simple fondu.
- */
-export function Apparition({ delai, children }: { delai: number; children: React.ReactNode }) {
-  const reduit = useReducedMotion();
-  const avancee = useSharedValue(0);
-
-  useEffect(() => {
-    avancee.set(
-      withDelay(
-        delai,
-        reduit
-          ? withTiming(1, { duration: Durees.standard })
-          : withSpring(1, { duration: DUREE_APPARITION, dampingRatio: 0.6 }),
-      ),
-    );
-  }, [avancee, delai, reduit]);
-
-  const style = useAnimatedStyle(() => {
-    const t = avancee.get();
-    return {
-      opacity: Math.min(1, t * 3),
-      transform: reduit ? [] : [{ translateY: 10 * (1 - t) }, { scale: 0.3 + 0.7 * t }],
-    };
-  });
-
-  return <Animated.View style={style}>{children}</Animated.View>;
-}
-
-/** `Apparition` seulement pour une pastille qui vient d'arriver (délai connu). */
-export function ApparitionSi({ delai, children }: { delai: number | undefined; children: React.ReactNode }) {
-  return delai === undefined ? children : <Apparition delai={delai}>{children}</Apparition>;
 }
 
 /**

@@ -1,30 +1,13 @@
-import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
 
-import { Mot, motsDe } from '@/components/marqueur';
 import { Polices, Tailles } from '@/constants/theme';
 import type { Champ, Morceau } from '@/lib/phrase-creation';
 import { useStyles, type Palette } from '@/lib/theme';
 
-/** Le curseur qui clignote au bout de la phrase : c'est ici que s'écrit le prochain choix */
-function Curseur() {
-  const styles = useStyles(creerStyles);
-  const reduit = useReducedMotion();
-  const opacite = useSharedValue(1);
-  useEffect(() => {
-    if (reduit) return;
-    opacite.set(withRepeat(withSequence(withTiming(1, { duration: 500 }), withTiming(0, { duration: 1 }), withTiming(0, { duration: 500 }), withTiming(1, { duration: 1 })), -1));
-  }, [reduit, opacite]);
-  const style = useAnimatedStyle(() => ({ opacity: opacite.get() }));
-  return <Animated.View style={[styles.curseur, style]} />;
+/** Découpe en mots en gardant l'espace qui suit chaque mot (sauf le dernier) : la phrase peut passer à la ligne entre deux mots. */
+function motsDe(texte: string) {
+  const mots = texte.split(' ').filter(Boolean);
+  return mots.map((mot, i) => (i < mots.length - 1 ? `${mot} ` : mot));
 }
 
 type Props = {
@@ -35,8 +18,8 @@ type Props = {
 
 /**
  * La phrase de Créer, qui s'écrit au fur et à mesure (version D choisie par Maxime le 24 novembre) :
- * chaque choix est surligné au marqueur ; la phrase s'arrête à la question en cours, en gris pâle,
- * suivie d'un curseur qui clignote. Rien n'est montré de la suite.
+ * chaque choix est écrit en rouge (plus de surligneur ni de curseur depuis l'audit du 27 novembre) ;
+ * la phrase s'arrête à la question en cours, en gris pâle. Rien n'est montré de la suite.
  */
 /** La phrase s'arrête après le premier trou : la suite n'est pas encore écrite */
 function finPhrase(morceaux: Morceau[]) {
@@ -55,7 +38,6 @@ export function PhraseCreation({ morceaux, onToucher }: Props) {
               <Text maxFontSizeMultiplier={1.3} style={styles.question}>
                 {morceau.texte.replace(' ?', '\u00a0?')}
               </Text>
-              <Curseur />
             </View>
           );
         }
@@ -76,8 +58,9 @@ export function PhraseCreation({ morceaux, onToucher }: Props) {
             accessibilityLabel={j === 0 ? `${morceau.texte}. Changer` : undefined}
             onPress={() => onToucher(morceau.champ)}
             style={({ pressed }) => [styles.mot, pressed && styles.presse]}>
-            <Mot texte={mot} style={styles.choix} />
-            {/* L'espace après le mot reste hors du trait, sauf entre deux mots du même choix */}
+            <Text maxFontSizeMultiplier={1.3} style={styles.choix}>
+              {mot}
+            </Text>
             {j === mots.length - 1 && (
               <Text maxFontSizeMultiplier={1.3} style={styles.texte}>{`${morceau.ponctuation ?? ''} `}</Text>
             )}
@@ -93,9 +76,8 @@ const creerStyles = (c: Palette) =>
     phrase: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', rowGap: 4 },
     // Plus grand que la maquette, à la demande de Maxime : c'est le cœur de l'écran
     texte: { fontFamily: Polices.titreDemi, fontSize: Tailles.grandNombre, lineHeight: 44, color: c.encre },
-    choix: { fontFamily: Polices.titre, fontSize: Tailles.grandNombre, lineHeight: 44, color: c.encre },
+    choix: { fontFamily: Polices.titre, fontSize: Tailles.grandNombre, lineHeight: 44, color: c.rougeTexte },
     question: { fontFamily: Polices.titreDemi, fontSize: Tailles.grandNombre, lineHeight: 44, color: c.pointVide },
     mot: { flexDirection: 'row', alignItems: 'center' },
     presse: { opacity: 0.6 },
-    curseur: { width: 3, height: 32, marginLeft: 4, borderRadius: 2, backgroundColor: c.rouge },
   });

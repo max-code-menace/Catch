@@ -63,13 +63,16 @@ Une seule couleur d'action par écran : le rouge. Un statut n'est jamais porté 
 
 Tailles d'usage : 20 px dans les pastilles de carte (dans un rond blanc), 36 px dans un carré arrondi beige `#F3EDE8` de 48 px en liste et messages, 34 px dans les tuiles de choix du sport.
 
-## Marqueur, titres penchés, ligne de points (24 novembre, idées de Mathias)
+## Effets de marque : seulement deux (audit du 27 novembre)
+
+Catch garde **deux** effets à lui : la **barre segmentée** des places et la **phrase de Créer**. Le reste a été retiré le 27 novembre parce que ça faisait « app générée » : surligneur, titres penchés, chiffre géant qui défile, curseur qui clignote, pastilles qui sortent de terre, session qui tombe sur la carte. Ne pas les remettre.
+
+Historique (24 novembre, idées de Mathias)
 
 Maquettes : [Les 4 idées de Mathias](https://claude.ai/artifact/EkHvny6qZnQV3vKcGdxRnW), version A de l'idée 3 choisie par Maxime.
 
-- **Marqueur** (`components/marqueur.tsx`, couleurs `marqueur` et `marqueurSurRouge`) : un trait de surligneur sous la moitié basse du texte. **Seulement 4 endroits** : la phrase de Créer, les places dans l'en-tête rouge du détail, « Tu l'as catchée ! », le moment dans la phrase de la fiche de la carte (« dans 3 h »). Ailleurs il perdrait son effet.
-- **Penché** (`INCLINAISON`, -8°) : l'en-tête du détail et « Tu l'as catchée ! ». Jamais pour du texte courant.
-- **En-tête du détail** (finition C1) : le nombre de places en énorme à gauche, « places à prendre » penché et surligné, le temps dans une pilule blanche (`phraseEntete` dans `lib/formats.ts`).
+- ~~Marqueur~~ et ~~Penché~~ : retirés le 27 novembre.
+- **En-tête du détail** (depuis le 27 novembre) : « 3 places libres » en Bricolage 36, droit, le temps dans une pilule blanche dessous, le picto dans un rond à droite (`phraseEntete` dans `lib/formats.ts`). « Complet » si plus de place.
 - **Barre segmentée** (finitions S2 + S3, `components/barre-places.tsx`) : une case foncée par joueur, rouge pour soi, claire par place libre, 12 au plus, « 7/10 » à droite ; à 1 ou 2 places, cases libres en orange et badge « Presque plein » / « Il manque 1 joueur ». Liste et fiche de la carte. VoiceOver lit « 7 sur 10, 3 places ».
 
 ## Carte : pastilles et fiche (25 novembre)
@@ -77,7 +80,7 @@ Maquettes : [Les 4 idées de Mathias](https://claude.ai/artifact/EkHvny6qZnQV3vK
 Maquettes : [finitions](https://claude.ai/artifact/WopYaEQW5861Vg2SdVLMt4), choix de Maxime P2, F3, A, B2.
 
 - **Pastille d'une session (P2)** : anneau de 64 px, un trait par joueur (12 au plus, `lib/anneau-places.ts`), plein pour chaque inscrit ; picto au milieu ; étiquette posée sur le bas de l'anneau (« 19h », « Demain 18h », « 20h20 · 1 pl. », « En direct »). Encre normalement, **orange** s'il reste 1 ou 2 places, **rouge** en direct. Bulle de plusieurs sessions : disque à bord pointillé avec leur nombre, « dès 18h » dessous.
-- **Fiche de la carte (F3)** : bandeau rouge avec le terrain en filigrane, une phrase (« Foot à 5 dans 3 h, à 3 km », moment surligné) et un petit Catch blanc dedans ; dessous une ligne : lieu, barre des places. Inscrit : pastille « Tu y es » / « Ta session » à la place de Catch, avec « Inviter » et « Annuler… ».
+- **Fiche de la carte (F3)** : bandeau rouge avec le terrain en filigrane, une phrase (« Foot à 5 dans 3 h, à 3 km ») et un petit Catch blanc dedans ; dessous une ligne : lieu, barre des places. Inscrit : pastille « Tu y es » / « Ta session » à la place de Catch, avec « Inviter » et « Annuler… ».
 - **Carte vide (A)** : une seule ligne fine au-dessus de « + Créer », « Rien à 5 km · Voir à 9 km › ». Rien du tout : « Personne ne joue encore ici ».
 
 ## Animations
@@ -96,18 +99,16 @@ Maquettes jouables : [Catch · Ambiance et animations](https://claude.ai/artifac
 
 | Moment | Ce qui se passe | Où |
 | --- | --- | --- |
-| Attente d'un écran | `BalleRebond` (parabole, écrasée au sol, ombre) + phrases qui défilent (« On gonfle les ballons… ») | `components/chargement.tsx` (`Chargement`) : détail, Profil. **Plus sur la carte** (25 novembre, demande de Maxime : elle n'apparaissait qu'une demi-seconde et ne servait à rien ; les pastilles qui sortent de terre suffisent) |
+| Attente d'un écran | `BalleRebond` (parabole, écrasée au sol, ombre), sans texte (plus de phrases rigolotes depuis le 27 novembre) | `components/chargement.tsx` (`Chargement`) : détail, Profil. Pas sur la carte |
 | Attente d'une liste | `CartesFantomes` : la forme des cartes avec les lignes d'un terrain, qui respire | Mes sessions, Messages |
-| Arrivée des sessions | Chaque pastille sort de terre, de haut en bas, 70 ms d'écart (`lib/apparitions.ts`, `Apparition`), une seule fois par session | Carte (téléphone et web) |
+| Arrivée des sessions | Rien : les pastilles sont là, tout simplement (pastilles qui sortent de terre retirées le 27 novembre) | Carte |
 | Bouton rouge | Tranche foncée dessous (`rougeTranche`), le bouton s'y enfonce de 3 px | `Bouton` principal, `BoutonCatch` |
 | Envoi au serveur | Une balle blanche roule dans le bouton (`attente` de `Bouton`) | Publier |
-| Session publiée | Retour à la carte : la session tombe au centre, s'écrase un peu, deux ondes, puis « C'est en ligne ! » avec « Inviter » (`components/session-qui-tombe.tsx`) | Carte |
+| Session publiée | Retour à la carte centrée sur la session, bandeau « Session publiée » avec « Inviter » (session qui tombe retirée le 27 novembre) | Carte |
 | Catch | La balle arrive et le bouton l'attrape (existant), puis sur « Tu l'as catchée ! » ton rond « Toi » rejoint l'équipe avec une onde et des éclats (`components/rond-toi.tsx`) | Détail, fiche, « Tu l'as catchée ! » |
 | Tuile choisie | Le picto se tasse et reprend sa taille (`PictoQuiSaute`) | Créer, Mes sports |
-| Phrase de Créer | Chaque choix devient un mot surligné (trait **fixe** depuis le 25 novembre : animé, il restait invisible sur iPhone). La phrase s'arrête à la question en cours, suivie d'un curseur rouge qui clignote (`components/phrase-creation.tsx`) | Créer |
+| Phrase de Créer | Chaque choix s'écrit en rouge (`rougeTexte`) ; la phrase s'arrête à la question en cours, en gris pâle. Plus de surligneur ni de curseur (27 novembre) (`components/phrase-creation.tsx`) | Créer |
 | En direct | Un seul point qui pulse (halo qui s'élargit, 1,4 s), le même partout (`PointEnDirect`) ; fixe avec « Réduire les animations » | Pastille, badge, pilule du détail |
-| Places qui changent | Le nombre de places défile comme un compteur (550 ms) quand quelqu'un catche ou se désiste pendant qu'on regarde ; jamais en boucle (`components/chiffre-qui-defile.tsx`) | En-tête du détail |
-
 | Jeton | Réglage (Reanimated) | Usage |
 | --- | --- | --- |
 | `spring.snappy` | `{ duration: 250, dampingRatio: 1 }` | Boutons pressés, pastilles, sélections |
@@ -122,11 +123,11 @@ Maquettes jouables : [Catch · Ambiance et animations](https://claude.ai/artifac
 
 - Onglets : fondu 250 ms. Carte ↔ Liste : fondu croisé.
 - Pas d'attente affichée sur la carte ; cartes fantômes tout de suite dans les listes.
-- La balle est le seul élément qui rebondit vraiment. Les pastilles, pictos et le rond « Toi » ont seulement un léger dépassement en arrivant ; la session publiée s'écrase un peu en touchant la carte.
+- La balle est le seul élément qui rebondit vraiment. Les pictos et le rond « Toi » ont seulement un léger dépassement en arrivant.
 - Catch et envoi de message en interface optimiste, avec retour en arrière propre en cas d'échec.
 - « Réduire les animations » respecté : déplacements remplacés par des fondus, boucles arrêtées.
 - Animer uniquement `transform` et `opacity`.
-- Carte sur téléphone : un marqueur n'est redessiné que pendant son animation (`tracksViewChanges`), puis il est figé en image.
+- Carte sur téléphone : un marqueur n'est redessiné que quand il est choisi (`tracksViewChanges`), sinon il est figé en image.
 
 ## Vibrations
 

@@ -26,8 +26,6 @@ import {
 } from '@/components/icones';
 import { PictoSport } from '@/components/picto-sport';
 import { Chargement } from '@/components/chargement';
-import { ChiffreQuiDefile } from '@/components/chiffre-qui-defile';
-import { INCLINAISON, TexteSurligne } from '@/components/marqueur';
 import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
 import {
   annulationLibre,
@@ -129,6 +127,11 @@ export default function DetailSession() {
   const estSessionTest = session.aSavoir?.titre === 'Session de test' || session.lieu.endsWith('(test)');
   const libres = placesLibres(session);
   const entete = phraseEntete(session);
+  const titrePlaces = !entete.places
+    ? entete.temps
+    : entete.places.nombre
+      ? `${entete.places.nombre} ${entete.places.apres} ${entete.places.nombre > 1 ? 'libres' : 'libre'}`
+      : 'Complet';
   const nombre = session.inscrits.length;
 
   function retour() {
@@ -180,38 +183,15 @@ export default function DetailSession() {
               catch
             </Text>
           )}
-          {/* Les places en énorme, le temps dans une pilule (version C1 choisie par Maxime le 24 novembre) */}
+          {/* Les places et le temps, écrits droit (audit du 27 novembre : plus de chiffre géant, de penché ni de surligneur) */}
           <View
             accessible
-            accessibilityLabel={
-              entete.places
-                ? `${entete.places.nombre ? `${entete.places.nombre} ${entete.places.apres} à prendre` : 'Complet'}, ${entete.temps}`
-                : entete.temps
-            }
+            accessibilityLabel={`${titrePlaces}, ${entete.temps}`}
             style={styles.places}>
-            {entete.places?.nombre ? (
-              <ChiffreQuiDefile
-                valeur={entete.places.nombre}
-                max={session.joueurs}
-                taille={Tailles.chiffreGeant}
-                style={styles.chiffre}
-              />
-            ) : (
-              <Text maxFontSizeMultiplier={1.2} style={[styles.motGeant, styles.penche]}>
-                {entete.places ? 'Complet' : entete.temps}
+            <View style={styles.placesGauche}>
+              <Text maxFontSizeMultiplier={1.2} style={styles.placesTexte}>
+                {titrePlaces}
               </Text>
-            )}
-            <View style={styles.placesDroite}>
-              {!!entete.places?.nombre && (
-                <View style={styles.penche}>
-                  <Text maxFontSizeMultiplier={1.2} style={styles.placesTexte}>
-                    {entete.places.apres}
-                  </Text>
-                  <TexteSurligne couleur={c.marqueurSurRouge} maxFontSizeMultiplier={1.2} style={styles.placesTexte}>
-                    à prendre
-                  </TexteSurligne>
-                </View>
-              )}
               {!!entete.places && (
                 <View style={styles.pilule}>
                   {entete.temps === 'En direct' ? <PointEnDirect couleur={c.rouge} /> : <View style={styles.point} />}
@@ -480,7 +460,7 @@ const creerStyles = (c: Palette) =>
       // Couleur unie, plus de dégradé (audit du 27 novembre)
       backgroundColor: c.creerFin,
     },
-    // Le picto passe dans le coin, en petit : le chiffre prend la place
+    // Le picto dans le coin, en petit
     rondPicto: {
       width: 46,
       height: 46,
@@ -501,7 +481,7 @@ const creerStyles = (c: Palette) =>
       transform: [{ rotate: '-12deg' }],
     },
     tamponTexte: { fontFamily: Polices.titre, fontSize: Tailles.tampon, letterSpacing: 6, color: c.surRouge },
-    // Le chiffre en énorme à gauche, « places à prendre » et le temps à côté ; la fiche remonte de 24 px dessus
+    // « 3 places libres » et le temps à gauche, le picto à droite ; la fiche remonte de 24 px dessus
     places: {
       position: 'absolute',
       left: Espaces.marge,
@@ -511,10 +491,8 @@ const creerStyles = (c: Palette) =>
       alignItems: 'flex-end',
       gap: 12,
     },
-    placesDroite: { flexShrink: 1, gap: 8, paddingBottom: 10 },
-    penche: { transform: [{ skewX: INCLINAISON }] },
-    placesTexte: { fontFamily: Polices.titre, fontSize: Tailles.titreSession, lineHeight: 26, color: c.surRouge },
-    motGeant: { fontFamily: Polices.titre, fontSize: Tailles.celebration, color: c.surRouge, paddingBottom: 6 },
+    placesGauche: { flexShrink: 1, gap: 10, paddingBottom: 6 },
+    placesTexte: { fontFamily: Polices.titre, fontSize: Tailles.celebration, lineHeight: 40, color: c.surRouge },
     pilule: {
       alignSelf: 'flex-start',
       height: 30,
@@ -527,7 +505,6 @@ const creerStyles = (c: Palette) =>
     },
     piluleTexte: { ...Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTranche },
     point: { width: 7, height: 7, borderRadius: 4, backgroundColor: c.rouge },
-    chiffre: { fontFamily: Polices.titre, color: c.surRouge, letterSpacing: -4 },
     fiche: {
       flexGrow: 1,
       marginTop: -24,

@@ -8,8 +8,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import type { PropsCarte } from '@/components/carte-sessions';
 import { PastilleEvenement } from '@/components/pastille-evenement';
 import { PastilleLieu } from '@/components/pastille-lieu';
-import { ApparitionSi, PastilleGroupeSessions, PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
-import { useApparitions } from '@/lib/apparitions';
+import { PastilleGroupeSessions, PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
 import { CENTRE_ZONE, type Coordonnees } from '@/donnees/sessions';
 import { descriptionGroupe, descriptionPastille } from '@/lib/formats';
 import { texteType } from '@/lib/lieux-sport';
@@ -58,11 +57,6 @@ export function CarteSessions({
   }
 
   const groupes = groupesDeSessions(sessions, vue);
-  const apparitions = useApparitions(sessions);
-  const delaiGroupe = (membres: typeof sessions) => {
-    const delais = membres.map((s) => apparitions.get(s.id)).filter((d) => d !== undefined);
-    return delais.length ? Math.min(...delais) : undefined;
-  };
 
   return (
     <Pressable
@@ -93,9 +87,7 @@ export function CarteSessions({
                   setCentre(zoom.centre);
                   setLongitudeDelta(zoom.longitudeDelta);
                 }}>
-                <ApparitionSi delai={delaiGroupe(membres)}>
-                  <PastilleGroupeSessions sessions={membres} choisie={membres.some((s) => s.id === idChoisie)} />
-                </ApparitionSi>
+                <PastilleGroupeSessions sessions={membres} choisie={membres.some((s) => s.id === idChoisie)} />
               </Pressable>
             </View>
           );
@@ -107,9 +99,7 @@ export function CarteSessions({
               accessibilityRole="button"
               accessibilityLabel={descriptionPastille(session)}
               onPress={() => onChoisir(session.id)}>
-              <ApparitionSi delai={apparitions.get(session.id)}>
-                <PastilleSession session={session} choisie={session.id === idChoisie} />
-              </ApparitionSi>
+              <PastilleSession session={session} choisie={session.id === idChoisie} />
             </Pressable>
           </View>
         );

@@ -1,4 +1,3 @@
-import * as Updates from 'expo-updates';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -30,7 +29,6 @@ import { Pictos, type Sport } from '@/donnees/pictos';
 import { CENTRE_ZONE } from '@/donnees/sessions';
 import { SPORTS, ficheSport } from '@/donnees/sports';
 import { prevenir } from '@/lib/alerte';
-import { marquerVue } from '@/lib/apparitions';
 import { useCompte } from '@/lib/compte';
 import { useEvenements } from '@/lib/evenements';
 import { heure, quand, quandCreation, texteDistance } from '@/lib/formats';
@@ -417,8 +415,7 @@ export default function Creer() {
     setSport(null);
     setLieu((avant) => ({ ...avant, choisi: false }));
     setMode(evenement && !modeles.length ? 'etapes' : 'depart');
-    // Retour sur la carte : la session y tombe à sa place
-    marquerVue(id);
+    // Retour sur la carte, centrée sur la session publiée
     router.navigate({ pathname: '/', params: { publiee: id } });
   }
 
@@ -694,10 +691,6 @@ export default function Creer() {
         {(mode === 'etapes' || enPhrase) && (
           <View style={styles.dansMarges}>
             {/* La phrase se remplit à chaque choix (idée de Mathias) ; toucher un mot y revient */}
-            {/* TEMPORAIRE : repère de version (à retirer) */}
-            <Text style={{ fontSize: 11, color: c.texteSecondaire }}>
-              {`Version surligneur B · ${Updates.updateId?.slice(0, 8) ?? 'sans mise à jour'}`}
-            </Text>
             <PhraseCreation morceaux={morceaux} onToucher={toucherPhrase} />
           </View>
         )}

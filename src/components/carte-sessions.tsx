@@ -5,10 +5,9 @@ import MapView, { Marker } from 'react-native-maps';
 import { themeCarte } from '@/constants/carte';
 import { PastilleEvenement } from '@/components/pastille-evenement';
 import { PastilleGroupeLieux, PastilleLieu } from '@/components/pastille-lieu';
-import { ApparitionSi, PastilleGroupeSessions, PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
+import { PastilleGroupeSessions, PastilleQuiEclate, PastilleSession } from '@/components/pastille-session';
 import { CENTRE_ZONE, type Coordonnees, type Session } from '@/donnees/sessions';
 import type { Evenement } from '@/lib/evenements';
-import { useApparitions } from '@/lib/apparitions';
 import { descriptionGroupe, descriptionPastille, etiquetteGroupe, etiquettePastille } from '@/lib/formats';
 import { texteType, type LieuSport } from '@/lib/lieux-sport';
 import { eclatsVisibles, groupesDeSessions, zoomDuGroupe } from '@/lib/pastilles-carte';
@@ -77,12 +76,6 @@ export function CarteSessions({
   const vue = { longitudeDelta, largeurEcran: width };
   const groupesSessions = groupesDeSessions(sessions, vue);
   const eclatsAMontrer = eclatsVisibles(eclats, sessions, vue);
-  // Sessions qui viennent d'arriver : leur pastille sort de terre, l'une après l'autre
-  const apparitions = useApparitions(sessions);
-  const delaiGroupe = (membres: Session[]) => {
-    const delais = membres.map((s) => apparitions.get(s.id)).filter((d) => d !== undefined);
-    return delais.length ? Math.min(...delais) : undefined;
-  };
 
   function toucherGroupe(membres: Session[]) {
     const zoom = zoomDuGroupe(membres, vue);
@@ -178,15 +171,13 @@ export function CarteSessions({
         if (groupe.elements.length > 1) {
           const membres = groupe.elements;
           const choisie = membres.some((s) => s.id === idChoisie);
-          const delai = delaiGroupe(membres);
-          const pastille = <PastilleGroupeSessions sessions={membres} choisie={choisie} />;
           return (
             <Marker
               // Clé stable tant que la bulle garde les mêmes sessions : pas de clignotement sur Android
               key={`groupe-${groupe.cle}-${etiquetteGroupe(membres)}-${theme}`}
               coordinate={groupe.position}
               anchor={{ x: 0.5, y: 0.5 }}
-              tracksViewChanges={choisie || delai !== undefined}
+              tracksViewChanges={choisie}
               zIndex={choisie ? 2 : 1}
               accessibilityRole="button"
               accessibilityLabel={descriptionGroupe(membres)}
@@ -195,21 +186,19 @@ export function CarteSessions({
                 e.stopPropagation();
                 toucherGroupe(membres);
               }}>
-              <ApparitionSi delai={delai}>{pastille}</ApparitionSi>
+              <PastilleGroupeSessions sessions={membres} choisie={choisie} />
             </Marker>
           );
         }
         const session = groupe.elements[0];
         const choisie = session.id === idChoisie;
-        const delai = apparitions.get(session.id);
-        const pastille = <PastilleSession session={session} choisie={choisie} />;
         return (
           <Marker
             key={`${session.id}-${session.inscrits.length}-${etiquettePastille(session)}-${theme}`}
             coordinate={session.position}
             anchor={{ x: 0.5, y: 0.5 }}
             // Android fige les marqueurs en image : on ne les redessine que s'ils bougent (la clé change avec les inscrits et l'étiquette)
-            tracksViewChanges={choisie || delai !== undefined}
+            tracksViewChanges={choisie}
             zIndex={choisie ? 2 : 1}
             accessibilityRole="button"
             accessibilityLabel={descriptionPastille(session)}
@@ -217,7 +206,7 @@ export function CarteSessions({
               e.stopPropagation();
               onChoisir(session.id);
             }}>
-            <ApparitionSi delai={delai}>{pastille}</ApparitionSi>
+            <PastilleSession session={session} choisie={choisie} />
           </Marker>
         );
       })}
