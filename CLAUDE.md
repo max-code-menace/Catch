@@ -148,7 +148,7 @@ Ordre et avancement :
 2. [x] Mes sessions (26 novembre, voir « Mes sessions revu »)
 3. [x] Messages (26 novembre, voir « Messages revu »). Publié sur Expo et fusionné dans `main` le 26 novembre
 4. [x] Profil (26 novembre, voir « Profil revu »). Publié sur Expo et fusionné dans `main` le 27 novembre
-5. [~] Connexion (e-mail et Google) — **en cours** (27 novembre : maquettes https://claude.ai/artifact/UpZ3Megy26T3tWLNXz2xsN, A à D, on attend le choix de Maxime)
+5. [~] Connexion (e-mail et Google) — **en cours** (27 novembre : maquettes https://claude.ai/artifact/UpZ3Megy26T3tWLNXz2xsN, choix de Maxime : D « Feuille sur la session » ; finitions https://claude.ai/artifact/JBRpz6BMVomvUSPTT6EhYe, on attend son choix)
 6. [ ] Fiche d'un lieu et fiche d'un événement
 7. [ ] Modifier une session
 8. [ ] Réglages, notifications, signaler, personnes bloquées
