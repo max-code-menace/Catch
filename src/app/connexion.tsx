@@ -1,7 +1,8 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, type ComponentRef } from 'react';
+import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -15,11 +16,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Bouton } from '@/components/bouton';
-import { IconeGoogle, IconeRetour } from '@/components/icones';
-import { PictoSport } from '@/components/picto-sport';
-import { Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
+import { IconeFermer, IconeGoogle, IconeRetour } from '@/components/icones';
+import { Durees, Espaces, Polices, Rayons, Tailles } from '@/constants/theme';
+import type { Session } from '@/donnees/sessions';
 import { ANNULE, useCompte } from '@/lib/compte';
-import { quandPhrase, textePlaces } from '@/lib/formats';
 import { vibrer } from '@/lib/haptics';
 import { expliquerEchec } from '@/lib/catch';
 import { useSessions } from '@/lib/sessions';
@@ -110,286 +110,374 @@ export default function Connexion() {
     setErreur(null);
     if (etape === 'email') setEtape('choix');
     else if (etape === 'code') setEtape('email');
-    else router.back();
+    else if (router.canGoBack()) router.back();
+    else router.replace('/');
   }
 
+  const prenomTape = prenom.trim();
+  const titreChoix = session ? 'Connecte-toi pour la catcher' : pour === 'publier' ? 'Connecte-toi pour publier' : 'Connecte-toi';
+  const texteChoix =
+    pour === 'publier'
+      ? 'Une seule fois. Ta session part juste après.'
+      : session
+        ? 'Une seule fois. Après, tu catches en un appui.'
+        : 'Une seule fois, en quelques secondes.';
+  const titreFin = session ? 'Catch' : pour === 'publier' ? 'Publier' : 'Continuer';
+
   return (
-    <KeyboardAvoidingView
-      style={styles.ecran}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView
-        contentContainerStyle={[styles.contenu, { paddingBottom: Math.max(bottom, 16) + 8 }]}
-        keyboardShouldPersistTaps="handled">
+    <View style={[styles.ecran, !router.canGoBack() && styles.ecranSeul]}>
+      {/* Derrière, l'écran d'où l'on vient (la session) reste visible sous un voile ; le toucher ferme */}
+      <Animated.View entering={FadeIn.duration(Durees.standard)} style={StyleSheet.absoluteFill}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={etape === 'choix' || etape === 'prenom' ? 'Fermer' : 'Retour'}
-          onPress={retour}
-          hitSlop={4}
-          style={({ pressed }) => [styles.retour, pressed && { backgroundColor: c.beige }]}>
-          <IconeRetour couleur={c.encre} taille={22} />
-        </Pressable>
+          accessibilityLabel="Fermer"
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+          style={[StyleSheet.absoluteFill, styles.voile]}
+        />
+      </Animated.View>
+      <KeyboardAvoidingView
+        pointerEvents="box-none"
+        style={styles.porteFeuille}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <Animated.View
+          entering={SlideInDown.duration(Durees.emphasized)}
+          style={[styles.feuille, { paddingBottom: Math.max(bottom, 16) + 8 }]}>
+          <View style={styles.poignee} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={etape === 'choix' || etape === 'prenom' ? 'Fermer' : 'Retour'}
+            onPress={retour}
+            hitSlop={6}
+            style={({ pressed }) => [styles.fermer, pressed && { backgroundColor: c.trait }]}>
+            {etape === 'choix' || etape === 'prenom' ? (
+              <IconeFermer couleur={c.encre} taille={18} />
+            ) : (
+              <IconeRetour couleur={c.encre} taille={18} />
+            )}
+          </Pressable>
+          <ScrollView
+            contentContainerStyle={styles.contenu}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            bounces={false}>
+            {etape === 'choix' && (
+              <>
+                <Text accessibilityRole="header" style={styles.titre}>
+                  {titreChoix}
+                </Text>
+                {session && <EquipeQuiAttend session={session} prenom="" />}
+                <Text style={styles.texte}>{texteChoix}</Text>
+                <View style={styles.actions}>
+                  {appleDisponible && (
+                    <AppleAuthentication.AppleAuthenticationButton
+                      buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
+                      buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                      cornerRadius={Rayons.bouton}
+                      style={styles.apple}
+                      onPress={() => essayer(connecterApple)}
+                    />
+                  )}
+                  {googleDisponible && (
+                    <Bouton
+                      titre="Continuer avec Google"
+                      variante="secondaire"
+                      Icone={IconeGoogle}
+                      disabled={occupe}
+                      onPress={() => essayer(connecterGoogle)}
+                    />
+                  )}
+                  <Bouton
+                    titre="Continuer avec un e-mail"
+                    onPress={() => {
+                      setErreur(null);
+                      setEtape('email');
+                    }}
+                  />
+                </View>
+                <Text style={styles.mention}>
+                  En continuant, tu acceptes les{' '}
+                  <Text accessibilityRole="link" style={styles.lien} onPress={() => router.push('/conditions')}>
+                    conditions d’utilisation
+                  </Text>{' '}
+                  et la{' '}
+                  <Text accessibilityRole="link" style={styles.lien} onPress={() => router.push('/confidentialite')}>
+                    politique de confidentialité
+                  </Text>
+                  .
+                </Text>
+              </>
+            )}
 
-        {session && (
-          <View style={styles.rappel}>
-            <View style={styles.picto}>
-              <PictoSport sport={session.sport} taille={30} />
-            </View>
-            <View style={styles.rappelTextes}>
-              <Text style={styles.rappelTitre} numberOfLines={1}>
-                {session.titre} · {quandPhrase(session)}
-              </Text>
-              <Text style={styles.aide}>{textePlaces(session)}</Text>
-            </View>
-          </View>
-        )}
-
-        {etape === 'choix' && (
-          <>
-            <Text accessibilityRole="header" style={styles.titre}>
-              {session ? 'Connecte-toi pour la catcher' : pour === 'publier' ? 'Connecte-toi pour publier' : 'Connecte-toi'}
-            </Text>
-            <Text style={styles.texte}>
-              {pour === 'publier'
-                ? 'Une seule fois. Ta session est publiée juste après.'
-                : 'Une seule fois. Ensuite, tu catches en un appui.'}
-            </Text>
-            <View style={styles.actions}>
-              {appleDisponible && (
-                <AppleAuthentication.AppleAuthenticationButton
-                  buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-                  buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-                  cornerRadius={Rayons.bouton}
-                  style={styles.apple}
-                  onPress={() => essayer(connecterApple)}
+            {etape === 'email' && (
+              <>
+                <Text accessibilityRole="header" style={styles.titre}>
+                  Ton e-mail
+                </Text>
+                <Text style={styles.texte}>On t’envoie un code à 6 chiffres. Pas de mot de passe à retenir.</Text>
+                <TextInput
+                  style={styles.champ}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="prenom@exemple.be"
+                  placeholderTextColor={c.texteSecondaire}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  autoCorrect={false}
+                  autoFocus
+                  returnKeyType="send"
+                  accessibilityLabel="Ton e-mail"
+                  onSubmitEditing={async () => {
+                    if (emailValide && (await essayer(() => envoyerCode(email.trim())))) setEtape('code');
+                  }}
                 />
-              )}
-              {googleDisponible && (
                 <Bouton
-                  titre="Continuer avec Google"
-                  variante="secondaire"
-                  Icone={IconeGoogle}
-                  disabled={occupe}
-                  onPress={() => essayer(connecterGoogle)}
+                  titre={occupe ? 'Envoi…' : 'Recevoir le code'}
+                  disabled={!emailValide || occupe}
+                  style={(!emailValide || occupe) && styles.inactif}
+                  onPress={async () => {
+                    if (await essayer(() => envoyerCode(email.trim()))) setEtape('code');
+                  }}
                 />
-              )}
-              <Bouton
-                titre="Continuer avec un e-mail"
-                variante={appleDisponible ? 'secondaire' : 'principal'}
-                onPress={() => {
-                  setErreur(null);
-                  setEtape('email');
-                }}
-              />
-            </View>
-            <Text style={styles.mention}>
-              En continuant, tu acceptes les{' '}
-              <Text accessibilityRole="link" style={styles.lien} onPress={() => router.push('/conditions')}>
-                conditions d’utilisation
-              </Text>{' '}
-              et la{' '}
-              <Text accessibilityRole="link" style={styles.lien} onPress={() => router.push('/confidentialite')}>
-                politique de confidentialité
-              </Text>
-              .
-            </Text>
-          </>
-        )}
+              </>
+            )}
 
-        {etape === 'email' && (
-          <>
-            <Text accessibilityRole="header" style={styles.titre}>
-              Ton e-mail
-            </Text>
-            <Text style={styles.texte}>On t’envoie un code à 6 chiffres. Pas de mot de passe à retenir.</Text>
-            <TextInput
-              style={styles.champ}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="prenom@exemple.be"
-              placeholderTextColor={c.texteSecondaire}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              autoCorrect={false}
-              autoFocus
-              returnKeyType="send"
-              accessibilityLabel="Ton e-mail"
-              onSubmitEditing={async () => {
-                if (emailValide && (await essayer(() => envoyerCode(email.trim())))) setEtape('code');
-              }}
-            />
-            <Bouton
-              titre={occupe ? 'Envoi…' : 'Recevoir le code'}
-              disabled={!emailValide || occupe}
-              style={(!emailValide || occupe) && styles.inactif}
-              onPress={async () => {
-                if (await essayer(() => envoyerCode(email.trim()))) setEtape('code');
-              }}
-            />
-          </>
-        )}
+            {etape === 'code' && (
+              <>
+                <Text accessibilityRole="header" style={styles.titre}>
+                  Ton code
+                </Text>
+                <Text style={styles.texte}>Envoyé à {email.trim()}. Regarde aussi dans tes indésirables.</Text>
+                <CasesCode
+                  code={code}
+                  faux={!!erreur}
+                  onChange={(chiffres) => {
+                    setCode(chiffres);
+                    if (erreur) setErreur(null);
+                    // Le code part tout seul dès qu'il est complet
+                    if (chiffres.length === 6) essayer(() => verifierCode(email.trim(), chiffres));
+                  }}
+                />
+                <Bouton
+                  titre="Renvoyer le code"
+                  variante="lien"
+                  disabled={occupe}
+                  onPress={() => {
+                    setCode('');
+                    essayer(() => envoyerCode(email.trim()));
+                  }}
+                />
+              </>
+            )}
 
-        {etape === 'code' && (
-          <>
-            <Text accessibilityRole="header" style={styles.titre}>
-              Ton code
-            </Text>
-            <Text style={styles.texte}>Envoyé à {email.trim()}. Regarde aussi dans tes indésirables.</Text>
-            <TextInput
-              style={[styles.champ, styles.champCode]}
-              value={code}
-              onChangeText={(valeur) => {
-                const chiffres = valeur.replace(/\D/g, '').slice(0, 6);
-                setCode(chiffres);
-                // Le code part tout seul dès qu'il est complet
-                if (chiffres.length === 6) essayer(() => verifierCode(email.trim(), chiffres));
-              }}
-              placeholder="000000"
-              placeholderTextColor={c.trait}
-              keyboardType="number-pad"
-              autoComplete="one-time-code"
-              textContentType="oneTimeCode"
-              maxLength={6}
-              autoFocus
-              accessibilityLabel="Code à 6 chiffres"
-            />
-            <Bouton
-              titre={occupe ? 'Vérification…' : 'Valider'}
-              disabled={code.length !== 6 || occupe}
-              style={(code.length !== 6 || occupe) && styles.inactif}
-              onPress={() => essayer(() => verifierCode(email.trim(), code))}
-            />
-            <Bouton
-              titre="Renvoyer le code"
-              variante="lien"
-              disabled={occupe}
-              onPress={() => {
-                setCode('');
-                essayer(() => envoyerCode(email.trim()));
-              }}
-            />
-          </>
-        )}
+            {etape === 'prenom' && (
+              <>
+                <Text accessibilityRole="header" style={styles.titre}>
+                  Ton prénom
+                </Text>
+                {session && <EquipeQuiAttend session={session} prenom={prenomTape} />}
+                <Text style={styles.texte}>
+                  {session ? 'Ton initiale prend ta place dans l’équipe.' : 'C’est comme ça que les autres joueurs te verront.'}
+                </Text>
+                <TextInput
+                  style={styles.champ}
+                  value={prenom}
+                  onChangeText={setPrenom}
+                  placeholder="Prénom"
+                  placeholderTextColor={c.texteSecondaire}
+                  autoCapitalize="words"
+                  autoComplete="given-name"
+                  textContentType="givenName"
+                  maxLength={30}
+                  autoFocus
+                  returnKeyType="done"
+                  accessibilityLabel="Ton prénom"
+                />
+                <Bouton
+                  titre={occupe ? 'Un instant…' : titreFin}
+                  disabled={prenomTape.length < 2 || occupe}
+                  style={(prenomTape.length < 2 || occupe) && styles.inactif}
+                  onPress={() => essayer(() => enregistrerPrenom(prenomTape))}
+                />
+              </>
+            )}
 
-        {etape === 'prenom' && (
-          <>
-            <Text accessibilityRole="header" style={styles.titre}>
-              Ton prénom
-            </Text>
-            <Text style={styles.texte}>C’est comme ça que les autres joueurs te verront.</Text>
-            <TextInput
-              style={styles.champ}
-              value={prenom}
-              onChangeText={setPrenom}
-              placeholder="Prénom"
-              placeholderTextColor={c.texteSecondaire}
-              autoCapitalize="words"
-              autoComplete="given-name"
-              textContentType="givenName"
-              maxLength={30}
-              autoFocus
-              returnKeyType="done"
-              accessibilityLabel="Ton prénom"
-            />
-            <Bouton
-              titre={occupe ? 'Un instant…' : session ? 'Catch' : 'Continuer'}
-              disabled={prenom.trim().length < 2 || occupe}
-              style={(prenom.trim().length < 2 || occupe) && styles.inactif}
-              onPress={() => essayer(() => enregistrerPrenom(prenom.trim()))}
-            />
-          </>
-        )}
+            {erreur && (
+              <View accessibilityLiveRegion="polite" style={styles.erreur}>
+                <Text style={styles.erreurTexte}>{erreur}</Text>
+              </View>
+            )}
+          </ScrollView>
+        </Animated.View>
+      </KeyboardAvoidingView>
+    </View>
+  );
+}
 
-        {erreur && (
-          <Text accessibilityLiveRegion="polite" style={styles.erreur}>
-            {erreur}
+/**
+ * Qui t'attend : un rond par inscrit et un rond en pointillés pour toi, que ton initiale vient remplir
+ * quand tu écris ton prénom (finition 2 de la Connexion, choisie par Maxime le 27 novembre).
+ */
+function EquipeQuiAttend({ session, prenom }: { session: Session; prenom: string }) {
+  const c = useCouleurs();
+  const styles = useStyles(creerStyles);
+  const teintes = [c.avatar1, c.avatar2, c.avatar3, c.avatar4];
+  const inscrits = session.inscrits.filter((nom) => nom !== 'Toi');
+  const autres = inscrits.length - 1;
+  const phrase =
+    autres > 0
+      ? `${session.organisateur} et ${autres} ${autres > 1 ? 'autres' : 'autre'} t’attendent.`
+      : `${session.organisateur} t’attend.`;
+  return (
+    <View style={styles.equipe} accessible accessibilityLabel={phrase}>
+      <View style={styles.ronds}>
+        {inscrits.slice(0, 11).map((nom, i) => (
+          <View key={`${nom}-${i}`} style={[styles.rond, { backgroundColor: teintes[i % 4] }]}>
+            <Text style={styles.rondTexte} maxFontSizeMultiplier={1}>
+              {nom.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+        ))}
+        <View style={[styles.rondToi, prenom && styles.rondToiPlein]}>
+          <Text style={[styles.rondToiTexte, prenom && styles.rondToiTextePlein]} maxFontSizeMultiplier={1}>
+            {prenom ? prenom.charAt(0).toUpperCase() : 'Toi'}
           </Text>
-        )}
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </View>
+      </View>
+      <Text style={styles.aide}>{phrase}</Text>
+    </View>
+  );
+}
+
+/** Le code en 6 cases, posées sur un champ caché : le clavier du téléphone et le remplissage depuis l'e-mail marchent */
+function CasesCode({ code, faux, onChange }: { code: string; faux: boolean; onChange: (code: string) => void }) {
+  const c = useCouleurs();
+  const styles = useStyles(creerStyles);
+  const champ = useRef<ComponentRef<typeof TextInput>>(null);
+  return (
+    <Pressable onPress={() => champ.current?.focus()} accessible={false} style={styles.cases}>
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <View
+          key={i}
+          style={[
+            styles.case,
+            i < code.length && (faux ? styles.caseFausse : styles.caseRemplie),
+            !faux && i === code.length && styles.caseActive,
+          ]}>
+          <Text style={styles.caseTexte} maxFontSizeMultiplier={1.2}>
+            {code[i] ?? ''}
+          </Text>
+        </View>
+      ))}
+      <TextInput
+        ref={champ}
+        value={code}
+        onChangeText={(valeur) => onChange(valeur.replace(/\D/g, '').slice(0, 6))}
+        keyboardType="number-pad"
+        autoComplete="one-time-code"
+        textContentType="oneTimeCode"
+        maxLength={6}
+        autoFocus
+        caretHidden
+        selectionColor={c.rouge}
+        accessibilityLabel="Code à 6 chiffres"
+        style={styles.champCache}
+      />
+    </Pressable>
   );
 }
 
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
-    ecran: { flex: 1, backgroundColor: c.fond },
-    contenu: { flexGrow: 1, paddingHorizontal: Espaces.marge, paddingTop: 16, gap: 12 },
-    retour: {
-      width: Espaces.cibleTactile,
-      height: Espaces.cibleTactile,
-      marginLeft: -4,
+    ecran: { flex: 1, backgroundColor: 'transparent' },
+    // Ouverte directement (lien), sans écran derrière : le fond de l'app plutôt que du noir
+    ecranSeul: { backgroundColor: c.fond },
+    voile: { backgroundColor: c.voile },
+    porteFeuille: { flex: 1, justifyContent: 'flex-end' },
+    feuille: {
+      maxHeight: '92%',
+      paddingTop: 8,
+      borderTopLeftRadius: 26,
+      borderTopRightRadius: 26,
+      backgroundColor: c.fond,
+      boxShadow: c.ombreVersHaut,
+    },
+    poignee: { width: 40, height: 5, borderRadius: Rayons.pilule, backgroundColor: c.trait, alignSelf: 'center' },
+    fermer: {
+      position: 'absolute',
+      top: 12,
+      right: 14,
+      zIndex: 2,
+      width: 36,
+      height: 36,
       borderRadius: Rayons.pilule,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: c.carte,
-      borderWidth: 1,
-      borderColor: c.trait,
-    },
-    rappel: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      padding: 12,
-      marginTop: 4,
-      backgroundColor: c.carte,
-      borderRadius: Rayons.bouton,
-      borderWidth: 1,
-      borderColor: c.trait,
-    },
-    picto: {
-      width: 44,
-      height: 44,
-      borderRadius: 12,
       backgroundColor: c.beige,
-      alignItems: 'center',
-      justifyContent: 'center',
     },
-    rappelTextes: { flex: 1, gap: 2 },
-    rappelTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
+    contenu: { paddingHorizontal: Espaces.marge, paddingTop: 14, gap: 12 },
+    titre: { fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, lineHeight: 28, color: c.encre, paddingRight: 44 },
+    texte: { fontFamily: Polices.texte, fontSize: Tailles.courant, lineHeight: 22, color: c.texteSecondaire },
     aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
-    titre: {
-      marginTop: 12,
-      fontFamily: Polices.titre,
-      fontSize: Tailles.titreEcran,
-      lineHeight: 34,
-      color: c.encre,
-    },
-    texte: {
-      fontFamily: Polices.texte,
-      fontSize: Tailles.texte,
-      lineHeight: 24,
-      color: c.texteSecondaire,
-    },
-    actions: { gap: 10, marginTop: 12 },
+    actions: { gap: 10, marginTop: 4 },
     apple: { height: 52 },
     champ: {
       height: 56,
-      marginVertical: 8,
       paddingHorizontal: 16,
       backgroundColor: c.carte,
       borderRadius: Rayons.bouton,
-      borderWidth: 1,
-      borderColor: c.trait,
+      borderWidth: 1.5,
+      borderColor: c.encre,
       fontFamily: Polices.texteMoyen,
       fontSize: Tailles.accent,
       color: c.encre,
     },
-    champCode: { fontFamily: Polices.titre, fontSize: Tailles.titreEcran, letterSpacing: 8, textAlign: 'center' },
     inactif: { opacity: 0.45 },
     mention: {
-      marginTop: 8,
       fontFamily: Polices.texte,
-      fontSize: Tailles.aide,
-      lineHeight: 20,
+      fontSize: Tailles.pastille,
+      lineHeight: 18,
       color: c.texteSecondaire,
       textAlign: 'center',
     },
     lien: { fontFamily: Polices.texteDemi, color: c.rougeTexte },
-    erreur: {
-      fontFamily: Polices.texteMoyen,
-      fontSize: Tailles.petit,
-      lineHeight: 20,
-      color: c.rougeTexte,
-      textAlign: 'center',
+    erreur: { padding: 12, borderRadius: 14, backgroundColor: c.beige },
+    erreurTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.petit, lineHeight: 20, color: c.encre },
+
+    // L'équipe qui attend
+    equipe: { gap: 6 },
+    ronds: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 5 },
+    rond: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+    rondTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille, color: c.surAvatar },
+    rondToi: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderStyle: 'dashed',
+      borderColor: c.rouge,
     },
+    rondToiPlein: { borderStyle: 'solid', backgroundColor: c.rouge },
+    rondToiTexte: { fontFamily: Polices.titreDemi, fontSize: Tailles.micro, color: c.rougeTexte },
+    rondToiTextePlein: { fontSize: Tailles.texte, color: c.surRouge },
+
+    // Le code en 6 cases
+    cases: { flexDirection: 'row', gap: 8 },
+    case: {
+      flex: 1,
+      height: 58,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1.5,
+      borderColor: c.trait,
+      backgroundColor: c.carte,
+    },
+    caseRemplie: { borderColor: c.encre },
+    caseFausse: { borderColor: c.encre, backgroundColor: c.beige },
+    caseActive: { borderColor: c.rouge, borderWidth: 2 },
+    caseTexte: { fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, color: c.encre },
+    champCache: { position: 'absolute', width: 1, height: 1, opacity: 0 },
   });
