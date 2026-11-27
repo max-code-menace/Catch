@@ -66,7 +66,7 @@ export default function PersonnesBloquees() {
           </Text>
           {echec && (
             <Text accessibilityLiveRegion="polite" style={styles.libelle}>
-              Ça n’a pas marché. Vérifie ta connexion et réessaie.
+              Pas de réseau. Réessaie.
             </Text>
           )}
           {bloques?.length === 0 && <Text style={styles.texte}>Tu n’as bloqué personne.</Text>}

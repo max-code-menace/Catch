@@ -127,7 +127,6 @@ export default function ReglagesNotifications() {
             {permission === 'a-demander' && (
               <View style={styles.carte}>
                 <Text style={styles.libelle}>Les notifications ne sont pas encore activées</Text>
-                <Text style={styles.aide}>Peu nombreuses, et tu choisis lesquelles juste en dessous.</Text>
                 <Bouton
                   titre="Activer les notifications"
                   onPress={async () => setPermission(await activerNotifications(true))}
@@ -158,14 +157,14 @@ export default function ReglagesNotifications() {
               <View style={styles.carte}>
                 <Ligne
                   titre="Rappel 3h avant"
-                  detail="Tu réponds « Je viens » ou « Je ne peux plus » en un appui."
+                  detail="Avec « Je viens » ou « Je ne peux plus »."
                   valeur={reglages.rappel}
                   onChange={(rappel) => changer({ ...reglages, rappel })}
                 />
                 <View style={styles.trait} />
                 <Ligne
                   titre="Nouveaux messages"
-                  detail="Quand quelqu’un écrit dans une de tes sessions. Une seule fois tant que tu n’as pas lu, pas de rafale."
+                  detail="Dans les conversations de tes sessions."
                   valeur={reglages.message}
                   onChange={(message) => changer({ ...reglages, message })}
                 />
@@ -210,7 +209,7 @@ export default function ReglagesNotifications() {
             )}
             {echec && (
               <Text accessibilityLiveRegion="polite" style={styles.texte}>
-                Ça n’a pas marché. Vérifie ta connexion et réessaie.
+                Pas de réseau. Réessaie.
               </Text>
             )}
           </>

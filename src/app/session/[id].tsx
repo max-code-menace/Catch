@@ -101,7 +101,6 @@ export default function DetailSession() {
             <Text accessibilityRole="header" style={[styles.titre, styles.titreSeul]}>
               Pas de réseau
             </Text>
-            <Text style={styles.aide}>Impossible de charger la session. Vérifie ta connexion.</Text>
             <Bouton
               titre="Réessayer"
               onPress={() => {
@@ -119,7 +118,7 @@ export default function DetailSession() {
             <Bouton titre="Voir les sessions" onPress={() => router.replace('/')} />
           </>
         ) : (
-          <Chargement phrases={['On cherche la session…', 'On gonfle les ballons…']} />
+          <Chargement />
         )}
       </View>
     );

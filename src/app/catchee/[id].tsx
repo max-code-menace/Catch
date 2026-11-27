@@ -146,7 +146,6 @@ export default function Catchee() {
           {permission === 'a-demander' && (
             <View style={styles.rappel}>
               <Text style={styles.rappelTitre}>Un rappel 3h avant ?</Text>
-              <Text style={styles.aide}>Tu réponds « Je viens » ou « Je ne peux plus » en un appui.</Text>
               <Bouton
                 titre="Activer le rappel"
                 variante="secondaire"

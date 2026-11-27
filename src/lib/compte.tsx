@@ -41,7 +41,7 @@ export const ANNULE = 'annule';
 
 const PAS_BRANCHEE = 'La connexion n’est pas encore disponible.';
 // Pas de réseau : la demande n'est pas partie
-const ECHEC = 'Ça n’a pas marché. Vérifie ta connexion et réessaie.';
+const ECHEC = 'Pas de réseau. Réessaie.';
 // Supabase a répondu par une erreur : le téléphone n'y est pour rien
 const PANNE = 'Ça coince de notre côté. Réessaie dans un instant.';
 

@@ -81,7 +81,6 @@ export default function Reglages() {
             activeFontStyle={{ fontFamily: Polices.texteDemi, color: c.encre }}
             style={styles.segments}
           />
-          <Text style={styles.aide}>Auto suit le réglage de ton téléphone.</Text>
         </View>
         <LigneLien titre="Mes sports" onPress={() => router.push('/mes-sports')} />
         <LigneLien titre="Notifications" onPress={() => router.push('/notifications')} />

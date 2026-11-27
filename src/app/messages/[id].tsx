@@ -89,7 +89,6 @@ export default function ConversationSession() {
           <Text accessibilityRole="header" style={styles.titreSeul}>
             Pas de réseau
           </Text>
-          <Text style={styles.aide}>Impossible d’ouvrir la conversation. Vérifie ta connexion.</Text>
           <Bouton
             titre="Réessayer"
             onPress={() => {

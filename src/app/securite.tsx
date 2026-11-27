@@ -5,48 +5,21 @@ import { Paragraphe, Partie } from '@/components/texte-legal';
 export default function Securite() {
   return (
     <EcranSecondaire titre="Jouer en sécurité">
-      <Paragraphe>
-        Sur Catch, tu retrouves des gens que tu ne connais pas encore. Quelques réflexes simples, pour que tu ne
-        penses plus qu’au match.
-      </Paragraphe>
-
-      <Partie titre="Un lieu public">
+      <Partie titre="Avant">
         <Paragraphe>
-          Un terrain, une salle, un parc fréquenté. Pas de rendez-vous chez quelqu’un. Si tu organises, choisis un
-          endroit facile à trouver.
+          On se retrouve dans un lieu public : terrain, salle, parc. Envoie le lien de la session à un proche avec
+          « Inviter ». Ton numéro, tu le gardes : on parle dans le groupe de la session.
         </Paragraphe>
       </Partie>
 
-      <Partie titre="Préviens un proche">
-        <Paragraphe>
-          Dis-lui où tu vas, à quelle heure et avec qui. Le plus simple : lui envoyer le lien de la session avec
-          « Inviter ».
-        </Paragraphe>
-      </Partie>
-
-      <Partie titre="Garde ton numéro pour toi">
-        <Paragraphe>
-          Écris au groupe dans Catch. Tu n’as pas besoin de donner ton numéro ou ton adresse avant d’avoir joué
-          ensemble.
-        </Paragraphe>
-      </Partie>
-
-      <Partie titre="Écoute ton instinct">
-        <Paragraphe>
-          Si quelque chose te met mal à l’aise, tu peux partir quand tu veux, sans te justifier. Annuler ta
-          participation reste possible depuis la session.
-        </Paragraphe>
-      </Partie>
-
-      <Partie titre="Joue à ton niveau">
-        <Paragraphe>Échauffe-toi, prends de l’eau et arrête si tu as mal. Personne ne t’en voudra.</Paragraphe>
+      <Partie titre="Sur place">
+        <Paragraphe>Tu peux partir quand tu veux, sans rien expliquer.</Paragraphe>
       </Partie>
 
       <Partie titre="Si ça se passe mal">
         <Paragraphe>
-          Signale la session ou le message depuis l’app, et bloque la personne : tu ne verras plus ses sessions ni ses messages, et elle ne pourra plus
-          rejoindre les tiennes. On
-          lit chaque signalement. En cas d’urgence, appelle le 112.
+          Signale la session ou le message, puis bloque la personne : elle ne pourra plus rejoindre tes sessions.
+          On lit chaque signalement. Urgence : 112.
         </Paragraphe>
       </Partie>
     </EcranSecondaire>

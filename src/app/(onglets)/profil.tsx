@@ -104,7 +104,7 @@ function RondAvecPhoto({ prenom }: { prenom: string | null }) {
     if (resultat === 'ok') vibrer.succes();
     if (resultat === 'erreur') {
       vibrer.erreur();
-      prevenir('Photo pas envoyée', 'Vérifie ta connexion et réessaie.');
+      prevenir('Photo pas envoyée', 'Pas de réseau. Réessaie.');
     }
   }
 
@@ -285,7 +285,7 @@ function QuestionRejouer({ donnees }: { donnees: ReturnType<typeof usePotes> }) 
     setMerci(
       nouveaux.length
         ? `Toi et ${nouveaux.map((p) => p.prenom).join(', ')}, vous êtes potes maintenant.`
-        : 'Si c’est réciproque, vous devenez potes. Personne ne voit qui tu as choisi.',
+        : 'C’est noté.',
     );
     donnees.recharger();
   }
@@ -370,7 +370,6 @@ function BlocPotes({ donnees }: { donnees: ReturnType<typeof usePotes> }) {
           </Pressable>
         ))}
       </ScrollView>
-      <Text style={styles.aide}>Entourés : dispo ce soir. Touche pour écrire, appui long pour signaler.</Text>
       {aVenir.map((s) => {
         const pote = potes.find((p) => p.id === s.poteId);
         return (
@@ -413,7 +412,7 @@ function BlocCatchs({ jouees, etat }: { jouees: Trace[]; etat: string }) {
       <Text style={styles.titreBloc}>Mes Catchs{jouees.length ? ` · ${jouees.length}` : ''}</Text>
       {jouees.length === 0 ? (
         etat === 'chargement' ? (
-          <Chargement phrases={['On retrouve tes Catchs…']} />
+          <Chargement />
         ) : (
           <View style={styles.vide}>
             <Text style={styles.titreVide}>{etat === 'erreur' ? 'Pas de réseau' : 'Ton premier Catch t’attend'}</Text>
@@ -441,7 +440,6 @@ function BlocCatchs({ jouees, etat }: { jouees: Trace[]; etat: string }) {
               </View>
             ))}
           </ScrollView>
-          <Text style={styles.aide}>Les sessions s’effacent 30 jours après la fin.</Text>
         </>
       )}
     </View>
@@ -523,7 +521,7 @@ function ProfilConnecte({ compte }: { compte: Compte }) {
   async function dispo() {
     vibrer.selection();
     const ok = await potes.basculerDispo();
-    if (!ok) prevenir('Pas de réseau', 'Impossible de changer ta dispo. Vérifie ta connexion et réessaie.');
+    if (!ok) prevenir('Pas de réseau', 'Ta dispo n’a pas changé.');
   }
 
   return (

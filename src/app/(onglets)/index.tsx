@@ -271,7 +271,7 @@ export default function Carte() {
         <PanneauCarte
           entete={<IconeSansReseau couleur={c.encre} taille={32} />}
           titre="Pas de réseau"
-          texte="Impossible de charger les sessions. Vérifie ta connexion.">
+          texte="La carte n’a pas pu se charger.">
           <Bouton titre="Réessayer" onPress={recharger} />
         </PanneauCarte>
       )}
@@ -322,8 +322,7 @@ export default function Carte() {
       {sessionEnLigne && enLigne && (
         <BandeauCarte
           cle={enLigne.cle}
-          titre="C’est en ligne !"
-          texte="Les joueurs du coin la voient déjà."
+          titre="Session publiée"
           action={{ titre: 'Inviter', onPress: () => inviter(sessionEnLigne) }}
           duree={7000}
           onFini={() => setEnLigne(null)}

@@ -391,7 +391,7 @@ export default function Creer() {
         'Session pas publiée',
         resultat === 'limite'
           ? 'Tu as déjà créé 6 sessions ces dernières 24 heures. Réessaie demain.'
-          : 'Ça n’a pas marché. Vérifie ta connexion et réessaie.',
+          : 'Pas de réseau. Réessaie.',
       );
       return;
     }
@@ -766,7 +766,7 @@ export default function Creer() {
             {enPhrase ? 'Prêt à publier' : `${faits.length + ORDRE.length - aFaire.length} sur ${ORDRE.length}`}
           </Text>
           <Bouton
-            titre={envoi ? 'On la pose sur la carte…' : 'Publier la session'}
+            titre={envoi ? 'Envoi…' : 'Publier la session'}
             disabled={envoi || !enPhrase}
             attente={envoi}
             onPress={publier}

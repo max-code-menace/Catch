@@ -315,7 +315,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
     } catch {
       appliquer(id, true);
       setAnnulee(null);
-      prevenir('Annulation impossible', 'Ça n’a pas marché. Vérifie ta connexion et réessaie.');
+      prevenir('Annulation impossible', 'Pas de réseau. Réessaie.');
     }
   }
 
@@ -339,7 +339,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
       if (error || data !== 'ok') throw error ?? new Error(String(data));
     } catch {
       await recharger();
-      prevenir('Session pas annulée', 'Ça n’a pas marché. Vérifie ta connexion et réessaie.');
+      prevenir('Session pas annulée', 'Pas de réseau. Réessaie.');
     }
   }
 
@@ -404,7 +404,7 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
     const session = await lireSession(id);
     if (session === 'absente') return;
     if (session === 'erreur') {
-      prevenir('Annulation impossible', 'Ça n’a pas marché. Vérifie ta connexion et réessaie depuis la session.');
+      prevenir('Annulation impossible', 'Pas de réseau. Réessaie depuis la session.');
       return;
     }
     // L'organisateur qui répond « Je ne peux plus » : on lui ouvre sa session, à lui de l'annuler pour tout le monde
@@ -419,10 +419,10 @@ export function FournisseurSessions({ children }: { children: React.ReactNode })
     const resultat = await catcher(id);
     if (resultat !== 'ok') {
       prevenir(
-        resultat === 'complete' ? 'La place vient d’être prise' : 'Ça n’a pas marché',
+        resultat === 'complete' ? 'La place vient d’être prise' : 'Pas de réseau',
         resultat === 'complete'
           ? 'Quelqu’un a catché la session entre-temps.'
-          : 'Vérifie ta connexion et réessaie depuis la session.',
+          : 'Réessaie depuis la session.',
       );
     }
   }

@@ -185,7 +185,7 @@ export default function MesSessions() {
       ) : miennes.length === 0 ? (
         <View style={styles.vide}>
           {etat === 'erreur' ? (
-            <Aide>Impossible de charger tes sessions. Vérifie ta connexion.</Aide>
+            <Aide>Pas de réseau.</Aide>
           ) : (
             <>
               <BalleRebond taille={48} hauteur={40} />

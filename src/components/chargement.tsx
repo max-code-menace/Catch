@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
-  FadeInDown,
-  FadeOutUp,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -13,11 +11,8 @@ import Animated, {
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 import { Balle } from '@/components/balle';
-import { Polices, Rayons, Tailles } from '@/constants/theme';
+import { Rayons } from '@/constants/theme';
 import { useCouleurs, useStyles, type Palette } from '@/lib/theme';
-
-/** Phrases qui défilent pendant qu'on attend : l'attente raconte quelque chose. */
-export const PHRASES_SESSIONS = ['On cherche des joueurs…', 'On gonfle les ballons…', 'On trace les lignes…'];
 
 /** Un rebond complet de la balle (montée + descente) */
 const REBOND = 900;
@@ -67,47 +62,19 @@ export function BalleRebond({ taille = 32, hauteur = 56 }: { taille?: number; ha
   );
 }
 
-/** Une phrase à la fois, qui monte et laisse la place à la suivante. */
-function PhrasesQuiDefilent({ phrases }: { phrases: string[] }) {
-  const styles = useStyles(creerStyles);
-  const reduit = useReducedMotion();
-  const [rang, setRang] = useState(0);
-
-  useEffect(() => {
-    if (phrases.length < 2) return;
-    const minuteur = setInterval(() => setRang((r) => r + 1), 1400);
-    return () => clearInterval(minuteur);
-  }, [phrases.length]);
-
-  const phrase = phrases[rang % phrases.length];
-  return (
-    <View style={styles.zonePhrase}>
-      <Animated.Text
-        key={rang}
-        maxFontSizeMultiplier={1.3}
-        entering={reduit ? undefined : FadeInDown.duration(250)}
-        exiting={reduit ? undefined : FadeOutUp.duration(200)}
-        style={styles.phrase}>
-        {phrase}
-      </Animated.Text>
-    </View>
-  );
-}
-
 /**
- * Attente d'un écran : la balle qui rebondit et des phrases qui défilent.
+ * Attente d'un écran : la balle qui rebondit, sans texte.
  * `carte` : posée sur une petite carte blanche (par-dessus la carte des sessions).
  */
-export function Chargement({ phrases = PHRASES_SESSIONS, carte = false }: { phrases?: string[]; carte?: boolean }) {
+export function Chargement({ carte = false }: { carte?: boolean }) {
   const styles = useStyles(creerStyles);
   return (
     <View
       accessible
       accessibilityRole="progressbar"
-      accessibilityLabel={phrases[0]}
+      accessibilityLabel="Chargement"
       style={[styles.chargement, carte && styles.surCarte]}>
       <BalleRebond />
-      <PhrasesQuiDefilent phrases={phrases} />
     </View>
   );
 }
@@ -168,8 +135,6 @@ const creerStyles = (c: Palette) =>
       borderRadius: Rayons.carte,
       boxShadow: c.ombreFlottante,
     },
-    zonePhrase: { height: 26, justifyContent: 'center', alignItems: 'center', overflow: 'hidden', minWidth: 220 },
-    phrase: { fontFamily: Polices.titreDemi, fontSize: Tailles.accent, color: c.encre, textAlign: 'center' },
     fantomes: { gap: 12 },
     fantome: {
       flexDirection: 'row',

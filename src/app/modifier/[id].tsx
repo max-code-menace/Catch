@@ -92,7 +92,7 @@ export default function ModifierSession() {
     setErreur(
       resultat === 'trop_petit'
         ? 'Il y a déjà plus d’inscrits que ce nombre de joueurs.'
-        : 'Ça n’a pas marché. Vérifie ta connexion et réessaie.',
+        : 'Pas de réseau. Réessaie.',
     );
   }
 

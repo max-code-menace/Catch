@@ -36,6 +36,6 @@ export async function ecrireA({
   } else if (resultat === 'interdit') {
     prevenir('Impossible d’écrire', `Tu ne peux pas écrire à ${prenom || 'cette personne'} pour l’instant.`);
   } else {
-    prevenir('Pas de réseau', 'Impossible d’ouvrir la conversation. Vérifie ta connexion et réessaie.');
+    prevenir('Pas de réseau', 'La conversation ne s’est pas ouverte.');
   }
 }

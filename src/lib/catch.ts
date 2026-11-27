@@ -13,7 +13,7 @@ export function expliquerEchec(resultat: Exclude<ResultatCatch, 'ok'>) {
   } else if (resultat === 'terminee') {
     prevenir('Session terminée', 'Cette session n’est plus disponible.');
   } else {
-    prevenir('Ça n’a pas marché', 'Vérifie ta connexion et réessaie.');
+    prevenir('Pas de réseau', 'Ton Catch n’est pas parti.');
   }
 }
 

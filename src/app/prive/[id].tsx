@@ -70,7 +70,6 @@ export default function ConversationPrivee() {
           <Text accessibilityRole="header" style={styles.titreSeul}>
             Pas de réseau
           </Text>
-          <Text style={styles.aideCentree}>Impossible d’ouvrir la conversation. Vérifie ta connexion.</Text>
           <Bouton
             titre="Réessayer"
             onPress={() => {
@@ -144,7 +143,6 @@ export default function ConversationPrivee() {
               </Text>
             </View>
             <Text style={styles.introTitre}>{prenom}</Text>
-            <Text style={styles.aideCentree}>Rien que vous deux. Le groupe de la session ne voit pas ces messages.</Text>
             {voirSession && conversation.sujet && (
               <Pressable
                 accessibilityRole="button"

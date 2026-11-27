@@ -50,7 +50,7 @@ export default function Rejouer() {
     setEnvoi(false);
     if (resultat === null) {
       vibrer.erreur();
-      prevenir('Pas de réseau', 'Ta réponse n’est pas partie. Vérifie ta connexion et réessaie.');
+      prevenir('Pas de réseau', 'Ta réponse n’est pas partie.');
       return;
     }
     if (resultat.length) vibrer.succes();
@@ -80,7 +80,7 @@ export default function Rejouer() {
           <Text style={styles.aide}>
             {nouveaux.length
               ? 'Vous voyez maintenant la semaine l’un de l’autre, et quand vous êtes dispo.'
-              : 'Si quelqu’un te choisit aussi, vous deviendrez potes. Personne ne saura qui tu n’as pas choisi.'}
+              : 'Si quelqu’un te choisit aussi, vous deviendrez potes.'}
           </Text>
           <Bouton titre="Voir mes potes" onPress={() => router.navigate({ pathname: '/profil', params: { onglet: 'potes' } })} />
         </View>
@@ -91,7 +91,7 @@ export default function Rejouer() {
   if (question === 'chargement') {
     return (
       <EcranSecondaire titre="Tu rejouerais avec qui ?">
-        <Chargement phrases={['On retrouve les joueurs…']} />
+        <Chargement />
       </EcranSecondaire>
     );
   }
@@ -118,7 +118,7 @@ export default function Rejouer() {
           {q.titre} · {q.lieu}
         </Text>
       </View>
-      <Text style={styles.aide}>Si c’est réciproque, vous devenez potes. Personne ne voit qui n’a pas été choisi.</Text>
+      <Text style={styles.aide}>Si c’est réciproque, vous devenez potes. Ça reste entre vous.</Text>
       <View style={styles.liste}>
         {q.joueurs.map((j, i) => {
           const oui = choix.includes(j.id);

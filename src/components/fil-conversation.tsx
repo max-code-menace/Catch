@@ -350,7 +350,7 @@ export function FilConversation({
         ListHeaderComponent={intro}
         ListEmptyComponent={
           <Text style={styles.vide}>
-            {echecLecture ? 'Impossible de charger les messages. Vérifie ta connexion.' : messages ? vide : ''}
+            {echecLecture ? 'Pas de réseau.' : messages ? vide : ''}
           </Text>
         }
         renderItem={({ item }) =>
@@ -371,7 +371,7 @@ export function FilConversation({
 
       {echecEnvoi && (
         <Text accessibilityLiveRegion="polite" style={styles.echec}>
-          Message pas envoyé. Vérifie ta connexion et réessaie.
+          Message pas envoyé, pas de réseau.
         </Text>
       )}
       <View style={[styles.saisie, { paddingBottom: Math.max(bottom, 12) }]}>

@@ -259,7 +259,7 @@ export default function Messages() {
   if (etat === 'erreur') {
     return (
       <Ecran titre="Messages">
-        <Aide>Impossible de charger tes conversations. Vérifie ta connexion.</Aide>
+        <Aide>Pas de réseau.</Aide>
         <View>
           <Bouton titre="Réessayer" onPress={recharger} />
         </View>

@@ -20,7 +20,7 @@ export const MOTIFS_PHOTO: { valeur: Motif; titre: string; detail: string }[] = 
   { valeur: 'autre', titre: 'Autre chose', detail: 'Un problème qui n’est pas dans la liste' },
 ];
 
-const ECHEC = 'Ça n’a pas marché. Vérifie ta connexion et réessaie.';
+const ECHEC = 'Pas de réseau. Réessaie.';
 
 /** Chaque action renvoie `null` si tout va bien, sinon le message à afficher. */
 type Resultat = Promise<string | null>;
