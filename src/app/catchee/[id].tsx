@@ -16,13 +16,11 @@ import { Avatars } from '@/components/avatars';
 import { RondToiQuiArrive } from '@/components/rond-toi';
 import { Balle } from '@/components/balle';
 import { Bouton } from '@/components/bouton';
-import { IconeCalendrier, IconeInfo, IconeInviter, IconeItineraire } from '@/components/icones';
-import { Durees, Espaces, Polices, Rayons, Ressorts, Tailles } from '@/constants/theme';
-import { annulationLibre, quandPhrase, texteAttente } from '@/lib/formats';
-import { ajouterAuCalendrier, calendrierDisponible } from '@/lib/calendrier';
+import { IconeInfo, IconeInviter } from '@/components/icones';
+import { Durees, Espaces, Polices, Ressorts, Tailles } from '@/constants/theme';
+import { quandPhrase, texteAttente } from '@/lib/formats';
 import { usePremiersConseils } from '@/lib/conseils';
 import { inviter } from '@/lib/invitation';
-import { ouvrirItineraire } from '@/lib/itineraire';
 import { activerNotifications, permissionNotifications, type Permission } from '@/lib/notifications';
 import { useSessions } from '@/lib/sessions';
 import { useStyles, type Palette } from '@/lib/theme';
@@ -67,9 +65,9 @@ function BalleQuiRebondit() {
 export default function Catchee() {
   const styles = useStyles(creerStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { sessions, estCatchee, annuler } = useSessions();
+  const { sessions, estCatchee } = useSessions();
   const session = sessions.find((s) => s.id === id);
-  // Vérifié une seule fois à l'ouverture : après « Annuler ma participation », c'est le retour qui ferme l'écran
+  // Vérifié une seule fois à l'ouverture
   const [catcheeAuDepart] = useState(() => estCatchee(id));
   const premiersConseils = usePremiersConseils();
   const [permission, setPermission] = useState<Permission | null>(null);
@@ -127,67 +125,35 @@ export default function Catchee() {
             />
           )}
 
-          {calendrierDisponible && (
-            <Bouton
-              titre="Ajouter à mon calendrier"
-              variante="lien"
-              Icone={IconeCalendrier}
-              onPress={() => ajouterAuCalendrier(session)}
-            />
-          )}
-
           {/* Les notifications ne sont demandées qu'ici, après un Catch, et seulement si on ne l'a jamais fait */}
           {permission === 'a-demander' && (
-            <View style={styles.rappel}>
-              <Text style={styles.rappelTitre}>Un rappel 3h avant ?</Text>
-              <Bouton
-                titre="Activer le rappel"
-                variante="secondaire"
-                onPress={async () => setPermission(await activerNotifications(true))}
-              />
-            </View>
+            <Bouton
+              titre="Me rappeler 3h avant"
+              variante="lien"
+              onPress={async () => setPermission(await activerNotifications(true))}
+            />
           )}
         </Animated.View>
       </View>
 
+      {/* Un bouton principal et un secondaire (audit du 27 novembre) : écrire, itinéraire, calendrier et annuler sont dans le détail */}
       <Animated.View entering={FadeIn.delay(350).duration(Durees.standard)} style={styles.actions}>
-        {/* Sur la page web d'invitation, il n'y a pas de carte où revenir ni de feuille de partage */}
-        {!surLeWeb && <Bouton titre="Inviter un pote" Icone={IconeInviter} onPress={() => inviter(session)} />}
-        <View style={styles.duo}>
+        {surLeWeb ? (
+          // Page web d'invitation : pas de feuille de partage ni de carte où revenir
           <Bouton
-            titre="Écrire au groupe"
-            variante="secondaire"
-            style={styles.demi}
-            onPress={() => router.push({ pathname: '/messages/[id]', params: { id: session.id } })}
+            titre="Voir la session"
+            onPress={() => router.replace({ pathname: '/session/[id]', params: { id: session.id } })}
           />
-          <Bouton
-            titre="Itinéraire"
-            variante="secondaire"
-            Icone={IconeItineraire}
-            style={styles.demi}
-            onPress={() => ouvrirItineraire(session.position)}
-          />
-        </View>
-        <Bouton
-          titre={surLeWeb ? 'Voir la session' : 'Retour à la carte'}
-          variante="secondaire"
-          onPress={() =>
-            surLeWeb
-              ? router.replace({ pathname: '/session/[id]', params: { id: session.id } })
-              : router.dismissAll()
-          }
-        />
-        <View style={styles.annulation}>
-          <Bouton
-            titre="Annuler ma participation"
-            variante="lien"
-            onPress={() =>
-              // Dernier inscrit : la session disparaît, on revient directement à la carte
-              annuler(session, () => (session.inscrits.length <= 1 ? router.dismissAll() : router.back()))
-            }
-          />
-          {annulationLibre(session) && <Text style={styles.aide}>Possible jusqu’à 3h avant</Text>}
-        </View>
+        ) : (
+          <>
+            <Bouton titre="Inviter un pote" Icone={IconeInviter} onPress={() => inviter(session)} />
+            <Bouton
+              titre="C’est bon"
+              variante="secondaire"
+              onPress={() => (router.canGoBack() ? router.back() : router.dismissAll())}
+            />
+          </>
+        )}
       </Animated.View>
     </SafeAreaView>
   );
@@ -219,19 +185,4 @@ const creerStyles = (c: Palette) =>
     equipe: { flexDirection: 'row', alignItems: 'center' },
     attenteTexte: { ...Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
     actions: { gap: 10, paddingBottom: 16 },
-    rappel: {
-      alignSelf: 'stretch',
-      marginTop: 8,
-      padding: 16,
-      gap: 8,
-      backgroundColor: c.carte,
-      borderRadius: Rayons.carte,
-      borderWidth: 1,
-      borderColor: c.trait,
-    },
-    rappelTitre: { ...Polices.texteDemi, fontSize: Tailles.texte, color: c.encre, textAlign: 'center' },
-    duo: { flexDirection: 'row', gap: 8 },
-    demi: { flex: 1, paddingHorizontal: 10 },
-    annulation: { alignItems: 'center', paddingTop: 4 },
-    aide: { ...Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
   });
