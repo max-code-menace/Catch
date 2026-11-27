@@ -17,7 +17,7 @@ export const Palettes = {
     orange: '#E35A0C',
     orangeTexte: '#863404',
     orangeDoux: '#FDE6D2',
-    /** Bouton « Créer » au-dessus de la barre : dégradé orange vers rouge, bien voyant */
+    /** creerFin : couleur unie de « + Créer », de l'en-tête du détail et de la carte du Profil (plus de dégradé depuis le 27 novembre). creerDebut : reste pour les ronds « Toi » */
     creerDebut: '#F26A1B',
     creerFin: '#D9361A',
     surCreer: '#FFFFFF',

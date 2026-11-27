@@ -241,9 +241,8 @@ const creerStyles = (c: Palette) =>
       justifyContent: "center",
       gap: 8,
       borderRadius: Rayons.pilule,
-      // Couleur unie si le dégradé n'est pas pris en charge
+      // Couleur unie, plus de dégradé (audit du 27 novembre)
       backgroundColor: c.creerFin,
-      experimental_backgroundImage: `linear-gradient(90deg, ${c.creerDebut}, ${c.creerFin})`,
       boxShadow: c.ombreFlottante,
     },
     creerTexte: {

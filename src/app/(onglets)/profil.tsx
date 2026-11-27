@@ -602,8 +602,8 @@ const creerStyles = (c: Palette) =>
       gap: 12,
       borderBottomLeftRadius: 26,
       borderBottomRightRadius: 26,
-      backgroundColor: c.creerDebut,
-      experimental_backgroundImage: `linear-gradient(160deg, ${c.creerDebut}, ${c.creerFin})`,
+      // Couleur unie, plus de dégradé (audit du 27 novembre)
+      backgroundColor: c.creerFin,
       boxShadow: c.ombreFlottante,
     },
     carteJoueurRepliee: { paddingBottom: 10 },

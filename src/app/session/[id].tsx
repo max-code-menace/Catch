@@ -477,8 +477,8 @@ const creerStyles = (c: Palette) =>
       gap: 10,
       overflow: 'hidden',
       // Le modèle Catch : le même orange que « + Créer », rien d'autre que le texte (demande de Maxime, 26 novembre)
-      backgroundColor: c.creerDebut,
-      experimental_backgroundImage: `linear-gradient(160deg, ${c.creerDebut}, ${c.creerFin})`,
+      // Couleur unie, plus de dégradé (audit du 27 novembre)
+      backgroundColor: c.creerFin,
     },
     // Le picto passe dans le coin, en petit : le chiffre prend la place
     rondPicto: {
