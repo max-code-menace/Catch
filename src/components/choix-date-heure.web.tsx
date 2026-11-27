@@ -25,5 +25,5 @@ export function ChoixDateHeure({ valeur }: Props) {
 
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
-    texte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.courant, color: c.encre },
+    texte: { ...Polices.texteMoyen, fontSize: Tailles.courant, color: c.encre },
   });

@@ -180,11 +180,11 @@ export default function ModifierSession() {
 
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
-    texte: { fontFamily: Polices.texte, fontSize: Tailles.texte, lineHeight: 24, color: c.texteSecondaire },
+    texte: { ...Polices.texte, fontSize: Tailles.texte, lineHeight: 24, color: c.texteSecondaire },
     section: { gap: 10 },
-    etiquette: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
-    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
-    fort: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
+    etiquette: { ...Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
+    aide: { ...Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+    fort: { ...Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
     textes: { flex: 1, gap: 2 },
     lieu: {
       minHeight: 56,
@@ -198,7 +198,7 @@ const creerStyles = (c: Palette) =>
       borderWidth: 1.5,
       borderColor: c.trait,
     },
-    changer: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTexte },
-    erreur: { fontFamily: Polices.texteMoyen, fontSize: Tailles.petit, lineHeight: 20, color: c.rougeTexte },
+    changer: { ...Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTexte },
+    erreur: { ...Polices.texteMoyen, fontSize: Tailles.petit, lineHeight: 20, color: c.rougeTexte },
     inactif: { opacity: 0.45 },
   });

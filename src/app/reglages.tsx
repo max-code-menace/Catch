@@ -77,8 +77,8 @@ export default function Reglages() {
               setApparence(choisie.valeur);
             }}
             appearance={theme === 'sombre' ? 'dark' : 'light'}
-            fontStyle={{ fontFamily: Polices.texteMoyen, color: c.texteSecondaire }}
-            activeFontStyle={{ fontFamily: Polices.texteDemi, color: c.encre }}
+            fontStyle={{ ...Polices.texteMoyen, color: c.texteSecondaire }}
+            activeFontStyle={{ ...Polices.texteDemi, color: c.encre }}
             style={styles.segments}
           />
         </View>
@@ -129,7 +129,7 @@ export default function Reglages() {
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
     groupe: { gap: 12, marginTop: 12 },
-    section: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.texteSecondaire },
+    section: { ...Polices.texteDemi, fontSize: Tailles.aide, color: c.texteSecondaire },
     carte: {
       padding: 16,
       gap: 12,
@@ -139,7 +139,7 @@ const creerStyles = (c: Palette) =>
       borderColor: c.trait,
     },
     ligne: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    libelle: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
+    libelle: { ...Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
     segments: { height: 36 },
-    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+    aide: { ...Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
   });

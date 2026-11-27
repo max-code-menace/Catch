@@ -525,7 +525,7 @@ const creerStyles = (c: Palette) =>
       borderRadius: Rayons.pilule,
       backgroundColor: c.rondPicto,
     },
-    piluleTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTranche },
+    piluleTexte: { ...Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTranche },
     point: { width: 7, height: 7, borderRadius: 4, backgroundColor: c.rouge },
     chiffre: { fontFamily: Polices.titre, color: c.surRouge, letterSpacing: -4 },
     fiche: {
@@ -541,7 +541,7 @@ const creerStyles = (c: Palette) =>
     },
     titre: { fontFamily: Polices.titre, fontSize: Tailles.titreDetail, lineHeight: 38, color: c.encre },
     ligneOrganisateur: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 12, rowGap: 4 },
-    organisateur: { fontFamily: Polices.texte, fontSize: Tailles.courant, color: c.texteSecondaire },
+    organisateur: { ...Polices.texte, fontSize: Tailles.courant, color: c.texteSecondaire },
     pastille: {
       alignSelf: 'flex-start',
       height: 26,
@@ -550,7 +550,7 @@ const creerStyles = (c: Palette) =>
       borderRadius: Rayons.pilule,
       backgroundColor: c.beige,
     },
-    pastilleTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.pastille, color: c.texteSecondaire },
+    pastilleTexte: { ...Polices.texteMoyen, fontSize: Tailles.pastille, color: c.texteSecondaire },
     tuiles: { flexDirection: 'row', gap: 10, paddingTop: 4 },
     tuile: {
       flex: 1,
@@ -562,12 +562,12 @@ const creerStyles = (c: Palette) =>
       borderColor: c.trait,
     },
     tuileHaut: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    tuileEtiquette: { flexShrink: 1, fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTexte },
+    tuileEtiquette: { flexShrink: 1, ...Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTexte },
     tuileGrand: { fontFamily: Polices.titre, fontSize: Tailles.grandNombre, color: c.encre },
     tuileLieu: { fontFamily: Polices.titre, fontSize: Tailles.titreCarte, lineHeight: 24, color: c.encre },
     // Poussée en bas de la tuile : les deux tuiles alignent leurs actions
     tuileAction: { marginTop: 'auto', paddingTop: 8, alignSelf: 'flex-start' },
-    tuileActionTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTexte },
+    tuileActionTexte: { ...Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTexte },
     estompe: { opacity: 0.6 },
     evenement: {
       flexDirection: 'row',
@@ -580,7 +580,7 @@ const creerStyles = (c: Palette) =>
       borderColor: c.trait,
     },
     evenementTextes: { flex: 1, gap: 2 },
-    evenementTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
+    evenementTitre: { ...Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
     mot: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
     motAvatar: {
       width: 32,
@@ -590,7 +590,7 @@ const creerStyles = (c: Palette) =>
       justifyContent: 'center',
       backgroundColor: c.avatar1,
     },
-    motInitiale: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.surAvatar },
+    motInitiale: { ...Polices.texteDemi, fontSize: Tailles.aide, color: c.surAvatar },
     motBulle: {
       flex: 1,
       gap: 2,
@@ -600,10 +600,10 @@ const creerStyles = (c: Palette) =>
       borderBottomLeftRadius: 4,
       backgroundColor: c.beige,
     },
-    motAuteur: { fontFamily: Polices.texteMoyen, fontSize: Tailles.pastille, color: c.texteSecondaire },
-    motTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
-    motDetail: { fontFamily: Polices.texte, fontSize: Tailles.courant, lineHeight: 21, color: c.encre },
-    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+    motAuteur: { ...Polices.texteMoyen, fontSize: Tailles.pastille, color: c.texteSecondaire },
+    motTitre: { ...Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
+    motDetail: { ...Polices.texte, fontSize: Tailles.courant, lineHeight: 21, color: c.encre },
+    aide: { ...Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     presse: { backgroundColor: c.beige },
     barreDefilee: {
       position: 'absolute',
@@ -652,7 +652,7 @@ const creerStyles = (c: Palette) =>
     mention: {
       paddingVertical: 4,
       textAlign: 'center',
-      fontFamily: Polices.texte,
+      ...Polices.texte,
       fontSize: Tailles.aide,
       color: c.texteSecondaire,
     },

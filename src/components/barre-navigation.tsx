@@ -211,7 +211,7 @@ const creerStyles = (c: Palette) =>
       borderColor: c.carte,
     },
     pastilleTexte: {
-      fontFamily: Polices.texteDemi,
+      ...Polices.texteDemi,
       fontSize: Tailles.minuscule,
       lineHeight: 12,
       color: c.surRouge,
@@ -225,7 +225,7 @@ const creerStyles = (c: Palette) =>
       backgroundColor: c.rouge,
       borderRadius: Rayons.pilule,
     },
-    titre: { fontFamily: Polices.texteMoyen, fontSize: Tailles.micro },
+    titre: { ...Polices.texteMoyen, fontSize: Tailles.micro },
     bandeCreer: {
       position: "absolute",
       left: 0,
@@ -247,7 +247,7 @@ const creerStyles = (c: Palette) =>
       boxShadow: c.ombreFlottante,
     },
     creerTexte: {
-      fontFamily: Polices.texteDemi,
+      ...Polices.texteDemi,
       fontSize: Tailles.accent,
       color: c.surCreer,
     },

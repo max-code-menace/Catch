@@ -88,8 +88,8 @@ const creerStyles = (c: Palette) =>
     avecAction: { paddingRight: 6, alignSelf: 'stretch' },
     point: { width: 8, height: 8, borderRadius: 4, backgroundColor: c.orange },
     textes: { flexShrink: 1, flexGrow: 1 },
-    titre: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.surEncre },
-    texte: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.surEncre, opacity: 0.8 },
+    titre: { ...Polices.texteDemi, fontSize: Tailles.petit, color: c.surEncre },
+    texte: { ...Polices.texte, fontSize: Tailles.aide, color: c.surEncre, opacity: 0.8 },
     bouton: {
       minHeight: 40,
       paddingHorizontal: 16,
@@ -99,5 +99,5 @@ const creerStyles = (c: Palette) =>
       justifyContent: 'center',
     },
     presse: { transform: [{ scale: 0.96 }] },
-    boutonTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.surRouge },
+    boutonTexte: { ...Polices.texteDemi, fontSize: Tailles.petit, color: c.surRouge },
   });

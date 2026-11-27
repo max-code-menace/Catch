@@ -153,6 +153,6 @@ const creerStyles = (c: Palette) =>
       borderColor: c.trait,
     },
     puceActive: { backgroundColor: c.encre, borderColor: c.encre },
-    puceTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
-    zone: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire, textAlign: 'center' },
+    puceTexte: { ...Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
+    zone: { ...Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire, textAlign: 'center' },
   });

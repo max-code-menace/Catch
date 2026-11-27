@@ -169,7 +169,7 @@ const creerStyles = (c: Palette) =>
     boutonBandeau: { minHeight: 44 - TRANCHE, paddingHorizontal: 18, backgroundColor: c.surRouge },
     texteBandeau: { fontSize: Tailles.courant, color: c.rouge },
     fondAttrape: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: c.encre },
-    texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.surRouge },
+    texte: { ...Polices.texteDemi, fontSize: Tailles.texte, color: c.surRouge },
     // Décalé pour laisser la place de la balle à gauche du mot
     texteAttrape: { paddingLeft: TAILLE_BALLE + 8, color: c.surRouge },
     balle: {

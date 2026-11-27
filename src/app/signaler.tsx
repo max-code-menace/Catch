@@ -167,10 +167,10 @@ export default function Signaler() {
 
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
-    texte: { fontFamily: Polices.texte, fontSize: Tailles.texte, lineHeight: 24, color: c.texteSecondaire },
-    libelle: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
-    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, lineHeight: 18, color: c.texteSecondaire },
-    erreur: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.encre },
+    texte: { ...Polices.texte, fontSize: Tailles.texte, lineHeight: 24, color: c.texteSecondaire },
+    libelle: { ...Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
+    aide: { ...Polices.texte, fontSize: Tailles.aide, lineHeight: 18, color: c.texteSecondaire },
+    erreur: { ...Polices.texte, fontSize: Tailles.aide, color: c.encre },
     carte: {
       padding: 16,
       gap: 12,
@@ -198,7 +198,7 @@ const creerStyles = (c: Palette) =>
       backgroundColor: c.carte,
       borderWidth: 1,
       borderColor: c.trait,
-      fontFamily: Polices.texte,
+      ...Polices.texte,
       fontSize: Tailles.courant,
       color: c.encre,
     },

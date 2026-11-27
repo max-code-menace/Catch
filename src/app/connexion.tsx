@@ -417,8 +417,8 @@ const creerStyles = (c: Palette) =>
     },
     contenu: { paddingHorizontal: Espaces.marge, paddingTop: 14, gap: 12 },
     titre: { fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, lineHeight: 28, color: c.encre, paddingRight: 44 },
-    texte: { fontFamily: Polices.texte, fontSize: Tailles.courant, lineHeight: 22, color: c.texteSecondaire },
-    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+    texte: { ...Polices.texte, fontSize: Tailles.courant, lineHeight: 22, color: c.texteSecondaire },
+    aide: { ...Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     actions: { gap: 10, marginTop: 4 },
     apple: { height: 52 },
     champ: {
@@ -428,27 +428,27 @@ const creerStyles = (c: Palette) =>
       borderRadius: Rayons.bouton,
       borderWidth: 1.5,
       borderColor: c.encre,
-      fontFamily: Polices.texteMoyen,
+      ...Polices.texteMoyen,
       fontSize: Tailles.accent,
       color: c.encre,
     },
     inactif: { opacity: 0.45 },
     mention: {
-      fontFamily: Polices.texte,
+      ...Polices.texte,
       fontSize: Tailles.pastille,
       lineHeight: 18,
       color: c.texteSecondaire,
       textAlign: 'center',
     },
-    lien: { fontFamily: Polices.texteDemi, color: c.rougeTexte },
+    lien: { ...Polices.texteDemi, color: c.rougeTexte },
     erreur: { padding: 12, borderRadius: 14, backgroundColor: c.beige },
-    erreurTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.petit, lineHeight: 20, color: c.encre },
+    erreurTexte: { ...Polices.texteMoyen, fontSize: Tailles.petit, lineHeight: 20, color: c.encre },
 
     // L'équipe qui attend
     equipe: { gap: 6 },
     ronds: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 5 },
     rond: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-    rondTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille, color: c.surAvatar },
+    rondTexte: { ...Polices.texteDemi, fontSize: Tailles.pastille, color: c.surAvatar },
     rondToi: {
       width: 36,
       height: 36,
@@ -460,7 +460,7 @@ const creerStyles = (c: Palette) =>
       borderColor: c.rouge,
     },
     rondToiPlein: { borderStyle: 'solid', backgroundColor: c.rouge },
-    rondToiTexte: { fontFamily: Polices.titreDemi, fontSize: Tailles.micro, color: c.rougeTexte },
+    rondToiTexte: { ...Polices.texteDemi, fontSize: Tailles.micro, color: c.rougeTexte },
     rondToiTextePlein: { fontSize: Tailles.texte, color: c.surRouge },
 
     // Le code en 6 cases

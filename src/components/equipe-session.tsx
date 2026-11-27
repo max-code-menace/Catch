@@ -121,7 +121,7 @@ const creerStyles = (c: Palette) =>
     },
     entete: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
     titre: { fontFamily: Polices.titre, fontSize: Tailles.sousTitre, color: c.encre },
-    compte: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+    compte: { ...Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     grille: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
     rond: {
       width: TAILLE_ROND,
@@ -131,10 +131,10 @@ const creerStyles = (c: Palette) =>
       justifyContent: 'center',
     },
     presse: { opacity: 0.6 },
-    astuce: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire, marginTop: -4 },
+    astuce: { ...Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire, marginTop: -4 },
     libre: { borderWidth: 2, borderStyle: 'dashed', borderColor: c.rougeBordure },
-    initiales: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.surAvatar },
+    initiales: { ...Polices.texteDemi, fontSize: Tailles.aide, color: c.surAvatar },
     pied: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, minHeight: 44 },
-    resume: { flex: 1, fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.rougeTexte },
+    resume: { flex: 1, ...Polices.texteDemi, fontSize: Tailles.courant, color: c.rougeTexte },
     inviter: { paddingHorizontal: 16 },
   });

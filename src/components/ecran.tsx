@@ -75,7 +75,7 @@ const creerStyles = (c: Palette) =>
     entete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
     titre: { flexShrink: 1, fontFamily: Polices.titre, fontSize: Tailles.titreEcran, color: c.encre },
     aide: {
-      fontFamily: Polices.texte,
+      ...Polices.texte,
       fontSize: Tailles.texte,
       lineHeight: 24,
       color: c.texteSecondaire,

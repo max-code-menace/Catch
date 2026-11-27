@@ -60,7 +60,7 @@ const creerStyles = (c: Palette) =>
       borderRadius: Rayons.pilule,
       boxShadow: c.ombreForte,
     },
-    texte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.courant, color: c.surEncre },
+    texte: { ...Polices.texteMoyen, fontSize: Tailles.courant, color: c.surEncre },
     bouton: {
       height: 40,
       minWidth: Espaces.cibleTactile,
@@ -69,5 +69,5 @@ const creerStyles = (c: Palette) =>
       borderRadius: Rayons.pilule,
       backgroundColor: c.surEncreDoux,
     },
-    boutonTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.surEncre },
+    boutonTexte: { ...Polices.texteDemi, fontSize: Tailles.petit, color: c.surEncre },
   });

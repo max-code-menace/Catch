@@ -57,6 +57,6 @@ const creerStyles = (c: Palette) =>
     libre: { backgroundColor: c.beige },
     urgent: { backgroundColor: c.orangeDoux, borderWidth: 1.5, borderColor: c.orange },
     compte: { minWidth: 44, textAlign: 'right', fontFamily: Polices.titre, fontSize: Tailles.accent, color: c.rougeTexte },
-    total: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.texteSecondaire },
-    complet: { minWidth: 44, textAlign: 'right', fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.texteSecondaire },
+    total: { ...Polices.texteDemi, fontSize: Tailles.aide, color: c.texteSecondaire },
+    complet: { minWidth: 44, textAlign: 'right', ...Polices.texteDemi, fontSize: Tailles.aide, color: c.texteSecondaire },
   });

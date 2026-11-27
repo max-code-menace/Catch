@@ -106,5 +106,5 @@ const creerStyles = (c: Palette) =>
     },
     eclat: { position: 'absolute', width: 7, height: 7, borderRadius: 4 },
     carre: { borderRadius: 1.5 },
-    texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.minuscule, color: c.surRouge },
+    texte: { ...Polices.texteDemi, fontSize: Tailles.minuscule, color: c.surRouge },
   });

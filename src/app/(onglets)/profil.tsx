@@ -588,8 +588,8 @@ const creerStyles = (c: Palette) =>
       paddingBottom: RESERVE_BAS + BarreNavigation.margeBas + 24,
       gap: 22,
     },
-    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, lineHeight: 18, color: c.texteSecondaire },
-    aideCentree: { fontFamily: Polices.texte, fontSize: Tailles.aide, lineHeight: 18, color: c.texteSecondaire, textAlign: 'center' },
+    aide: { ...Polices.texte, fontSize: Tailles.aide, lineHeight: 18, color: c.texteSecondaire },
+    aideCentree: { ...Polices.texte, fontSize: Tailles.aide, lineHeight: 18, color: c.texteSecondaire, textAlign: 'center' },
 
     // La carte de joueur, orange comme l'en-tête d'une session
     carteJoueur: {
@@ -612,8 +612,8 @@ const creerStyles = (c: Palette) =>
     prenom: { fontFamily: Polices.titre, fontSize: Tailles.titreSession, color: c.surCreer },
     prenomReplie: { fontSize: Tailles.accent },
     verifie: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-    verifieTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.surCreer },
-    joue: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.surCreer },
+    verifieTexte: { ...Polices.texteDemi, fontSize: Tailles.aide, color: c.surCreer },
+    joue: { ...Polices.texteDemi, fontSize: Tailles.courant, color: c.surCreer },
     menu: {
       width: Espaces.cibleTactile,
       height: Espaces.cibleTactile,
@@ -662,18 +662,18 @@ const creerStyles = (c: Palette) =>
       backgroundColor: c.voileSurCreer,
     },
     interrupteurActif: { backgroundColor: c.surCreer },
-    interrupteurTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.petit, color: c.surCreer },
+    interrupteurTexte: { ...Polices.texteDemi, fontSize: Tailles.petit, color: c.surCreer },
     interrupteurTexteActif: { color: c.creerFin },
     glissiere: { width: 46, height: 28, borderRadius: Rayons.pilule, padding: 3, backgroundColor: c.voileSurCreer },
     glissiereActive: { backgroundColor: c.rouge },
     bouleGlissiere: { width: 22, height: 22, borderRadius: 11, backgroundColor: c.surCreer, boxShadow: c.ombrePetite },
     bouleGlissiereActive: { transform: [{ translateX: 18 }] },
     dispoMini: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: Rayons.pilule, backgroundColor: c.surCreer },
-    dispoMiniTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille, color: c.creerFin },
+    dispoMiniTexte: { ...Polices.texteDemi, fontSize: Tailles.pastille, color: c.creerFin },
 
     // Les blocs
     bloc: { gap: 10 },
-    titreBloc: { fontFamily: Polices.titreDemi, fontSize: Tailles.sousTitre, color: c.encre },
+    titreBloc: { ...Polices.texteDemi, fontSize: Tailles.sousTitre, color: c.encre },
     carte: {
       padding: 14,
       gap: 12,
@@ -693,7 +693,7 @@ const creerStyles = (c: Palette) =>
       borderColor: c.trait,
     },
     titreVide: { fontFamily: Polices.titre, fontSize: Tailles.texte, color: c.encre, textAlign: 'center' },
-    ligneTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
+    ligneTitre: { ...Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
 
     // Tu rejouerais avec qui ?
     titreQuestion: { fontFamily: Polices.titre, fontSize: Tailles.texte, color: c.encre },
@@ -711,16 +711,16 @@ const creerStyles = (c: Palette) =>
       backgroundColor: c.fond,
     },
     choixJoueurCoche: { backgroundColor: c.encre, borderColor: c.encre },
-    choixJoueurTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
+    choixJoueurTexte: { ...Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
     choixJoueurTexteCoche: { color: c.surEncre },
     miniRond: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    miniRondTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille, color: c.surAvatar },
+    miniRondTexte: { ...Polices.texteDemi, fontSize: Tailles.pastille, color: c.surAvatar },
     boutonGauche: { alignSelf: 'flex-start' },
 
     // Potes
     ronds: { gap: 14, paddingVertical: 6, paddingHorizontal: 2 },
     rondAvecNom: { width: 64, alignItems: 'center', gap: 4 },
-    nomRond: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille, color: c.encre },
+    nomRond: { ...Polices.texteDemi, fontSize: Tailles.pastille, color: c.encre },
     anneauPote: { padding: 3, borderRadius: Rayons.pilule, borderWidth: 2.5, borderColor: 'transparent' },
     anneauDispo: { borderColor: c.rouge },
     rondPote: {
@@ -744,7 +744,7 @@ const creerStyles = (c: Palette) =>
       borderColor: c.trait,
     },
     vignette: { width: 72, height: 72, backgroundColor: c.fondPhoto },
-    quandPote: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTexte },
+    quandPote: { ...Polices.texteDemi, fontSize: Tailles.aide, color: c.rougeTexte },
 
     // Catchs
     carrousel: { gap: 10, paddingRight: 4 },
@@ -774,9 +774,9 @@ const creerStyles = (c: Palette) =>
       backgroundColor: c.carte,
     },
     rondSport: { width: 34, height: 34, borderRadius: 17, backgroundColor: c.fondPhoto },
-    pastilleSportTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
+    pastilleSportTexte: { ...Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
     pastilleAjout: { paddingLeft: 14, borderStyle: 'dashed' },
-    pastilleAjoutTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.texteSecondaire },
+    pastilleAjoutTexte: { ...Polices.texteDemi, fontSize: Tailles.aide, color: c.texteSecondaire },
 
     // Sans compte
     invite: { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 4 },

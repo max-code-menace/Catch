@@ -50,5 +50,5 @@ const creerStyles = (c: Palette) =>
       borderColor: c.trait,
       boxShadow: c.ombrePetite,
     },
-    presDeMoiTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
+    presDeMoiTexte: { ...Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
   });

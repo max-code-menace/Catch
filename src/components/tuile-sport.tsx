@@ -125,7 +125,7 @@ const creerStyles = (c: Palette) =>
       justifyContent: 'center',
       backgroundColor: c.encre,
     },
-    nombreTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.minuscule, color: c.surEncre },
+    nombreTexte: { ...Polices.texteDemi, fontSize: Tailles.minuscule, color: c.surEncre },
     coche: {
       position: 'absolute',
       top: 5,
@@ -142,9 +142,9 @@ const creerStyles = (c: Palette) =>
     nom: {
       marginTop: 4,
       textAlign: 'center',
-      fontFamily: Polices.texteMoyen,
+      ...Polices.texteMoyen,
       fontSize: Tailles.pastille,
       color: c.encre,
     },
-    nomChoisi: { fontFamily: Polices.texteDemi, color: c.rougeTexte },
+    nomChoisi: { ...Polices.texteDemi, color: c.rougeTexte },
   });

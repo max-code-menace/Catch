@@ -137,7 +137,7 @@ const creerStyles = (c: Palette) =>
       borderColor: c.trait,
     },
     recouvert: { marginLeft: -6 },
-    libelle: { flexShrink: 1, fontFamily: Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
+    libelle: { flexShrink: 1, ...Polices.texteDemi, fontSize: Tailles.aide, color: c.encre },
     rond: {
       width: HAUTEUR_PASTILLE,
       height: HAUTEUR_PASTILLE,

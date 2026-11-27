@@ -42,5 +42,5 @@ const creerStyles = (c: Palette) =>
       height: 26,
       borderRadius: Rayons.pilule,
     },
-    texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille },
+    texte: { ...Polices.texteDemi, fontSize: Tailles.pastille },
   });

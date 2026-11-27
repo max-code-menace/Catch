@@ -142,5 +142,5 @@ const creerStyles = (c: Palette) =>
     coutureBalle: { width: 2, height: TAILLE_BALLE, backgroundColor: c.rouge },
     secondaire: { backgroundColor: c.carte, borderWidth: 1, borderColor: c.trait },
     lien: { minHeight: Espaces.cibleTactile },
-    texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte },
+    texte: { ...Polices.texteDemi, fontSize: Tailles.texte },
   });

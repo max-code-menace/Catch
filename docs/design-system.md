@@ -47,7 +47,7 @@ Une seule couleur d'action par écran : le rouge. Un statut n'est jamais porté 
 ## Typographie
 
 - **Titres** : Bricolage Grotesque, 600–700 (Google Fonts).
-- **Texte et interface** : Inter, 400–600.
+- **Texte et interface** : la police du téléphone (SF Pro sur iPhone, Roboto sur Android), 400–600. Inter retirée le 27 novembre (elle faisait « app générée »). Dans le code : `...Polices.texte`, `...Polices.texteMoyen`, `...Polices.texteDemi` (police + graisse).
 - Tailles : titre d'écran 28, titre de session 24, texte 15–16, aides 13, pastilles 12–13.
 
 ## Mise en page

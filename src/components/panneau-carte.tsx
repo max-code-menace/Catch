@@ -63,7 +63,7 @@ const creerStyles = (c: Palette) =>
       color: c.encre,
     },
     texte: {
-      fontFamily: Polices.texte,
+      ...Polices.texte,
       fontSize: Tailles.courant,
       lineHeight: 22,
       textAlign: 'center',

@@ -156,9 +156,9 @@ const creerStyles = (c: Palette) =>
       borderRadius: Rayons.pilule,
       backgroundColor: c.surRouge,
     },
-    statutTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.rouge },
+    statutTexte: { ...Polices.texteDemi, fontSize: Tailles.courant, color: c.rouge },
     ligne: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 12, paddingHorizontal: 14 },
-    lieu: { flex: 1, fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+    lieu: { flex: 1, ...Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     places: { width: 150 },
     actions: {
       flexDirection: 'row',
@@ -170,5 +170,5 @@ const creerStyles = (c: Palette) =>
       borderTopColor: c.trait,
     },
     inviter: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44 },
-    inviterTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.rougeTexte },
+    inviterTexte: { ...Polices.texteDemi, fontSize: Tailles.courant, color: c.rougeTexte },
   });

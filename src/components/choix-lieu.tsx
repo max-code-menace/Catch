@@ -198,7 +198,7 @@ const creerStyles = (c: Palette) =>
       borderTopRightRadius: 26,
       boxShadow: c.ombreVersHaut,
     },
-    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+    aide: { ...Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     nom: { fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, lineHeight: 28, color: c.encre },
     bouton: { marginTop: 14, borderRadius: Rayons.bouton },
   });

@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 // Design system de Catch. Référence : docs/design-system.md
 
 // Deux palettes : claire et sombre. Aucune couleur n'est écrite en dur dans un écran,
@@ -136,13 +138,18 @@ export const Palettes = {
 export type Theme = keyof typeof Palettes;
 export type Palette = { [K in keyof typeof Palettes.clair]: string };
 
-// Les noms correspondent aux polices chargées dans src/app/_layout.tsx
+// Texte courant : la police du téléphone (SF Pro sur iPhone, Roboto sur Android), comme les apps natives
+// (audit du 27 novembre : Inter faisait « app générée »). Bricolage reste pour les titres et les chiffres.
+const SYSTEME = Platform.select({ android: 'sans-serif', default: 'System' });
+
+// titre et titreDemi : noms des polices chargées dans src/app/_layout.tsx (à écrire `fontFamily: Polices.titre`).
+// texte, texteMoyen, texteDemi : police + graisse (à étaler : `...Polices.texte`).
 export const Polices = {
   titre: 'BricolageGrotesque_700Bold',
   titreDemi: 'BricolageGrotesque_600SemiBold',
-  texte: 'Inter_400Regular',
-  texteMoyen: 'Inter_500Medium',
-  texteDemi: 'Inter_600SemiBold',
+  texte: { fontFamily: SYSTEME, fontWeight: '400' },
+  texteMoyen: { fontFamily: SYSTEME, fontWeight: '500' },
+  texteDemi: { fontFamily: SYSTEME, fontWeight: '600' },
 } as const;
 
 // Échelle des tailles de texte. Aucun fontSize écrit en chiffres dans un écran.

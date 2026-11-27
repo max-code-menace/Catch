@@ -28,5 +28,5 @@ const creerStyles = (c: Palette) =>
       padding: Espaces.marge,
       backgroundColor: c.fond,
     },
-    texte: { fontFamily: Polices.texte, fontSize: Tailles.texte, color: c.encre, textAlign: 'center' },
+    texte: { ...Polices.texte, fontSize: Tailles.texte, color: c.encre, textAlign: 'center' },
   });

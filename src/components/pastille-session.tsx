@@ -273,7 +273,7 @@ const creerStyles = (c: Palette) =>
       boxShadow: c.ombrePetite,
     },
     nombreGroupe: { fontFamily: Polices.titre, fontSize: Tailles.sousTitre, color: c.surRond },
-    texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.pastille },
+    texte: { ...Polices.texteDemi, fontSize: Tailles.pastille },
     point: { width: TAILLE_POINT, height: TAILLE_POINT },
     rond: { position: 'absolute', width: 8, height: 8, borderRadius: 4 },
     // Assez de place autour de la pastille pour que les morceaux ne soient pas coupés

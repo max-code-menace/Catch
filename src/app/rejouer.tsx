@@ -158,9 +158,9 @@ export default function Rejouer() {
 
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
-    aide: { fontFamily: Polices.texte, fontSize: Tailles.courant, lineHeight: 22, color: c.texteSecondaire },
+    aide: { ...Polices.texte, fontSize: Tailles.courant, lineHeight: 22, color: c.texteSecondaire },
     session: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    sessionTexte: { flex: 1, fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
+    sessionTexte: { flex: 1, ...Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
     liste: { gap: 10 },
     joueur: {
       flexDirection: 'row',
@@ -175,7 +175,7 @@ const creerStyles = (c: Palette) =>
     joueurChoisi: { borderColor: c.rouge, backgroundColor: c.rougeDoux },
     rond: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
     rondTexte: { fontFamily: Polices.titre, fontSize: Tailles.accent, color: c.surAvatar },
-    prenom: { flex: 1, fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
+    prenom: { flex: 1, ...Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
     coche: {
       width: 28,
       height: 28,

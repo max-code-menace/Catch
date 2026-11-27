@@ -21,5 +21,5 @@ export default function MesSports() {
 
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
-    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+    aide: { ...Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
   });

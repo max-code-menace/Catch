@@ -223,7 +223,7 @@ const creerStyles = (c: Palette) =>
   StyleSheet.create({
     ecran: { flex: 1, backgroundColor: c.fond },
     contenu: { padding: Espaces.marge, gap: 16 },
-    texte: { fontFamily: Polices.texte, fontSize: Tailles.texte, lineHeight: 24, color: c.texteSecondaire },
+    texte: { ...Polices.texte, fontSize: Tailles.texte, lineHeight: 24, color: c.texteSecondaire },
     carte: {
       padding: 16,
       gap: 12,
@@ -234,8 +234,8 @@ const creerStyles = (c: Palette) =>
     },
     ligne: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     textes: { flex: 1, gap: 2 },
-    libelle: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
-    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, lineHeight: 18, color: c.texteSecondaire },
+    libelle: { ...Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
+    aide: { ...Polices.texte, fontSize: Tailles.aide, lineHeight: 18, color: c.texteSecondaire },
     trait: { height: 1, backgroundColor: c.trait },
     sports: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     sport: {
@@ -259,5 +259,5 @@ const creerStyles = (c: Palette) =>
       justifyContent: 'center',
       backgroundColor: c.rondPicto,
     },
-    sportTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.petit, color: c.encre },
+    sportTexte: { ...Polices.texteMoyen, fontSize: Tailles.petit, color: c.encre },
   });

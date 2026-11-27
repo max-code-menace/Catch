@@ -26,21 +26,21 @@ export function useOptionsEntete(titre: string, modale = false) {
     headerShadowVisible: false,
     headerStyle: { backgroundColor: c.fond },
     headerTintColor: c.rouge,
-    headerTitleStyle: { fontFamily: Polices.titreDemi, color: c.encre },
+    headerTitleStyle: { ...Polices.texteDemi, color: c.encre },
     headerLargeTitleStyle: { fontFamily: Polices.titre, color: c.encre },
     headerBackButtonDisplayMode: 'minimal' as const,
     headerLeft:
       Platform.OS === 'web' && !router.canGoBack()
         ? () => (
             <Pressable accessibilityRole="link" onPress={() => router.replace('/')} hitSlop={8}>
-              <Text style={{ fontFamily: Polices.texteDemi, color: c.rouge }}>Accueil</Text>
+              <Text style={{ ...Polices.texteDemi, color: c.rouge }}>Accueil</Text>
             </Pressable>
           )
         : undefined,
     headerRight: modale
       ? () => (
           <Pressable accessibilityRole="button" onPress={() => router.back()} hitSlop={8}>
-            <Text style={{ fontFamily: Polices.texteDemi, color: c.rouge }}>Fermer</Text>
+            <Text style={{ ...Polices.texteDemi, color: c.rouge }}>Fermer</Text>
           </Pressable>
         )
       : undefined,

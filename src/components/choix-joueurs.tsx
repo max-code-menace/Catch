@@ -46,5 +46,5 @@ const creerStyles = (c: Palette) =>
       ios: { height: 132 },
       default: { color: c.encre, backgroundColor: c.carte },
     }),
-    element: { height: 132, fontFamily: Polices.texteMoyen, fontSize: Tailles.texte, color: c.encre },
+    element: { height: 132, ...Polices.texteMoyen, fontSize: Tailles.texte, color: c.encre },
   });

@@ -142,6 +142,8 @@ Demande de Maxime : repérer ce qui fait « app générée par IA ». Note globa
 
 **2. Carte, fait le 27 novembre** : les sessions d’abord. De loin (ouverture de départ), plus aucune pastille de lieu ; elles apparaissent en zoomant (même seuil que l’ancien regroupement « 12 lieux », `OUVERTURE_REGROUPEMENT`), ou de loin quand on a décoché « Sessions » dans le menu (alors regroupées comme avant). Le lieu choisi reste toujours visible. Pastille de lieu plus petite (rond de 26 px, picto 15, zone de toucher 44 px gardée), plus pâle, sans ombre et **sans « € »** (la fiche dit gratuit ou payant). Calcul `lieuxAMontrer` dans `lib/regroupement.ts` (testé), aussi sur la version web. Vu sur le web (une seule session en direct au lieu d’une quarantaine de pastilles), pas sur un vrai iPhone.
 
+**3. Police, fait le 27 novembre** : Inter retirée (paquet compris). Le texte courant prend la police du téléphone (SF Pro sur iPhone, Roboto sur Android, celle du système sur le web) : `Polices.texte`, `texteMoyen`, `texteDemi` sont maintenant police + graisse, à étaler : `...Polices.texteDemi` (plus `fontFamily: Polices.texteDemi`). Bricolage reste pour `Polices.titre` (titres d’écran, chiffres, titres de session) et pour la phrase de Créer ; les petits titres (« Mes potes », titres de la barre du système, titres des textes légaux, initiales) passent en police du téléphone. Vu sur le web, pas sur un vrai iPhone.
+
 ## Refonte écran par écran (en cours depuis le 25 novembre)
 
 Demande de Maxime : rendre chaque écran plus soigné et moins générique, **un écran à la fois**, avec cette méthode :
@@ -186,6 +188,7 @@ Règles de code :
 - **Aucune couleur en dur dans un écran.** Chaque fichier déclare `const creerStyles = (c: Palette) => StyleSheet.create({…})` et chaque composant fait `const styles = useStyles(creerStyles)` ; pour une couleur hors styles, `const c = useCouleurs()`. Sur du rouge on écrit en `c.surRouge`, sur un fond encre en `c.surEncre` (jamais `c.carte` comme couleur de texte).
 - **Aucune taille de texte ni ombre en chiffres** : `fontSize: Tailles.…` et `boxShadow: c.ombre…` (échelle dans `constants/theme.ts`).
 - React Compiler est actif : avec Reanimated écrire `valeur.set()` / `valeur.get()`, pas `.value`.
+- Texte courant : `...Polices.texte` (police du téléphone + graisse), jamais Inter. Titres et chiffres : `fontFamily: Polices.titre`.
 - Installer un paquet avec `npx expo install`. Avant chaque commit : `npx tsc --noEmit` et `npx expo lint`.
 
 ## Tester et publier

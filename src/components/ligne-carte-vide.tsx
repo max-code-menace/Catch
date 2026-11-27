@@ -65,6 +65,6 @@ const creerStyles = (c: Palette) =>
       borderColor: c.trait,
       boxShadow: c.ombrePetite,
     },
-    texte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.aide, color: c.encre },
-    action: { fontFamily: Polices.texteDemi, color: c.orangeTexte },
+    texte: { ...Polices.texteMoyen, fontSize: Tailles.aide, color: c.encre },
+    action: { ...Polices.texteDemi, color: c.orangeTexte },
   });

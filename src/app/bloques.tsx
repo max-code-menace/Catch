@@ -86,8 +86,8 @@ export default function PersonnesBloquees() {
 
 const creerStyles = (c: Palette) =>
   StyleSheet.create({
-    texte: { fontFamily: Polices.texte, fontSize: Tailles.texte, lineHeight: 24, color: c.texteSecondaire },
-    libelle: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
+    texte: { ...Polices.texte, fontSize: Tailles.texte, lineHeight: 24, color: c.texteSecondaire },
+    libelle: { ...Polices.texteDemi, fontSize: Tailles.texte, color: c.encre },
     prenom: { flex: 1 },
     ligne: {
       flexDirection: 'row',

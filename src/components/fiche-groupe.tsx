@@ -90,7 +90,7 @@ const creerStyles = (c: Palette) =>
     },
     ligne: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
     titre: { flex: 1, fontFamily: Polices.titre, fontSize: Tailles.titreMoyen, color: c.encre },
-    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+    aide: { ...Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
     liste: { maxHeight: 280, marginTop: 4 },
     listeContenu: { gap: 2 },
     rangee: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 52 },
@@ -103,5 +103,5 @@ const creerStyles = (c: Palette) =>
       justifyContent: 'center',
     },
     textes: { flex: 1, gap: 2 },
-    rangeeTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
+    rangeeTitre: { ...Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
   });

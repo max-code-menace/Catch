@@ -41,5 +41,5 @@ const creerStyles = (c: Palette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    texte: { fontFamily: Polices.texteDemi, fontSize: Tailles.minuscule, color: c.surAvatar },
+    texte: { ...Polices.texteDemi, fontSize: Tailles.minuscule, color: c.surAvatar },
   });

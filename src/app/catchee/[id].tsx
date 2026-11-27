@@ -214,7 +214,7 @@ const creerStyles = (c: Palette) =>
     },
     resume: { alignItems: 'center', gap: 4 },
     texte: {
-      fontFamily: Polices.texte,
+      ...Polices.texte,
       fontSize: Tailles.texte,
       lineHeight: 24,
       color: c.texteSecondaire,
@@ -223,7 +223,7 @@ const creerStyles = (c: Palette) =>
     // L'équipe en grand sous le titre, puis qui t'attend
     attente: { alignItems: 'center', gap: 8, marginTop: 4, marginBottom: 10 },
     equipe: { flexDirection: 'row', alignItems: 'center' },
-    attenteTexte: { fontFamily: Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
+    attenteTexte: { ...Polices.texteDemi, fontSize: Tailles.courant, color: c.encre },
     actions: { gap: 10, paddingBottom: 16 },
     rappel: {
       alignSelf: 'stretch',
@@ -235,9 +235,9 @@ const creerStyles = (c: Palette) =>
       borderWidth: 1,
       borderColor: c.trait,
     },
-    rappelTitre: { fontFamily: Polices.texteDemi, fontSize: Tailles.texte, color: c.encre, textAlign: 'center' },
+    rappelTitre: { ...Polices.texteDemi, fontSize: Tailles.texte, color: c.encre, textAlign: 'center' },
     duo: { flexDirection: 'row', gap: 8 },
     demi: { flex: 1, paddingHorizontal: 10 },
     annulation: { alignItems: 'center', paddingTop: 4 },
-    aide: { fontFamily: Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
+    aide: { ...Polices.texte, fontSize: Tailles.aide, color: c.texteSecondaire },
   });

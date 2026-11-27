@@ -69,5 +69,5 @@ const creerStyles = (c: Palette) =>
       opacity: 0.92,
       boxShadow: c.ombrePetite,
     },
-    groupeTexte: { fontFamily: Polices.texteMoyen, fontSize: Tailles.aide, color: c.texteSecondaire },
+    groupeTexte: { ...Polices.texteMoyen, fontSize: Tailles.aide, color: c.texteSecondaire },
   });
